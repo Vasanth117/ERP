@@ -15,6 +15,8 @@ class AuditLogRead(BaseModel):
     resource_type: str
     resource_id: str | None
     tenant_id: str | None
+    outcome: str
+    request_id: str | None
     metadata: dict[str, Any]
     created_at: datetime
 
@@ -27,6 +29,8 @@ class AuditLogRead(BaseModel):
             resource_type=entry.resource_type,
             resource_id=entry.resource_id,
             tenant_id=str(entry.tenant_id) if entry.tenant_id else None,
+            outcome=entry.outcome,
+            request_id=entry.request_id,
             metadata=entry.metadata,
             created_at=entry.created_at,
         )

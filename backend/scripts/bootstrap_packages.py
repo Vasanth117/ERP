@@ -12,6 +12,7 @@ PACKAGES = [
     "app/modules",
     "app/modules/auth",
     "app/modules/tenants",
+    "app/modules/platform",
     "app/modules/users",
     "app/modules/audit",
     "app/tasks",

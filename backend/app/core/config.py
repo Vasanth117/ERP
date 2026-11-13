@@ -8,37 +8,55 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_env: Literal["development", "test", "production"] = "development"
-    app_name: str = "ERP System API"
-    api_v1_prefix: str = "/api/v1"
-    mongodb_url: str = Field(repr=False)
-    mongodb_db_name: str = "erp"
-    rabbitmq_url: str = Field(repr=False)
-    jwt_secret: str = Field(repr=False)
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
-    cors_origins: str = "http://localhost:3000"
+  app_env: Literal["development", "test", "production"] = "development"
+  app_name: str = "ERP System API"
+  api_v1_prefix: str = "/api/v1"
+  mongodb_url: str = Field(repr=False)
+  mongodb_db_name: str = "erp"
+  redis_url: str = "redis://localhost:6379/0"
+  rabbitmq_url: str = Field(repr=False)
+  jwt_secret: str = Field(repr=False)
+  jwt_algorithm: str = "HS256"
+  jwt_issuer: str = "erp-system"
+  jwt_audience: str = "erp-api"
+  access_token_expire_minutes: int = 60
+  refresh_token_expire_days: int = 14
+  login_rate_limit_per_minute: int = 20
+  invitation_rate_limit_per_minute: int = 10
+  invitation_expire_hours: int = 72
+  tenant_provisioning_max_attempts: int = 5
+  cors_origins: str = "http://localhost:3000"
+  saas_billing_enabled: bool = True
+  export_download_expire_hours: int = 72
+  export_storage_path: str = "data/exports"
+  lms_storage_path: str = "data/lms"
+  student_report_storage_path: str = "data/student_reports"
+  payment_webhook_secret: str = Field(default="", repr=False)
+  payment_webhook_secret: str = Field(default="", repr=False)
+  payroll_integration_enabled: bool = False
+  default_retention_days: int = 90
+  subscription_trial_days: int = 14
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
+  model_config = SettingsConfigDict(
+    env_file=".env",
+    env_file_encoding="utf-8",
+    extra="ignore",
+  )
 
-    @computed_field
-    @property
-    def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+  @computed_field
+  @property
+  def cors_origin_list(self) -> list[str]:
+    return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
-    @model_validator(mode="after")
-    def reject_placeholder_secret_in_production(self) -> "Settings":
-        placeholder = self.jwt_secret == "dev-only-change-me"
-        too_short = len(self.jwt_secret) < 32
-        if self.app_env == "production" and (placeholder or too_short):
-            raise ValueError("Set a JWT_SECRET of at least 32 characters in production")
-        return self
+  @model_validator(mode="after")
+  def reject_placeholder_secret_in_production(self) -> "Settings":
+    placeholder = self.jwt_secret == "dev-only-change-me"
+    too_short = len(self.jwt_secret) < 32
+    if self.app_env == "production" and (placeholder or too_short):
+      raise ValueError("Set a JWT_SECRET of at least 32 characters in production")
+    return self
 
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+  return Settings()

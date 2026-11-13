@@ -1,3 +1,10 @@
+# Local workflow / prompt docs (do not commit)
+backend_and_frontend.md
+bug_fixing.md
+figma_to_frontend.md
+intergration_frontend_backend.md
+BACKEND_MODULE_COMPLETION_AUDIT_GUIDE.md
+
 .venv/
 venv/
 __pycache__/

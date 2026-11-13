@@ -18,7 +18,7 @@ async def _create(email: str, password: str, full_name: str) -> None:
     configure_logging()
     await connect_to_mongo()
     try:
-        existing = await User.find_one(User.email == email)
+        existing = await User.find_one(User.email == email, User.tenant_id == None)  # noqa: E711
         if existing is not None:
             print(f"User already exists: {email}")
             return 1

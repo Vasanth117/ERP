@@ -1,0 +1,1 @@
+"""Platform and tenant configuration."""
