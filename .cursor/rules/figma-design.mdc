@@ -1,0 +1,13 @@
+---
+description: Connect ERP UI work to the canonical Figma file and backend API
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Figma ↔ ERP System
+
+- Source of truth for UI: read `design/figma.json` for the Figma `fileKey`, `defaultNodeId`, and `url`.
+- Before implementing screens from Figma, use the **figma-design-to-code** skill and Figma MCP `get_design_context` with that file/node (not a guessed URL).
+- Frontend talks to FastAPI at `http://localhost:8000` with prefix `/api/v1` (see `backend/app/core/config.py` and `backend/app/api/v1/router.py`).
+- Auth: `POST /api/v1/auth/login`, session via Bearer token; super admins may send `X-Tenant-Id`.
+- Active API modules today: auth, tenants, users, audit; other modules are stubbed but routed for future UI.

@@ -1,0 +1,123 @@
+# Local stack for the ERP API.
+# Kafka is intentionally absent: it is an optional later event-streaming path.
+# RabbitMQ is the broker for Celery jobs.
+
+services:
+  mongodb:
+    image: mongo:7
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./docker/mongo-init.js:/docker-mongo-init.js:ro
+    entrypoint: ["mongosh", "--host", "mongodb", "--file", "/docker-mongo-init.js"]
+    restart: "no"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment: &backend_env
+      APP_ENV: development
+      MONGODB_URL: mongodb://mongodb:27017/erp?replicaSet=rs0
+      MONGODB_DB_NAME: erp
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672//
+      JWT_SECRET: dev-only-change-me
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "60"
+      CORS_ORIGINS: http://localhost:3000
+      API_V1_PREFIX: /api/v1
+    depends_on:
+      mongo-init:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+    command: celery -A app.celery_app:celery_app worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    environment: *backend_env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beat:
+    build:
+      context: ./backend
+    command: celery -A app.celery_app:celery_app beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    environment: *backend_env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  flower:
+    profiles: ["monitoring"]
+    build:
+      context: ./backend
+    command: celery -A app.celery_app:celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    volumes:
+      - ./backend:/app
+    environment:
+      <<: *backend_env
+      FLOWER_BASIC_AUTH: admin:admin
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mongo_data:

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/Untitled?node-id=0-1",
+  "fileKey": "Hy7qeZdVNmzD6PN0ZkgBfK",
+  "fileName": "Untitled",
+  "defaultNodeId": "0:1",
+  "linkedBackend": {
+    "apiBaseUrlDev": "http://localhost:8000/api/v1",
+    "corsOrigin": "http://localhost:3000",
+    "authLogin": "POST /auth/login",
+    "authMe": "GET /auth/me"
+  }
+}
