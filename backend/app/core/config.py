@@ -29,6 +29,11 @@ class Settings(BaseSettings):
   saas_billing_enabled: bool = True
   export_download_expire_hours: int = 72
   export_storage_path: str = "data/exports"
+  lms_storage_path: str = "data/lms"
+  student_report_storage_path: str = "data/student_reports"
+  payment_webhook_secret: str = Field(default="", repr=False)
+  payment_webhook_secret: str = Field(default="", repr=False)
+  payroll_integration_enabled: bool = False
   default_retention_days: int = 90
   subscription_trial_days: int = 14
 

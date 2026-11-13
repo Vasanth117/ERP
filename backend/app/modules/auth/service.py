@@ -113,6 +113,10 @@ async def login(payload: LoginRequest) -> TokenResponse:
         tenant_id=user.tenant_id,
         metadata={"email": email},
     )
+    if user.tenant_id is not None:
+        from app.modules.college_admin.user_management_service import record_user_login
+
+        await record_user_login(user)
     return TokenResponse(
         access_token=create_access_token(str(user.id)),
         refresh_token=refresh_plaintext,

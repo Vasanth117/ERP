@@ -17,7 +17,11 @@ async def get_platform_profile(user_id: PydanticObjectId) -> PlatformOperatorPro
 
 async def effective_permissions_for_user(user: User) -> frozenset[Permission]:
     if user.tenant_id is not None:
-        return permissions_for_role(user.role)
+        base = permissions_for_role(user.role)
+        from app.modules.college_admin.rbac_service import institution_permission_overlay
+
+        overlay = await institution_permission_overlay(user.tenant_id, user.id)
+        return frozenset(base | overlay)
 
     if user.role == Role.SUPER_ADMIN:
         return PLATFORM_ROLE_PERMISSIONS[PlatformRoleCode.PLATFORM_OWNER]
