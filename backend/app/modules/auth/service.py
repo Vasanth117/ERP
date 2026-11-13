@@ -30,8 +30,14 @@ async def _resolve_login_tenant(tenant_code: str | None) -> PydanticObjectId | N
     tenant = await _tenant_repo.find_tenant_by_code(code)
     if tenant is None:
         raise AppError(code="TENANT_NOT_FOUND", message="College not found", status_code=404)
-    if not tenant.is_active:
-        raise AppError(code="TENANT_INACTIVE", message="This college is inactive", status_code=409)
+    from app.modules.tenants.tenant_access import tenant_blocks_end_user_access
+
+    if not tenant.is_active or tenant_blocks_end_user_access(tenant):
+        raise AppError(
+            code="TENANT_SUSPENDED",
+            message="This college is not available for login",
+            status_code=403,
+        )
     return tenant.id
 
 
@@ -43,6 +49,16 @@ async def login(payload: LoginRequest) -> TokenResponse:
     password_ok = verify_password(payload.password, password_hash)
 
     if user is None or not password_ok:
+        from app.modules.platform_security.events import emit_security_event
+
+        await emit_security_event(
+            code="auth_login_failed",
+            category="authentication",
+            title="Failed login attempt",
+            description="Invalid credentials",
+            severity="low",
+            metadata={"email": email, "tenant_code": payload.tenant_code},
+        )
         await record_audit(
             actor_id=user.id if user is not None else None,
             action="auth.login.failure",
@@ -79,7 +95,14 @@ async def login(payload: LoginRequest) -> TokenResponse:
         user.updated_at = utcnow()
         await user.save()
 
-    refresh_plaintext, _ = await issue_refresh_token(user)
+    if user.tenant_id is None:
+        from app.modules.platform_identity.login_hooks import assert_platform_operator_active, track_platform_login
+
+        await assert_platform_operator_active(user)
+
+    refresh_plaintext, refresh_doc = await issue_refresh_token(user)
+    if user.tenant_id is None:
+        await track_platform_login(user, refresh_doc.family_id)
     settings = get_settings()
 
     await record_audit(

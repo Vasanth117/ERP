@@ -8,7 +8,9 @@ from app.modules.tenants.models import Department, Tenant
 
 class TenantRepository:
   async def find_tenant_by_code(self, code: str) -> Tenant | None:
-    return await Tenant.find_one(Eq(Tenant.code, code))
+    from app.modules.tenants.domain_utils import normalize_tenant_code
+
+    return await Tenant.find_one(Eq(Tenant.code, normalize_tenant_code(code)))
 
   async def get_tenant(self, tenant_id: PydanticObjectId) -> Tenant | None:
     return await Tenant.get(tenant_id)

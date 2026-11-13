@@ -22,7 +22,15 @@ class Settings(BaseSettings):
   access_token_expire_minutes: int = 60
   refresh_token_expire_days: int = 14
   login_rate_limit_per_minute: int = 20
+  invitation_rate_limit_per_minute: int = 10
+  invitation_expire_hours: int = 72
+  tenant_provisioning_max_attempts: int = 5
   cors_origins: str = "http://localhost:3000"
+  saas_billing_enabled: bool = True
+  export_download_expire_hours: int = 72
+  export_storage_path: str = "data/exports"
+  default_retention_days: int = 90
+  subscription_trial_days: int = 14
 
   model_config = SettingsConfigDict(
     env_file=".env",

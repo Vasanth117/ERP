@@ -62,7 +62,16 @@ async def revoke_refresh_token(plaintext: str) -> None:
         await existing.save()
 
 
-async def revoke_all_for_user(user_id: PydanticObjectId) -> None:
+async def revoke_all_refresh_tokens_for_tenant(tenant_id: PydanticObjectId) -> int:
+    """Revoke refresh tokens for all users in a college (access tokens expire naturally)."""
+    users = await User.find(Eq(User.tenant_id, tenant_id)).to_list()
+    count = 0
+    for user in users:
+        count += await revoke_all_for_user(user.id)
+    return count
+
+
+async def revoke_all_for_user(user_id: PydanticObjectId) -> int:
     now = utcnow()
     tokens = await RefreshToken.find(
         RefreshToken.user_id == user_id,
@@ -71,3 +80,4 @@ async def revoke_all_for_user(user_id: PydanticObjectId) -> None:
     for token in tokens:
         token.revoked_at = now
         await token.save()
+    return len(tokens)

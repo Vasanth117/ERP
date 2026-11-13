@@ -14,12 +14,13 @@ from app.modules.hostel.router import router as hostel_router
 from app.modules.hr.router import router as hr_router
 from app.modules.library.router import router as library_router
 from app.modules.students.router import router as students_router
+from app.modules.platform.router import router as platform_router
 from app.modules.tenants.router import router as tenants_router
 from app.modules.users.router import router as users_router
 
 api_router = APIRouter()
 
-ACTIVE_MODULES = ["auth", "tenants", "users", "audit"]
+ACTIVE_MODULES = ["auth", "tenants", "platform", "configuration", "users", "audit"]
 PLANNED_MODULES = [
     "academics",
     "students",
@@ -48,6 +49,7 @@ def api_index() -> dict:
 
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 api_router.include_router(tenants_router, prefix="/tenants", tags=["tenants"])
+api_router.include_router(platform_router, prefix="/platform", tags=["platform"])
 api_router.include_router(users_router, prefix="/users", tags=["users"])
 api_router.include_router(audit_router, prefix="/audit", tags=["audit"])
 api_router.include_router(academics_router, prefix="/academics", tags=["academics"])
