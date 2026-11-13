@@ -1,32 +1,25 @@
 """Request dependencies for identity and tenant scope."""
 
-from dataclasses import dataclass
 from typing import Annotated
 
 from beanie import PydanticObjectId
 from bson.errors import InvalidId
-from fastapi import Depends, Header, HTTPException, Query, status
+from fastapi import Depends, Header, Query, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from app.authorization.permissions import Permission
+from app.authorization.policy import authorize
+from app.common.access import AccessScope
+from app.common.context import get_request_id, tenant_impersonation_var
 from app.common.ids import to_object_id
 from app.common.roles import DEPARTMENT_SCOPED_ROLES, Role
 from app.common.schemas import Pagination
+from app.core.exceptions import AppError
 from app.core.security import CREDENTIALS_ERROR, decode_access_token
+from app.modules.audit.service import record_audit
 from app.modules.auth.models import User
 
 bearer_scheme = HTTPBearer(auto_error=False)
-
-
-@dataclass(frozen=True)
-class AccessScope:
-    role: Role
-    user_id: PydanticObjectId
-    tenant_id: PydanticObjectId | None
-    department_id: PydanticObjectId | None
-
-    @property
-    def is_super_admin(self) -> bool:
-        return self.role == Role.SUPER_ADMIN
 
 
 async def get_current_user(
@@ -56,8 +49,20 @@ async def get_access_scope(
     ] = None,
 ) -> AccessScope:
     tenant_id = user.tenant_id
+    impersonating = False
     if user.role == Role.SUPER_ADMIN:
-        tenant_id = to_object_id(x_tenant_id, "X-Tenant-Id") if x_tenant_id else None
+        if x_tenant_id:
+            tenant_id = to_object_id(x_tenant_id, "X-Tenant-Id")
+            impersonating = True
+            tenant_impersonation_var.set(True)
+            await record_audit(
+                actor_id=user.id,
+                action="platform.tenant_impersonation",
+                resource_type="tenant",
+                resource_id=str(tenant_id),
+                tenant_id=tenant_id,
+                metadata={"request_id": get_request_id()},
+            )
     department_id = user.department_id if user.role in DEPARTMENT_SCOPED_ROLES else None
     return AccessScope(
         role=user.role,
@@ -72,11 +77,20 @@ def require_roles(*roles: Role):
 
     async def checker(user: Annotated[User, Depends(get_current_user)]) -> User:
         if user.role not in allowed:
-            raise HTTPException(
+            raise AppError(
+                code="FORBIDDEN",
+                message="You do not have permission for this action",
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission for this action",
             )
         return user
+
+    return checker
+
+
+def require_permission(permission: Permission):
+    async def checker(scope: Annotated[AccessScope, Depends(get_access_scope)]) -> AccessScope:
+        authorize(scope, permission)
+        return scope
 
     return checker
 
@@ -92,7 +106,8 @@ def assert_tenant_access(scope: AccessScope, tenant_id: PydanticObjectId) -> Non
     if scope.is_super_admin and scope.tenant_id is None:
         return
     if scope.tenant_id is None or str(scope.tenant_id) != str(tenant_id):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You cannot access another college",
+        raise AppError(
+            code="FORBIDDEN",
+            message="You cannot access another college",
+            status_code=403,
         )

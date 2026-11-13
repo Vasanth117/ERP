@@ -1,21 +1,31 @@
 """College and department operations."""
 
 from beanie import PydanticObjectId
-from fastapi import HTTPException, status
 
 from app.api.deps import AccessScope, assert_tenant_access
-from app.common.roles import TENANT_ADMIN_ROLES
+from app.authorization.permissions import Permission
+from app.authorization.policy import authorize
 from app.common.schemas import Page, Pagination
+from app.common.time import utcnow
+from app.core.exceptions import AppError
 from app.modules.audit.service import record_audit
 from app.modules.tenants.models import Department, Tenant
 from app.modules.tenants.schemas import DepartmentCreate, DepartmentRead, TenantCreate, TenantRead
+from app.repositories.tenant_repository import TenantRepository
+
+_tenant_repo = TenantRepository()
 
 
 async def create_tenant(scope: AccessScope, payload: TenantCreate) -> TenantRead:
-    existing = await Tenant.find_one(Tenant.code == payload.code)
+    authorize(scope, Permission.PLATFORM_TENANT_MANAGE)
+    existing = await _tenant_repo.find_tenant_by_code(payload.code)
     if existing is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="A college with this code already exists")
-    tenant = Tenant(name=payload.name, code=payload.code)
+        raise AppError(
+            code="CONFLICT",
+            message="A college with this code already exists",
+            status_code=409,
+        )
+    tenant = Tenant(name=payload.name, code=payload.code.strip().lower())
     await tenant.insert()
     await record_audit(
         actor_id=scope.user_id,
@@ -29,9 +39,10 @@ async def create_tenant(scope: AccessScope, payload: TenantCreate) -> TenantRead
 
 
 async def list_tenants(pagination: Pagination) -> Page[TenantRead]:
-    total = await Tenant.find_all().count()
-    documents = (
-        await Tenant.find_all().sort("-created_at").skip(pagination.offset).limit(pagination.limit).to_list()
+    total = await _tenant_repo.count_tenants()
+    documents = await _tenant_repo.list_tenants(
+        skip=pagination.offset,
+        limit=pagination.limit,
     )
     return Page(
         items=[TenantRead.from_document(document) for document in documents],
@@ -42,20 +53,21 @@ async def list_tenants(pagination: Pagination) -> Page[TenantRead]:
 
 
 async def get_tenant(scope: AccessScope, tenant_id: PydanticObjectId) -> TenantRead:
+    authorize(scope, Permission.TENANT_READ)
     assert_tenant_access(scope, tenant_id)
-    tenant = await Tenant.get(tenant_id)
+    tenant = await _tenant_repo.get_tenant(tenant_id)
     if tenant is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="College not found")
+        raise AppError(code="NOT_FOUND", message="College not found", status_code=404)
     return TenantRead.from_document(tenant)
 
 
 async def _require_active_tenant(scope: AccessScope, tenant_id: PydanticObjectId) -> Tenant:
     assert_tenant_access(scope, tenant_id)
-    tenant = await Tenant.get(tenant_id)
+    tenant = await _tenant_repo.get_tenant(tenant_id)
     if tenant is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="College not found")
+        raise AppError(code="NOT_FOUND", message="College not found", status_code=404)
     if not tenant.is_active:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This college is inactive")
+        raise AppError(code="TENANT_INACTIVE", message="This college is inactive", status_code=409)
     return tenant
 
 
@@ -64,17 +76,14 @@ async def create_department(
     tenant_id: PydanticObjectId,
     payload: DepartmentCreate,
 ) -> DepartmentRead:
-    if scope.role not in TENANT_ADMIN_ROLES:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission for this action",
-        )
+    authorize(scope, Permission.TENANT_DEPARTMENT_MANAGE)
     await _require_active_tenant(scope, tenant_id)
-    existing = await Department.find_one(Department.tenant_id == tenant_id, Department.code == payload.code)
+    existing = await _tenant_repo.find_department_by_code(tenant_id, payload.code)
     if existing is not None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="A department with this code already exists in this college",
+        raise AppError(
+            code="CONFLICT",
+            message="A department with this code already exists in this college",
+            status_code=409,
         )
     department = Department(tenant_id=tenant_id, name=payload.name, code=payload.code)
     await department.insert()
@@ -94,17 +103,16 @@ async def list_departments(
     tenant_id: PydanticObjectId,
     pagination: Pagination,
 ) -> Page[DepartmentRead]:
+    authorize(scope, Permission.TENANT_DEPARTMENT_READ)
     assert_tenant_access(scope, tenant_id)
-    tenant = await Tenant.get(tenant_id)
+    tenant = await _tenant_repo.get_tenant(tenant_id)
     if tenant is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="College not found")
-    total = await Department.find(Department.tenant_id == tenant_id).count()
-    documents = (
-        await Department.find(Department.tenant_id == tenant_id)
-        .sort("-created_at")
-        .skip(pagination.offset)
-        .limit(pagination.limit)
-        .to_list()
+        raise AppError(code="NOT_FOUND", message="College not found", status_code=404)
+    total = await _tenant_repo.count_departments(tenant_id)
+    documents = await _tenant_repo.list_departments(
+        tenant_id,
+        skip=pagination.offset,
+        limit=pagination.limit,
     )
     return Page(
         items=[DepartmentRead.from_document(document) for document in documents],

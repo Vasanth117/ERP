@@ -5,6 +5,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import AccessScope, get_access_scope, pagination_params, require_roles
+from app.common.context import get_request_id
+from app.common.envelope import ApiResponse, success_response
 from app.common.ids import to_object_id
 from app.common.roles import Role
 from app.common.schemas import Page, Pagination
@@ -18,28 +20,31 @@ router = APIRouter()
 admin_roles = require_roles(Role.SUPER_ADMIN, Role.COLLEGE_ADMIN)
 
 
-@router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ApiResponse[UserRead], status_code=status.HTTP_201_CREATED)
 async def create_user_route(
     payload: UserCreate,
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(admin_roles)],
-) -> UserRead:
-    return await create_user(scope, payload)
+) -> ApiResponse[UserRead]:
+    data = await create_user(scope, payload)
+    return success_response(data, request_id=get_request_id())
 
 
-@router.get("", response_model=Page[UserRead])
+@router.get("", response_model=ApiResponse[Page[UserRead]])
 async def list_users_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(admin_roles)],
     pagination: Annotated[Pagination, Depends(pagination_params)],
-) -> Page[UserRead]:
-    return await list_users(scope, pagination)
+) -> ApiResponse[Page[UserRead]]:
+    data = await list_users(scope, pagination)
+    return success_response(data, request_id=get_request_id())
 
 
-@router.get("/{user_id}", response_model=UserRead)
+@router.get("/{user_id}", response_model=ApiResponse[UserRead])
 async def get_user_route(
     user_id: str,
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(admin_roles)],
-) -> UserRead:
-    return await get_user(scope, to_object_id(user_id, "user id"))
+) -> ApiResponse[UserRead]:
+    data = await get_user(scope, to_object_id(user_id, "user id"))
+    return success_response(data, request_id=get_request_id())

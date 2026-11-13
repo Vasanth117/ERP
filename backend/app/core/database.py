@@ -2,7 +2,7 @@
 
 The ERP database is MongoDB. Beanie stores Pydantic documents through Motor.
 SQLAlchemy and Alembic target relational databases, so they are not part of this
-service. Tenant isolation is enforced on each request in the API.
+service. Tenant isolation is enforced on each request in the API and repositories.
 """
 
 import logging
@@ -19,10 +19,10 @@ _client: AsyncIOMotorClient | None = None
 
 def document_models() -> list[type]:
     from app.modules.audit.models import AuditLog
-    from app.modules.auth.models import User
+    from app.modules.auth.models import RefreshToken, User
     from app.modules.tenants.models import Department, Tenant
 
-    return [User, Tenant, Department, AuditLog]
+    return [User, RefreshToken, Tenant, Department, AuditLog]
 
 
 async def connect_to_mongo() -> None:
@@ -48,3 +48,9 @@ async def ping_mongo() -> None:
     if _client is None:
         raise RuntimeError("MongoDB client is not initialized")
     await _client.admin.command("ping")
+
+
+def get_database_client() -> AsyncIOMotorClient:
+    if _client is None:
+        raise RuntimeError("MongoDB client is not initialized")
+    return _client
