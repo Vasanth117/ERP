@@ -55,6 +55,10 @@ from app.modules.college_admin.examination_admin_routes import router as examina
 from app.modules.college_admin.finance_admin_routes import router as finance_admin_router
 from app.modules.college_admin.hr_admin_routes import router as hr_admin_router
 from app.modules.college_admin.library_admin_routes import router as library_admin_router
+from app.modules.college_admin.hostel_admin_routes import router as hostel_admin_router
+from app.modules.college_admin.communication_admin_routes import router as communication_admin_router
+from app.modules.college_admin.lms_admin_routes import router as lms_admin_router
+from app.modules.college_admin.reports_admin_routes import router as reports_admin_router
 
 router = APIRouter()
 
@@ -66,6 +70,10 @@ router.include_router(examination_admin_router, prefix="/examination-administrat
 router.include_router(finance_admin_router, prefix="/finance-administration", tags=["college-admin-finance-admin"])
 router.include_router(hr_admin_router, prefix="/hr-administration", tags=["college-admin-hr-admin"])
 router.include_router(library_admin_router, prefix="/library-administration", tags=["college-admin-library-admin"])
+router.include_router(hostel_admin_router, prefix="/hostel-administration", tags=["college-admin-hostel-admin"])
+router.include_router(communication_admin_router, prefix="/communication-administration", tags=["college-admin-communication-admin"])
+router.include_router(lms_admin_router, prefix="/lms-administration", tags=["college-admin-lms-admin"])
+router.include_router(reports_admin_router, prefix="/reports-analytics", tags=["college-admin-reports-analytics"])
 
 
 @router.get("/dashboard", response_model=ApiResponse[CollegeDashboardOverview])

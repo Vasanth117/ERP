@@ -58,6 +58,21 @@ class Permission(str, Enum):
   HR_ADMIN_PAYROLL_CONFIG = "college:hr:payroll_config"
   LIBRARY_ADMIN_READ = "college:library:read"
   LIBRARY_ADMIN_MANAGE = "college:library:manage"
+  HOSTEL_ADMIN_READ = "college:hostel:read"
+  HOSTEL_ADMIN_MANAGE = "college:hostel:manage"
+  HOSTEL_ADMIN_ALLOCATE = "college:hostel:allocate"
+  COMMUNICATION_ADMIN_READ = "college:communication:read"
+  COMMUNICATION_ADMIN_MANAGE = "college:communication:manage"
+  COMMUNICATION_ADMIN_PUBLISH = "college:communication:publish"
+  COMMUNICATION_ADMIN_CONFIG = "college:communication:config"
+  LMS_ADMIN_READ = "college:lms:read"
+  LMS_ADMIN_MANAGE = "college:lms:manage"
+  LMS_ADMIN_CONFIG = "college:lms:config"
+  REPORTS_ADMIN_READ = "college:reports:read"
+  REPORTS_ADMIN_GENERATE = "college:reports:generate"
+  REPORTS_ADMIN_EXPORT = "college:reports:export"
+  REPORTS_ADMIN_SCHEDULE = "college:reports:schedule"
+  REPORTS_ADMIN_MANAGE = "college:reports:manage"
   AUTH_SESSION_MANAGE = "auth:session:manage"
   PLATFORM_USER_MANAGE = "platform:user:manage"
   PLATFORM_USER_READ = "platform:user:read"
@@ -205,6 +220,21 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.HR_ADMIN_PAYROLL_CONFIG,
       Permission.LIBRARY_ADMIN_READ,
       Permission.LIBRARY_ADMIN_MANAGE,
+      Permission.HOSTEL_ADMIN_READ,
+      Permission.HOSTEL_ADMIN_MANAGE,
+      Permission.HOSTEL_ADMIN_ALLOCATE,
+      Permission.COMMUNICATION_ADMIN_READ,
+      Permission.COMMUNICATION_ADMIN_MANAGE,
+      Permission.COMMUNICATION_ADMIN_PUBLISH,
+      Permission.COMMUNICATION_ADMIN_CONFIG,
+      Permission.LMS_ADMIN_READ,
+      Permission.LMS_ADMIN_MANAGE,
+      Permission.LMS_ADMIN_CONFIG,
+      Permission.REPORTS_ADMIN_READ,
+      Permission.REPORTS_ADMIN_GENERATE,
+      Permission.REPORTS_ADMIN_EXPORT,
+      Permission.REPORTS_ADMIN_SCHEDULE,
+      Permission.REPORTS_ADMIN_MANAGE,
     }
   ),
   Role.DEPARTMENT_ADMIN: frozenset(

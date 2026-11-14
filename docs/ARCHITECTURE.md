@@ -147,6 +147,18 @@ flowchart LR
 - **Assignments & continuous assessment** — `/students/me/assessments/*` (`continuous_assessment_service.py`)
 - See `docs/STUDENT_PHASE4.md`
 
+### College Admin — Phase 8 — implemented
+
+- **LMS administration** — `/college-admin/lms-administration/*` (settings, mappings, categories, publishing policies, ops stats, config history)
+- **Reports & analytics** — `/college-admin/reports-analytics/*` (definitions, filters, jobs, snapshots, exports, dashboard analytics)
+- See `docs/COLLEGE_ADMIN_PHASE8.md`
+
+### College Admin — Phase 7 — implemented
+
+- **Hostel administration** — `/college-admin/hostel-administration/*`
+- **Communication administration** — `/college-admin/communication-administration/*`
+- See `docs/COLLEGE_ADMIN_PHASE7.md`
+
 ### College Admin — Phase 6 — implemented
 
 - **HR administration** — `/college-admin/hr-administration/*` (policies, recruitment, onboarding/offboarding, leave approval, payroll config status)
