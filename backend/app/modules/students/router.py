@@ -30,6 +30,9 @@ from app.modules.students.dashboard_service import (
 from app.modules.students.deps import enrollment_request_rate_limit, profile_update_rate_limit, student_user
 from app.modules.students.enums import DashboardDateRange
 from app.modules.students.profile_service import get_profile_activity_history, get_student_profile, update_student_profile
+from app.modules.department_admin.models import SectionTransferInitiator
+from app.modules.department_admin.phase3_schemas import SectionTransferCreate, SectionTransferRead
+from app.modules.department_admin.section_transfer_service import submit_section_transfer
 from app.modules.students.schemas import (
     AcademicDetailsRead,
     AcademicEligibilityRead,
@@ -222,4 +225,19 @@ async def student_enrollment_request_status_route(
     user: Annotated[User, Depends(student_user)],
 ) -> ApiResponse[EnrollmentRequestRead]:
     data = await get_enrollment_request_status(scope, user, request_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/me/section-transfer-requests", response_model=ApiResponse[SectionTransferRead])
+async def student_section_transfer_create_route(
+    payload: SectionTransferCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[SectionTransferRead]:
+    data = await submit_section_transfer(
+        scope,
+        user,
+        payload,
+        initiator=SectionTransferInitiator.STUDENT,
+    )
     return success_response(data, request_id=get_request_id())

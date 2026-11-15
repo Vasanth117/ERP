@@ -1,6 +1,6 @@
 """Tenant-scoped repository helpers."""
 
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
 from beanie import Document, PydanticObjectId
 from beanie.odm.queries.find import FindMany
@@ -10,7 +10,7 @@ from app.core.exceptions import AppError
 T = TypeVar("T", bound=Document)
 
 
-class TenantScopedRepository[T: Document]:
+class TenantScopedRepository(Generic[T]):
   """Base repository enforcing tenant filters on queries."""
 
   def __init__(self, model: type[T]) -> None:
