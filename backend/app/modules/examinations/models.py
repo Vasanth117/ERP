@@ -153,9 +153,10 @@ class StudentAssessmentMark(Document):
                 [
                     ("batch_id", ASCENDING),
                     ("student_user_id", ASCENDING),
+                    ("component_id", ASCENDING),
                 ],
                 unique=True,
-                name="unique_mark_per_student_batch",
+                name="unique_mark_per_student_component_batch",
             ),
             IndexModel(
                 [("tenant_id", ASCENDING), ("student_user_id", ASCENDING), ("component_id", ASCENDING)],

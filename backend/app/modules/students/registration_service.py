@@ -80,6 +80,12 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _aware(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 async def _term_and_programme(scope: AccessScope, user: User) -> tuple[PydanticObjectId, str, str, str]:
     tenant_id = require_student_scope(scope)
     context = await _reader.current_academic_context(tenant_id)
@@ -100,7 +106,7 @@ async def get_registration_eligibility(scope: AccessScope, user: User) -> Regist
     if policy is None:
         return RegistrationEligibilityRead(eligible=False, reasons=["Registration policy not configured"])
     now = _now()
-    window_open = policy.registration_open_at <= now <= policy.registration_close_at
+    window_open = _aware(policy.registration_open_at) <= now <= _aware(policy.registration_close_at)
     if not policy.allow_self_registration:
         reasons.append("Self-registration is disabled for this programme")
     if not window_open:
@@ -228,7 +234,7 @@ async def _validate_selections(
         return RegistrationValidationRead(valid=False, errors=errors)
     now = _now()
     if policy and check_policy:
-        if not (policy.registration_open_at <= now <= policy.registration_close_at):
+        if not (_aware(policy.registration_open_at) <= now <= _aware(policy.registration_close_at)):
             errors.append("Registration window is closed")
         if not policy.allow_self_registration:
             errors.append("Self-registration is not allowed")
@@ -356,7 +362,7 @@ async def submit_registration(
         )
     policy = await _policy_repo.get_policy(tenant_id, programme, year, semester)
     status = (
-        RegistrationRequestStatus.PENDING_APPROVAL
+        RegistrationRequestStatus.UNDER_REVIEW
         if policy and policy.require_admin_approval
         else RegistrationRequestStatus.SUBMITTED
     )
@@ -384,7 +390,7 @@ async def submit_registration(
     await req.insert()
     reg_status = (
         CourseRegistrationStatus.PENDING_APPROVAL
-        if status == RegistrationRequestStatus.PENDING_APPROVAL
+        if status == RegistrationRequestStatus.UNDER_REVIEW
         else CourseRegistrationStatus.SUBMITTED
     )
     for sel in selections:

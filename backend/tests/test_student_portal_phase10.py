@@ -17,7 +17,11 @@ from app.modules.hostel.hostel_models import HostelApplication, HostelRoomAlloca
 from app.modules.library.library_enums import LibraryCirculationStatus, LibraryCopyStatus
 from app.modules.library.library_models import LibraryCatalogItem, LibraryCirculation, LibraryCopy
 from app.modules.student_services.catalog_models import InstitutionalService
-from app.modules.students.student_library_service import issued_books, search_catalogue
+from app.modules.students.student_communication_service import announcements
+from app.modules.students.student_library_service import issued_books, search_catalogue, submit_reservation
+from app.modules.students.student_portal_schemas import LibraryReservationCreate
+from app.modules.students.student_residence_service import hostel_fee_details
+from app.common.schemas import Pagination
 from app.modules.students.student_residence_service import hostel_room_allocation, submit_hostel_request
 from app.modules.students.student_portal_schemas import HostelRequestInput
 from app.modules.students.student_reports_service import generate_report
@@ -25,6 +29,7 @@ from app.modules.students.student_portal_schemas import ReportGenerateInput
 from app.modules.students.student_services_hub_service import list_services, submit_service_request
 from app.modules.students.student_portal_schemas import ServiceRequestInput
 from app.modules.transport.transport_models import TransportAllocation, TransportRoute
+from app.modules.academics.models import AcademicCalendarEvent
 from app.modules.auth.models import User
 from app.modules.tenants.models import Department, Tenant
 
@@ -33,9 +38,12 @@ from app.modules.tenants.models import Department, Tenant
 async def db_ready():
     try:
         await connect_to_mongo()
-        await connect_redis()
     except Exception as exc:
-        pytest.skip(f"Dependencies not available: {exc}")
+        pytest.skip(f"MongoDB not available: {exc}")
+    try:
+        await connect_redis()
+    except Exception:
+        pass
     for model in document_models():
         await model.get_motor_collection().delete_many({})
     yield
@@ -114,6 +122,40 @@ async def test_library_catalogue_and_issued(db_ready) -> None:
 
 
 @pytest.mark.anyio
+async def test_library_reservation_submit(db_ready) -> None:
+    tenant, user, _, scope = await _seed("libres")
+    book_id = f"bk_{uuid4().hex[:8]}"
+    await LibraryCatalogItem(
+        tenant_id=tenant.id,
+        book_id=book_id,
+        title="Algorithms",
+        authors=["Author"],
+        published=True,
+    ).insert()
+    rid = f"rsv_{uuid4().hex[:8]}"
+    created = await submit_reservation(scope, user, LibraryReservationCreate(reservation_id=rid, book_id=book_id))
+    assert created["reservation_id"] == rid
+    assert created["queue_position"] == 1
+
+
+@pytest.mark.anyio
+async def test_hostel_fees_from_allocation(db_ready) -> None:
+    tenant, user, _, scope = await _seed("hfees")
+    await HostelRoomAllocation(
+        tenant_id=tenant.id,
+        student_user_id=user.id,
+        allocation_id="ha_fees",
+        hostel_name="Main",
+        block="A",
+        room_number="201",
+        bed_label="B1",
+        fee_amount=18000,
+    ).insert()
+    fees = await hostel_fee_details(scope, user)
+    assert fees.get("fee_amount") == 18000
+
+
+@pytest.mark.anyio
 async def test_hostel_allocation_and_request(db_ready) -> None:
     tenant, user, _, scope = await _seed("hst")
     await HostelRoomAllocation(
@@ -181,7 +223,26 @@ async def test_service_request(db_ready) -> None:
 
 
 @pytest.mark.anyio
+async def test_department_announcements_scope(db_ready) -> None:
+    tenant, user, _, scope = await _seed("ann")
+    await AcademicCalendarEvent(
+        tenant_id=tenant.id,
+        department_id=user.department_id,
+        title="Dept meeting",
+        description="Mandatory",
+        event_at=datetime.now(timezone.utc),
+        audience="students",
+    ).insert()
+    page = await announcements(scope, user, scope_filter="department", pagination=Pagination(limit=20, offset=0))
+    assert any(i.scope == "department" for i in page.items)
+
+
+@pytest.mark.anyio
 async def test_personal_report_generation(db_ready) -> None:
+    try:
+        await connect_redis()
+    except Exception:
+        pytest.skip("Redis required for report export tokens")
     tenant, user, _, scope = await _seed("rpt")
     export = await generate_report(scope, user, ReportGenerateInput(report_type="course_registration"))
     assert export.export_id.startswith("rpt_")

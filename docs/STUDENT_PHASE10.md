@@ -42,7 +42,7 @@ Retention: portal request/report logs — align with tenant retention policy (de
 
 ## API routes (prefix `/api/v1/students`, `student_portal_router`)
 
-**Library:** `/me/library/catalogue`, `/books/{id}/availability`, `/issued`, `/due-dates`, `/overdue`, `/reservations`, `/fines`, `/digital`, `/history`
+**Library:** `/me/library/catalogue`, `/books/{id}/availability`, `/issued`, `/due-dates`, `/overdue`, `GET|POST /reservations`, `/fines`, `/digital`, `/history`
 
 **Hostel:** `/me/hostel/application`, `/allocation`, `/notices`, `POST /requests`, `GET /requests/{id}`
 

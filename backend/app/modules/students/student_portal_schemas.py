@@ -31,6 +31,11 @@ class LibraryFineRead(BaseModel):
     status: str
 
 
+class LibraryReservationCreate(BaseModel):
+    reservation_id: str = Field(min_length=2, max_length=64)
+    book_id: str = Field(min_length=1, max_length=64)
+
+
 class DigitalResourceRead(BaseModel):
     resource_id: str
     title: str

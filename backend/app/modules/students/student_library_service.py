@@ -3,14 +3,14 @@
 from datetime import date
 
 from beanie import PydanticObjectId
-
 from app.api.deps import AccessScope
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.core.exceptions import AppError
 from app.modules.audit.service import record_audit
 from app.modules.auth.models import User
-from app.modules.library.library_enums import LibraryCirculationStatus
+from app.modules.library.library_enums import LibraryCirculationStatus, LibraryReservationStatus
+from app.modules.library.library_models import LibraryReservation
 from app.modules.students.integrations import library_reader
 from app.modules.students.policy import require_student_scope
 from app.modules.students.student_portal_models import StudentLibraryActivityView
@@ -19,6 +19,7 @@ from app.modules.students.student_portal_schemas import (
     LibraryCatalogRead,
     LibraryFineRead,
     LibraryIssuedBookRead,
+    LibraryReservationCreate,
 )
 
 
@@ -82,6 +83,39 @@ async def due_dates(scope: AccessScope, user: User) -> list[dict]:
 async def overdue_books(scope: AccessScope, user: User) -> list[LibraryIssuedBookRead]:
     issued = await issued_books(scope, user)
     return [r for r in issued if r.overdue]
+
+
+async def submit_reservation(scope: AccessScope, user: User, payload: LibraryReservationCreate) -> dict:
+    authorize(scope, Permission.STUDENT_LIBRARY_READ)
+    tenant_id = require_student_scope(scope)
+    book_id = payload.book_id.strip()
+    rid = payload.reservation_id.strip()
+    from app.modules.library.reservation_service import create_reservation_core
+
+    doc = await create_reservation_core(
+        tenant_id,
+        member_user_id=user.id,
+        book_id=book_id,
+        branch_code=None,
+        reservation_id=rid,
+        priority=0,
+        actor_id=user.id,
+        skip_unavailable_check=True,
+        require_membership=False,
+    )
+    await StudentLibraryActivityView(
+        tenant_id=tenant_id,
+        user_id=user.id,
+        activity_type="reservation_create",
+        reference_id=book_id,
+        title=doc.title,
+    ).insert()
+    return {
+        "reservation_id": rid,
+        "book_id": book_id,
+        "status": doc.status.value,
+        "queue_position": doc.queue_position,
+    }
 
 
 async def reservations(scope: AccessScope, user: User) -> list[dict]:

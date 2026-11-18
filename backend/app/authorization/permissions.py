@@ -58,6 +58,20 @@ class Permission(str, Enum):
   HR_ADMIN_PAYROLL_CONFIG = "college:hr:payroll_config"
   LIBRARY_ADMIN_READ = "college:library:read"
   LIBRARY_ADMIN_MANAGE = "college:library:manage"
+  LIBRARY_SELF_ACCESS = "library:self:access"
+  LIBRARY_DASHBOARD_READ = "library:dashboard:read"
+  LIBRARY_FACILITY_READ = "library:facility:read"
+  LIBRARY_FACILITY_MANAGE = "library:facility:manage"
+  LIBRARY_CATALOGUE_READ = "library:catalogue:read"
+  LIBRARY_CATALOGUE_MANAGE = "library:catalogue:manage"
+  LIBRARY_INVENTORY_READ = "library:inventory:read"
+  LIBRARY_INVENTORY_MANAGE = "library:inventory:manage"
+  LIBRARY_MEMBER_READ = "library:member:read"
+  LIBRARY_MEMBER_MANAGE = "library:member:manage"
+  LIBRARY_CIRCULATION_READ = "library:circulation:read"
+  LIBRARY_CIRCULATION_MANAGE = "library:circulation:manage"
+  LIBRARY_RESERVATION_READ = "library:reservation:read"
+  LIBRARY_RESERVATION_MANAGE = "library:reservation:manage"
   HOSTEL_ADMIN_READ = "college:hostel:read"
   HOSTEL_ADMIN_MANAGE = "college:hostel:manage"
   HOSTEL_ADMIN_ALLOCATE = "college:hostel:allocate"
@@ -73,6 +87,33 @@ class Permission(str, Enum):
   REPORTS_ADMIN_EXPORT = "college:reports:export"
   REPORTS_ADMIN_SCHEDULE = "college:reports:schedule"
   REPORTS_ADMIN_MANAGE = "college:reports:manage"
+  WORKFLOW_ADMIN_READ = "college:workflow:read"
+  WORKFLOW_ADMIN_MANAGE = "college:workflow:manage"
+  WORKFLOW_ADMIN_APPROVE = "college:workflow:approve"
+  WORKFLOW_ADMIN_DELEGATE = "college:workflow:delegate"
+  SECURITY_ADMIN_READ = "college:security:read"
+  SECURITY_ADMIN_MANAGE = "college:security:manage"
+  SECURITY_ADMIN_EXPORT = "college:security:export"
+  SECURITY_ADMIN_SESSION = "college:security:session"
+  IMPORT_ADMIN_READ = "college:import:read"
+  IMPORT_ADMIN_MANAGE = "college:import:manage"
+  IMPORT_ADMIN_EXECUTE = "college:import:execute"
+  IMPORT_ADMIN_APPROVE = "college:import:approve"
+  INTEGRATION_ADMIN_READ = "college:integration:read"
+  INTEGRATION_ADMIN_MANAGE = "college:integration:manage"
+  INTEGRATION_ADMIN_CONFIG = "college:integration:config"
+  HELPDESK_ADMIN_READ = "college:helpdesk:read"
+  HELPDESK_ADMIN_MANAGE = "college:helpdesk:manage"
+  HELPDESK_ADMIN_ASSIGN = "college:helpdesk:assign"
+  HELPDESK_ADMIN_INTERNAL = "college:helpdesk:internal"
+  FINANCE_EXT_READ = "college:finance_ext:read"
+  FINANCE_EXT_MANAGE = "college:finance_ext:manage"
+  FINANCE_EXT_APPROVE = "college:finance_ext:approve"
+  FINANCE_EXT_BUDGET = "college:finance_ext:budget"
+  OPS_EXT_READ = "college:operations_ext:read"
+  OPS_EXT_MANAGE = "college:operations_ext:manage"
+  OPS_EXT_MAINTENANCE = "college:operations_ext:maintenance"
+  OPS_EXT_INVENTORY = "college:operations_ext:inventory"
   AUTH_SESSION_MANAGE = "auth:session:manage"
   PLATFORM_USER_MANAGE = "platform:user:manage"
   PLATFORM_USER_READ = "platform:user:read"
@@ -266,6 +307,18 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.HR_ADMIN_PAYROLL_CONFIG,
       Permission.LIBRARY_ADMIN_READ,
       Permission.LIBRARY_ADMIN_MANAGE,
+      Permission.LIBRARY_FACILITY_READ,
+      Permission.LIBRARY_FACILITY_MANAGE,
+      Permission.LIBRARY_CATALOGUE_READ,
+      Permission.LIBRARY_CATALOGUE_MANAGE,
+      Permission.LIBRARY_INVENTORY_READ,
+      Permission.LIBRARY_INVENTORY_MANAGE,
+      Permission.LIBRARY_MEMBER_READ,
+      Permission.LIBRARY_MEMBER_MANAGE,
+      Permission.LIBRARY_CIRCULATION_READ,
+      Permission.LIBRARY_CIRCULATION_MANAGE,
+      Permission.LIBRARY_RESERVATION_READ,
+      Permission.LIBRARY_RESERVATION_MANAGE,
       Permission.HOSTEL_ADMIN_READ,
       Permission.HOSTEL_ADMIN_MANAGE,
       Permission.HOSTEL_ADMIN_ALLOCATE,
@@ -281,6 +334,33 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.REPORTS_ADMIN_EXPORT,
       Permission.REPORTS_ADMIN_SCHEDULE,
       Permission.REPORTS_ADMIN_MANAGE,
+      Permission.WORKFLOW_ADMIN_READ,
+      Permission.WORKFLOW_ADMIN_MANAGE,
+      Permission.WORKFLOW_ADMIN_APPROVE,
+      Permission.WORKFLOW_ADMIN_DELEGATE,
+      Permission.SECURITY_ADMIN_READ,
+      Permission.SECURITY_ADMIN_MANAGE,
+      Permission.SECURITY_ADMIN_EXPORT,
+      Permission.SECURITY_ADMIN_SESSION,
+      Permission.IMPORT_ADMIN_READ,
+      Permission.IMPORT_ADMIN_MANAGE,
+      Permission.IMPORT_ADMIN_EXECUTE,
+      Permission.IMPORT_ADMIN_APPROVE,
+      Permission.INTEGRATION_ADMIN_READ,
+      Permission.INTEGRATION_ADMIN_MANAGE,
+      Permission.INTEGRATION_ADMIN_CONFIG,
+      Permission.HELPDESK_ADMIN_READ,
+      Permission.HELPDESK_ADMIN_MANAGE,
+      Permission.HELPDESK_ADMIN_ASSIGN,
+      Permission.HELPDESK_ADMIN_INTERNAL,
+      Permission.FINANCE_EXT_READ,
+      Permission.FINANCE_EXT_MANAGE,
+      Permission.FINANCE_EXT_APPROVE,
+      Permission.FINANCE_EXT_BUDGET,
+      Permission.OPS_EXT_READ,
+      Permission.OPS_EXT_MANAGE,
+      Permission.OPS_EXT_MAINTENANCE,
+      Permission.OPS_EXT_INVENTORY,
     }
   ),
   Role.DEPARTMENT_ADMIN: frozenset(
@@ -411,7 +491,25 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
   Role.HR_STAFF: frozenset({Permission.TENANT_USER_READ}),
   Role.EXAMINATION_CELL: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
   Role.HOSTEL_ADMIN: frozenset({Permission.TENANT_READ}),
-  Role.LIBRARIAN: frozenset({Permission.TENANT_READ}),
+  Role.LIBRARIAN: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.LIBRARY_SELF_ACCESS,
+      Permission.LIBRARY_DASHBOARD_READ,
+      Permission.LIBRARY_FACILITY_READ,
+      Permission.LIBRARY_FACILITY_MANAGE,
+      Permission.LIBRARY_CATALOGUE_READ,
+      Permission.LIBRARY_CATALOGUE_MANAGE,
+      Permission.LIBRARY_INVENTORY_READ,
+      Permission.LIBRARY_INVENTORY_MANAGE,
+      Permission.LIBRARY_MEMBER_READ,
+      Permission.LIBRARY_MEMBER_MANAGE,
+      Permission.LIBRARY_CIRCULATION_READ,
+      Permission.LIBRARY_CIRCULATION_MANAGE,
+      Permission.LIBRARY_RESERVATION_READ,
+      Permission.LIBRARY_RESERVATION_MANAGE,
+    }
+  ),
   Role.ACCOUNTS_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
 }
 

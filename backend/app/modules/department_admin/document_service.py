@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import re
 from beanie import PydanticObjectId
-from beanie.odm.operators.find.comparison import Eq, GTE, LTE, Ne
+from beanie.odm.operators.find.comparison import Eq, GTE, LTE, NE
 
 from app.api.deps import AccessScope
 from app.authorization.permissions import Permission
@@ -177,7 +177,7 @@ async def list_documents(
     if filters.status is not None:
         query = query.find(Eq(DepartmentDocument.status, filters.status))
     else:
-        query = query.find(Ne(DepartmentDocument.status, DepartmentDocumentStatus.DELETED))
+        query = query.find(NE(DepartmentDocument.status, DepartmentDocumentStatus.DELETED))
     if filters.category:
         query = query.find(Eq(DepartmentDocument.category, filters.category))
     if filters.access_scope:

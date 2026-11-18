@@ -34,6 +34,7 @@ from app.modules.students.student_library_service import (
     overdue_books,
     reservations,
     search_catalogue,
+    submit_reservation,
 )
 from app.modules.students.student_portal_schemas import (
     AnnouncementFeedRead,
@@ -45,6 +46,7 @@ from app.modules.students.student_portal_schemas import (
     ProfileCorrectionInput,
     ReportExportRead,
     ReportGenerateInput,
+    LibraryReservationCreate,
     ServiceRequestInput,
     ServiceRequestRead,
     TransportRequestInput,
@@ -111,6 +113,16 @@ async def library_overdue_route(scope: Annotated[AccessScope, Depends(get_access
 @student_portal_router.get("/me/library/reservations", response_model=ApiResponse[list])
 async def library_reservations_route(scope: Annotated[AccessScope, Depends(get_access_scope)], user: Annotated[User, Depends(student_user)]) -> ApiResponse[list]:
     return success_response(await reservations(scope, user), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/library/reservations", response_model=ApiResponse[dict])
+async def library_reservation_create_route(
+    payload: LibraryReservationCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    _: Annotated[None, Depends(student_portal_request_rate_limit)],
+) -> ApiResponse[dict]:
+    return success_response(await submit_reservation(scope, user, payload), request_id=get_request_id())
 
 
 @student_portal_router.get("/me/library/fines", response_model=ApiResponse[list])

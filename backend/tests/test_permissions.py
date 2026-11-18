@@ -14,6 +14,19 @@ def test_college_admin_can_manage_users() -> None:
     assert Permission.INSTITUTION_ORG_MANAGE in perms
 
 
+def test_librarian_dashboard_permissions() -> None:
+    perms = permissions_for_role(Role.LIBRARIAN)
+    assert Permission.LIBRARY_SELF_ACCESS in perms
+    assert Permission.LIBRARY_DASHBOARD_READ in perms
+    assert Permission.LIBRARY_FACILITY_READ in perms
+    assert Permission.LIBRARY_FACILITY_MANAGE in perms
+    assert Permission.LIBRARY_CATALOGUE_READ in perms
+    assert Permission.LIBRARY_CATALOGUE_MANAGE in perms
+    assert Permission.LIBRARY_INVENTORY_READ in perms
+    assert Permission.LIBRARY_INVENTORY_MANAGE in perms
+    assert Permission.LIBRARY_ADMIN_MANAGE not in perms
+
+
 def test_student_has_minimal_permissions() -> None:
     perms = permissions_for_role(Role.STUDENT)
     assert Permission.TENANT_USER_MANAGE not in perms
@@ -49,8 +62,12 @@ def test_student_portal_permissions_complete() -> None:
     assert Permission.STUDENT_FINANCE_MANAGE in perms
     assert Permission.STUDENT_LIBRARY_READ in perms
     assert Permission.STUDENT_RESIDENCE_READ in perms
+    assert Permission.STUDENT_RESIDENCE_MANAGE in perms
+    assert Permission.STUDENT_SERVICES_READ in perms
     assert Permission.STUDENT_SERVICES_MANAGE in perms
     assert Permission.STUDENT_COMMUNICATION_READ in perms
+    assert Permission.STUDENT_COMMUNICATION_MANAGE in perms
+    assert Permission.STUDENT_REPORTS_READ in perms
     assert Permission.STUDENT_REPORTS_MANAGE in perms
     assert Permission.FACULTY_SELF_ACCESS not in perms
 

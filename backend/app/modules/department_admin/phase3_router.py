@@ -15,16 +15,18 @@ from app.modules.department_admin.class_management_service import (
     class_structure,
     create_batch,
     create_section,
-    create_section_transfer,
     get_batch,
     get_section,
-    get_section_transfer,
     list_batches,
-    list_section_transfers,
     list_sections,
-    review_section_transfer,
     update_batch,
     update_section,
+)
+from app.modules.department_admin.section_transfer_service import (
+    create_section_transfer,
+    get_section_transfer,
+    list_section_transfers,
+    review_section_transfer,
 )
 from app.modules.department_admin.deps import department_admin_user
 from app.modules.department_admin.phase3_schemas import (

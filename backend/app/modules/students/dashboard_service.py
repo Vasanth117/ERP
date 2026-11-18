@@ -3,6 +3,7 @@
 from datetime import date
 
 from app.api.deps import AccessScope
+from app.common.mongo_time import _parse_time_value
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.common.schemas import Page, Pagination
@@ -156,8 +157,8 @@ async def get_student_dashboard(
     timetable_today = [
         TimetableSlotSummary(
             day_of_week=e.day_of_week,
-            start_time=e.start_time,
-            end_time=e.end_time,
+            start_time=_parse_time_value(e.start_time),
+            end_time=_parse_time_value(e.end_time),
             course_code=e.course_code,
             course_name=e.course_name,
             section=e.section,

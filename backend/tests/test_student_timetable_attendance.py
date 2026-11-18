@@ -1,6 +1,6 @@
 """Student phase 3 — timetable and attendance."""
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -30,9 +30,12 @@ from app.modules.tenants.models import Department, Tenant
 async def db_ready():
     try:
         await connect_to_mongo()
-        await connect_redis()
     except Exception as exc:
-        pytest.skip(f"Dependencies not available: {exc}")
+        pytest.skip(f"MongoDB not available: {exc}")
+    try:
+        await connect_redis()
+    except Exception:
+        pass
     for model in document_models():
         await model.get_motor_collection().delete_many({})
     yield
@@ -121,7 +124,11 @@ async def _seed_timetable_attendance(tenant: Tenant, user: User) -> None:
 async def test_daily_and_weekly_timetable(db_ready) -> None:
     tenant, user, scope = await _seed(uuid4().hex[:8])
     await _seed_timetable_attendance(tenant, user)
-    daily = await get_daily_timetable(scope, user, anchor_date=date.today())
+    # Timetable seed uses day_of_week=0 (Monday)
+    anchor = date.today()
+    while anchor.weekday() != 0:
+        anchor -= timedelta(days=1)
+    daily = await get_daily_timetable(scope, user, anchor_date=anchor)
     assert any(s.course_code == "CSE101" for s in daily.slots)
     weekly = await get_weekly_timetable(scope, user)
     assert len(weekly.days) == 7

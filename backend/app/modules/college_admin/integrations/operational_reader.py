@@ -386,6 +386,36 @@ class OperationalDataReader:
         return items[:limit]
 
     async def unresolved_support_requests(self, tenant_id: PydanticObjectId, *, limit: int = 20) -> list[SupportRequestSummary]:
+        from app.modules.college_admin.helpdesk_admin_models import InstitutionSupportTicket, SupportTicketStatus
+
+        open_statuses = [
+            SupportTicketStatus.OPEN,
+            SupportTicketStatus.ASSIGNED,
+            SupportTicketStatus.IN_PROGRESS,
+            SupportTicketStatus.ESCALATED,
+            SupportTicketStatus.REOPENED,
+        ]
+        inst_rows = await (
+            InstitutionSupportTicket.find(
+                Eq(InstitutionSupportTicket.tenant_id, tenant_id),
+                In(InstitutionSupportTicket.status, open_statuses),
+            )
+            .sort("-created_at")
+            .limit(limit)
+            .to_list()
+        )
+        items = [
+            SupportRequestSummary(
+                request_id=row.ticket_id,
+                title=row.title,
+                status=row.status.value,
+                category=row.category_code,
+                created_at=row.created_at,
+            )
+            for row in inst_rows
+        ]
+        if len(items) >= limit:
+            return items[:limit]
         rows = await (
             StudentServiceRequest.find(
                 Eq(StudentServiceRequest.tenant_id, tenant_id),
@@ -395,19 +425,22 @@ class OperationalDataReader:
                 ),
             )
             .sort("-created_at")
-            .limit(limit)
+            .limit(limit - len(items))
             .to_list()
         )
-        return [
-            SupportRequestSummary(
-                request_id=row.request_id,
-                title=row.title,
-                status=row.status.value if hasattr(row.status, "value") else str(row.status),
-                category=row.category.value if hasattr(row.category, "value") else str(row.category),
-                created_at=row.created_at,
-            )
-            for row in rows
-        ]
+        items.extend(
+            [
+                SupportRequestSummary(
+                    request_id=row.request_id,
+                    title=row.title,
+                    status=row.status.value if hasattr(row.status, "value") else str(row.status),
+                    category=row.category.value if hasattr(row.category, "value") else str(row.category),
+                    created_at=row.created_at,
+                )
+                for row in rows
+            ]
+        )
+        return items[:limit]
 
     async def recent_student_activities(
         self,

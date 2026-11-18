@@ -147,6 +147,29 @@ flowchart LR
 - **Assignments & continuous assessment** — `/students/me/assessments/*` (`continuous_assessment_service.py`)
 - See `docs/STUDENT_PHASE4.md`
 
+### College Admin — Phase 12 — implemented
+
+- **Institutional finance extensions** — `/college-admin/finance-extensions/*` (budgets, allocations, expenses, vendors, procurement, invoices, reports)
+- **Institutional operations extensions** — `/college-admin/operations-extensions/*` (assets, facilities, maintenance, inventory, contracts, incidents, reports)
+- See `docs/COLLEGE_ADMIN_PHASE12.md`
+
+### College Admin — Phase 11 — implemented
+
+- **Helpdesk & support** — `/college-admin/helpdesk/*` (tickets, SLA, assignments, comments, internal notes, attachments, escalation, reports)
+- See `docs/COLLEGE_ADMIN_PHASE11.md`
+
+### College Admin — Phase 10 — implemented
+
+- **Data import & migration** — `/college-admin/data-import/*`
+- **Integration administration** — `/college-admin/integration-administration/*`
+- See `docs/COLLEGE_ADMIN_PHASE10.md`
+
+### College Admin — Phase 9 — implemented
+
+- **Workflow & approval** — `/college-admin/workflow-administration/*` (definitions, instances, approve/reject/info, delegation, escalations, history)
+- **Audit & security** — `/college-admin/security-administration/*` (audit search, login activity, policies, session revoke, integrity, exports)
+- See `docs/COLLEGE_ADMIN_PHASE9.md`
+
 ### College Admin — Phase 8 — implemented
 
 - **LMS administration** — `/college-admin/lms-administration/*` (settings, mappings, categories, publishing policies, ops stats, config history)
@@ -201,15 +224,20 @@ flowchart LR
 flowchart LR
   CA[College Admin API] --> DS[Dashboard Service]
   CA --> IS[Institution Service]
+  CA --> FX[Finance Extensions]
+  CA --> OX[Operations Extensions]
   DS --> OR[Operational Reader]
   OR --> MOD[Authoritative modules]
+  FX --> FA[Finance Admin core]
+  FX --> WF[Workflow finance_approval]
+  OX --> OH[(institution_operations_history)]
   IS --> IP[(institution_profiles)]
   IS --> IC[(institution_campuses)]
 ```
 
 ## Next implementation phases
 
-1. College Admin Phase 4+ (remaining institutional writers per roadmap)
+1. Student / faculty portals and remaining ERP domains per roadmap
 2. Student Phase 5+ (LMS submit flows, finance, fee detail)
 3. Academic Management write APIs (populate timetable, assessments)
 4. HR/Payroll admin APIs (leave approval, payslip ingestion) and student-facing portals

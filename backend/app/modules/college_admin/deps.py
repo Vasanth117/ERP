@@ -39,3 +39,35 @@ async def institution_settings_rate_limit(
             message="Too many settings updates; try again later",
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         )
+
+
+async def helpdesk_create_rate_limit(
+    user: Annotated[User, Depends(college_admin_user)],
+) -> None:
+    redis = get_redis()
+    key = f"rl:college_admin:helpdesk:create:{user.id}"
+    count = await redis.incr(key)
+    if count == 1:
+        await redis.expire(key, 60)
+    if count > 10:
+        raise AppError(
+            code="RATE_LIMITED",
+            message="Too many ticket creations; try again later",
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+
+async def helpdesk_comment_rate_limit(
+    user: Annotated[User, Depends(college_admin_user)],
+) -> None:
+    redis = get_redis()
+    key = f"rl:college_admin:helpdesk:comment:{user.id}"
+    count = await redis.incr(key)
+    if count == 1:
+        await redis.expire(key, 60)
+    if count > 30:
+        raise AppError(
+            code="RATE_LIMITED",
+            message="Too many comments; try again later",
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        )

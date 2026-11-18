@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from beanie import PydanticObjectId
 
 from app.api.deps import AccessScope
+from app.common.mongo_time import _parse_time_value
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.common.schemas import Page, Pagination
@@ -83,8 +84,8 @@ async def _map_slot(
     return StudentTimetableSlotRead(
         id=str(entry.id),
         day_of_week=entry.day_of_week,
-        start_time=entry.start_time,
-        end_time=entry.end_time,
+        start_time=_parse_time_value(entry.start_time),
+        end_time=_parse_time_value(entry.end_time),
         course_code=entry.course_code,
         course_name=entry.course_name,
         section=entry.section,
