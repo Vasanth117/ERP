@@ -158,11 +158,22 @@ class LibraryAcquisition(Document):
     acquisition_id: str
     branch_code: str | None = None
     vendor: str | None = None
+    vendor_id: str | None = None
     book_id: str | None = None
+    title: str | None = Field(default=None, max_length=300)
+    isbn: str | None = Field(default=None, max_length=20)
+    request_type: str = Field(default="purchase", max_length=32)
     quantity: int = Field(default=1, ge=1)
-    status: str = "ordered"
+    quantity_received: int = Field(default=0, ge=0)
+    status: str = "draft"
+    approval_status: str = "draft"
+    purchase_request_id: str | None = None
+    purchase_order_id: str | None = None
+    selected_quotation_id: str | None = None
+    suggested_by: PydanticObjectId | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     actor_id: PydanticObjectId | None = None
+    updated_at: datetime = Field(default_factory=utcnow)
     created_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
@@ -173,6 +184,8 @@ class LibraryAcquisition(Document):
                 [("tenant_id", ASCENDING), ("status", ASCENDING), ("created_at", DESCENDING)],
                 name="acquisitions_by_status",
             ),
+            IndexModel([("tenant_id", ASCENDING), ("purchase_order_id", ASCENDING)], name="acquisition_by_po"),
+            IndexModel([("tenant_id", ASCENDING), ("branch_code", ASCENDING), ("status", ASCENDING)], name="acquisition_by_branch"),
         ]
 
 

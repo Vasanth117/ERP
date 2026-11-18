@@ -173,6 +173,7 @@ async def test_borrowing_summary_and_search(db_ready) -> None:
         fine_id=f"fine_{suffix}",
         student_user_id=student.id,
         amount=10.5,
+        balance=10.5,
         reason="Late",
         status=LibraryFineStatus.OPEN,
     ).insert()

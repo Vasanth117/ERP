@@ -195,7 +195,7 @@ async def test_cancel_reindexes_and_concurrent_allocate(db_ready) -> None:
     lib_scope, student, student_b, book_id, branch = await _seed(suffix)
     copy = await LibraryCopy.find_one({"copy_id": f"C-{suffix}"})
     assert copy is not None
-    copy.status = LibraryCopyStatus.AVAILABLE
+    copy.status = LibraryCopyStatus.ISSUED
     await copy.save()
     r1 = await create_reservation(
         lib_scope,
@@ -221,6 +221,8 @@ async def test_cancel_reindexes_and_concurrent_allocate(db_ready) -> None:
     assert len(queue) == 1
     assert queue[0].reservation_id == r2.reservation_id
     assert queue[0].queue_position == 1
+    copy.status = LibraryCopyStatus.AVAILABLE
+    await copy.save()
 
     async def _allocate():
         try:
@@ -240,12 +242,14 @@ async def test_expiry_releases_copy(db_ready) -> None:
     copy_id = f"C-{suffix}"
     copy = await LibraryCopy.find_one({"copy_id": copy_id})
     assert copy is not None
-    copy.status = LibraryCopyStatus.AVAILABLE
+    copy.status = LibraryCopyStatus.ISSUED
     await copy.save()
     res = await create_reservation(
         lib_scope,
         ReservationCreateRequest(member_user_id=str(student.id), book_id=book_id, branch_code=branch),
     )
+    copy.status = LibraryCopyStatus.AVAILABLE
+    await copy.save()
     ready = await manual_allocate(lib_scope, res.reservation_id, ReservationAllocateRequest(copy_id=copy_id))
     assert ready.status == LibraryReservationStatus.READY
     doc = await LibraryReservation.find_one({"reservation_id": res.reservation_id})

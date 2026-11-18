@@ -117,6 +117,7 @@ async def _seed_library(suffix: str) -> tuple[Tenant, User, AccessScope, User]:
         fine_id=f"fine_{suffix}",
         student_user_id=student.id,
         amount=25.0,
+        balance=25.0,
         reason="Late",
         status=LibraryFineStatus.OPEN,
     ).insert()
@@ -125,6 +126,7 @@ async def _seed_library(suffix: str) -> tuple[Tenant, User, AccessScope, User]:
         tenant_id=tenant.id,
         acquisition_id=f"acq_{suffix}",
         branch_code="MAIN",
+        title="Pending order",
         status="ordered",
         quantity=2,
     ).insert()

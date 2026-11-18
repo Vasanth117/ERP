@@ -463,6 +463,21 @@ def document_models() -> list[type]:
         LibraryReservation,
     )
     from app.modules.library.member_models import LibraryMembershipHistory
+    from app.modules.library.acquisition_models import (
+        LibraryAcquisitionHistory,
+        LibraryAcquisitionQuotation,
+        LibraryAcquisitionReceipt,
+        LibraryInventoryRegistrationRequest,
+    )
+    from app.modules.library.digital_models import LibraryDigitalAccessLog
+    from app.modules.library.notification_models import (
+        LibraryAnnouncement,
+        LibraryNotification,
+        LibraryNotificationDelivery,
+        LibraryNotificationPreference,
+    )
+    from app.modules.library.report_models import LibraryReportJob
+    from app.modules.library.fine_models import LibraryDamageReport, LibraryFineApproval, LibraryFineHistory, LibraryFinePolicy
     from app.modules.library.reservation_models import (
         LibraryReservationHistory,
         LibraryReservationNotification,
@@ -1026,6 +1041,20 @@ def document_models() -> list[type]:
         LibraryReservationPolicy,
         LibraryReservationHistory,
         LibraryReservationNotification,
+        LibraryFinePolicy,
+        LibraryFineApproval,
+        LibraryFineHistory,
+        LibraryDamageReport,
+        LibraryAcquisitionQuotation,
+        LibraryAcquisitionReceipt,
+        LibraryAcquisitionHistory,
+        LibraryInventoryRegistrationRequest,
+        LibraryDigitalAccessLog,
+        LibraryNotification,
+        LibraryNotificationDelivery,
+        LibraryNotificationPreference,
+        LibraryAnnouncement,
+        LibraryReportJob,
         HostelApplication,
         HostelRoomAllocation,
         HostelNotice,

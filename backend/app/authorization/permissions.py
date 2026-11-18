@@ -72,6 +72,22 @@ class Permission(str, Enum):
   LIBRARY_CIRCULATION_MANAGE = "library:circulation:manage"
   LIBRARY_RESERVATION_READ = "library:reservation:read"
   LIBRARY_RESERVATION_MANAGE = "library:reservation:manage"
+  LIBRARY_FINE_READ = "library:fine:read"
+  LIBRARY_FINE_MANAGE = "library:fine:manage"
+  LIBRARY_FINE_APPROVE = "library:fine:approve"
+  LIBRARY_ACQUISITION_READ = "library:acquisition:read"
+  LIBRARY_ACQUISITION_MANAGE = "library:acquisition:manage"
+  LIBRARY_ACQUISITION_APPROVE = "library:acquisition:approve"
+  LIBRARY_ACQUISITION_PROCURE = "library:acquisition:procure"
+  LIBRARY_DIGITAL_READ = "library:digital:read"
+  LIBRARY_DIGITAL_MANAGE = "library:digital:manage"
+  LIBRARY_NOTIFICATION_READ = "library:notification:read"
+  LIBRARY_NOTIFICATION_MANAGE = "library:notification:manage"
+  LIBRARY_NOTIFICATION_PUBLISH = "library:notification:publish"
+  LIBRARY_NOTIFICATION_RUN = "library:notification:run"
+  LIBRARY_REPORT_READ = "library:report:read"
+  LIBRARY_REPORT_EXPORT = "library:report:export"
+  LIBRARY_REPORT_FINANCE = "library:report:finance"
   HOSTEL_ADMIN_READ = "college:hostel:read"
   HOSTEL_ADMIN_MANAGE = "college:hostel:manage"
   HOSTEL_ADMIN_ALLOCATE = "college:hostel:allocate"
@@ -319,6 +335,22 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.LIBRARY_CIRCULATION_MANAGE,
       Permission.LIBRARY_RESERVATION_READ,
       Permission.LIBRARY_RESERVATION_MANAGE,
+      Permission.LIBRARY_FINE_READ,
+      Permission.LIBRARY_FINE_MANAGE,
+      Permission.LIBRARY_FINE_APPROVE,
+      Permission.LIBRARY_ACQUISITION_READ,
+      Permission.LIBRARY_ACQUISITION_MANAGE,
+      Permission.LIBRARY_ACQUISITION_APPROVE,
+      Permission.LIBRARY_ACQUISITION_PROCURE,
+      Permission.LIBRARY_DIGITAL_READ,
+      Permission.LIBRARY_DIGITAL_MANAGE,
+      Permission.LIBRARY_NOTIFICATION_READ,
+      Permission.LIBRARY_NOTIFICATION_MANAGE,
+      Permission.LIBRARY_NOTIFICATION_PUBLISH,
+      Permission.LIBRARY_NOTIFICATION_RUN,
+      Permission.LIBRARY_REPORT_READ,
+      Permission.LIBRARY_REPORT_EXPORT,
+      Permission.LIBRARY_REPORT_FINANCE,
       Permission.HOSTEL_ADMIN_READ,
       Permission.HOSTEL_ADMIN_MANAGE,
       Permission.HOSTEL_ADMIN_ALLOCATE,
@@ -508,6 +540,17 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.LIBRARY_CIRCULATION_MANAGE,
       Permission.LIBRARY_RESERVATION_READ,
       Permission.LIBRARY_RESERVATION_MANAGE,
+      Permission.LIBRARY_FINE_READ,
+      Permission.LIBRARY_FINE_MANAGE,
+      Permission.LIBRARY_ACQUISITION_READ,
+      Permission.LIBRARY_ACQUISITION_MANAGE,
+      Permission.LIBRARY_DIGITAL_READ,
+      Permission.LIBRARY_DIGITAL_MANAGE,
+      Permission.LIBRARY_NOTIFICATION_READ,
+      Permission.LIBRARY_NOTIFICATION_MANAGE,
+      Permission.LIBRARY_NOTIFICATION_RUN,
+      Permission.LIBRARY_REPORT_READ,
+      Permission.LIBRARY_REPORT_EXPORT,
     }
   ),
   Role.ACCOUNTS_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),

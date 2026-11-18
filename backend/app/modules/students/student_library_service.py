@@ -144,9 +144,11 @@ async def fines(scope: AccessScope, user: User) -> list[LibraryFineRead]:
 
 
 async def digital_resources(scope: AccessScope, user: User) -> list[DigitalResourceRead]:
+    from app.modules.library.digital_service import list_patron_digital_resources
+
     authorize(scope, Permission.STUDENT_LIBRARY_READ)
     tenant_id = require_student_scope(scope)
-    rows = await library_reader.digital_resources(tenant_id)
+    patrons = await list_patron_digital_resources(scope, user)
     await StudentLibraryActivityView(
         tenant_id=tenant_id,
         user_id=user.id,
@@ -155,9 +157,30 @@ async def digital_resources(scope: AccessScope, user: User) -> list[DigitalResou
         title="Digital library",
     ).insert()
     return [
-        DigitalResourceRead(resource_id=r.resource_id, title=r.title, description=r.description, url=r.url)
-        for r in rows
+        DigitalResourceRead(
+            resource_id=r.resource_id,
+            title=r.title,
+            description=r.description,
+            url=None,
+        )
+        for r in patrons
     ]
+
+
+async def digital_resource_download(scope: AccessScope, user: User, resource_id: str):
+    from app.modules.library.digital_service import download_digital_resource
+
+    authorize(scope, Permission.STUDENT_LIBRARY_READ)
+    require_student_scope(scope)
+    return await download_digital_resource(scope, user, resource_id)
+
+
+async def digital_resource_external_link(scope: AccessScope, user: User, resource_id: str):
+    from app.modules.library.digital_service import external_link_for_resource
+
+    authorize(scope, Permission.STUDENT_LIBRARY_READ)
+    require_student_scope(scope)
+    return await external_link_for_resource(scope, user, resource_id)
 
 
 async def borrowing_history(scope: AccessScope, user: User, limit: int = 100) -> list[dict]:

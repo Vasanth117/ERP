@@ -22,7 +22,6 @@ from app.modules.library.member_service import assert_member_can_borrow
 from app.modules.library.reservation_access import authorize_reservation_read, require_reservation_manage
 from app.modules.library.reservation_models import (
     LibraryReservationHistory,
-    LibraryReservationNotification,
     LibraryReservationPolicy,
 )
 from app.modules.library.reservation_schemas import (
@@ -173,20 +172,9 @@ async def expire_ready_holds(tenant_id: PydanticObjectId) -> int:
 
 
 async def _notify_ready(tenant_id: PydanticObjectId, res: LibraryReservation) -> None:
-    if res.notification_sent_at:
-        return
-    notification_id = f"nrsv_{uuid4().hex[:12]}"
-    await LibraryReservationNotification(
-        tenant_id=tenant_id,
-        notification_id=notification_id,
-        reservation_id=res.reservation_id,
-        member_user_id=res.student_user_id,
-        title="Reserved book ready",
-        body=f'"{res.title}" is ready for pickup' + (f" at branch {res.branch_code}" if res.branch_code else ""),
-    ).insert()
-    res.notification_sent_at = utcnow()
-    res.updated_at = utcnow()
-    await res.save()
+    from app.modules.library.notification_triggers import on_reservation_ready
+
+    await on_reservation_ready(tenant_id, res)
 
 
 async def _queue_head(tenant_id: PydanticObjectId, book_id: str, branch_code: str | None) -> LibraryReservation | None:

@@ -141,6 +141,7 @@ class CommunicationPreferencesRead(BaseModel):
     academic_enabled: bool
     finance_enabled: bool
     examination_enabled: bool
+    library_enabled: bool
 
 
 class CommunicationPreferencesUpdate(BaseModel):
@@ -149,6 +150,7 @@ class CommunicationPreferencesUpdate(BaseModel):
     academic_enabled: bool | None = None
     finance_enabled: bool | None = None
     examination_enabled: bool | None = None
+    library_enabled: bool | None = None
 
     model_config = {"extra": "forbid"}
 

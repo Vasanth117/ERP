@@ -238,10 +238,26 @@ class LibraryFine(Document):
     fine_id: str
     student_user_id: PydanticObjectId
     circulation_id: str | None = None
+    book_id: str | None = None
+    copy_id: str | None = None
+    branch_code: str | None = None
+    fine_type: str = "overdue"
     amount: float = Field(ge=0)
+    amount_waived: float = Field(default=0, ge=0)
+    amount_paid: float = Field(default=0, ge=0)
+    balance: float = Field(ge=0)
     reason: str = Field(max_length=500)
+    recovery_status: str = "open"
     status: LibraryFineStatus = LibraryFineStatus.OPEN
+    demand_id: str | None = None
+    payment_transaction_id: str | None = None
+    approval_id: str | None = None
+    assessed_at: datetime = Field(default_factory=utcnow)
+    due_date: date | None = None
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+    created_by: PydanticObjectId | None = None
+    updated_by: PydanticObjectId | None = None
 
     class Settings:
         name = "library_fines"
@@ -255,18 +271,43 @@ class LibraryFine(Document):
                 [("tenant_id", ASCENDING), ("student_user_id", ASCENDING), ("status", ASCENDING)],
                 name="fines_by_student",
             ),
+            IndexModel([("tenant_id", ASCENDING), ("circulation_id", ASCENDING)], name="fines_by_circulation"),
+            IndexModel([("tenant_id", ASCENDING), ("demand_id", ASCENDING)], name="fines_by_demand"),
+            IndexModel([("tenant_id", ASCENDING), ("branch_code", ASCENDING), ("status", ASCENDING)], name="fines_by_branch"),
         ]
 
 
 class LibraryDigitalResource(Document):
     tenant_id: PydanticObjectId
     resource_id: str
+    resource_type: str = "ebook"
     title: str = Field(max_length=300)
     description: str | None = Field(default=None, max_length=2000)
+    category: str | None = Field(default=None, max_length=120)
+    subcategory: str | None = Field(default=None, max_length=120)
+    authors: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    book_id: str | None = Field(default=None, max_length=64)
     url: str | None = None
     storage_key: str | None = None
+    file_name: str | None = None
+    checksum: str | None = None
+    file_size_bytes: int | None = None
     mime_type: str = "application/pdf"
-    published: bool = True
+    published: bool = False
+    availability_status: str = "available"
+    license_type: str | None = Field(default=None, max_length=64)
+    license_expires_at: datetime | None = None
+    max_downloads: int | None = Field(default=None, ge=1)
+    max_downloads_per_user: int | None = Field(default=None, ge=1)
+    download_count: int = 0
+    allow_download: bool = True
+    allow_external_link: bool = True
+    requires_membership: bool = True
+    eligibility_member_categories: list[str] = Field(default_factory=list)
+    metadata: dict = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=utcnow)
+    created_by: PydanticObjectId | None = None
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
@@ -277,4 +318,11 @@ class LibraryDigitalResource(Document):
                 unique=True,
                 name="unique_digital_resource",
             ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("published", ASCENDING), ("availability_status", ASCENDING)],
+                name="digital_published_availability",
+            ),
+            IndexModel([("tenant_id", ASCENDING), ("category", ASCENDING)], name="digital_by_category"),
+            IndexModel([("tenant_id", ASCENDING), ("book_id", ASCENDING)], name="digital_by_book"),
+            IndexModel([("tenant_id", ASCENDING), ("resource_type", ASCENDING)], name="digital_by_type"),
         ]

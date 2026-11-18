@@ -27,6 +27,22 @@ def _has_library_portal_access(scope: AccessScope) -> bool:
         or Permission.LIBRARY_CIRCULATION_MANAGE in scope.effective_permissions
         or Permission.LIBRARY_RESERVATION_READ in scope.effective_permissions
         or Permission.LIBRARY_RESERVATION_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_FINE_READ in scope.effective_permissions
+        or Permission.LIBRARY_FINE_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_FINE_APPROVE in scope.effective_permissions
+        or Permission.LIBRARY_ACQUISITION_READ in scope.effective_permissions
+        or Permission.LIBRARY_ACQUISITION_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_ACQUISITION_APPROVE in scope.effective_permissions
+        or Permission.LIBRARY_ACQUISITION_PROCURE in scope.effective_permissions
+        or Permission.LIBRARY_DIGITAL_READ in scope.effective_permissions
+        or Permission.LIBRARY_DIGITAL_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_NOTIFICATION_READ in scope.effective_permissions
+        or Permission.LIBRARY_NOTIFICATION_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_NOTIFICATION_PUBLISH in scope.effective_permissions
+        or Permission.LIBRARY_NOTIFICATION_RUN in scope.effective_permissions
+        or Permission.LIBRARY_REPORT_READ in scope.effective_permissions
+        or Permission.LIBRARY_REPORT_EXPORT in scope.effective_permissions
+        or Permission.LIBRARY_REPORT_FINANCE in scope.effective_permissions
         or Permission.LIBRARY_ADMIN_MANAGE in scope.effective_permissions
     )
 

@@ -27,6 +27,8 @@ from app.modules.students.student_communication_service import (
 from app.modules.students.student_library_service import (
     book_availability,
     borrowing_history,
+    digital_resource_download,
+    digital_resource_external_link,
     digital_resources,
     due_dates,
     fines,
@@ -133,6 +135,26 @@ async def library_fines_route(scope: Annotated[AccessScope, Depends(get_access_s
 @student_portal_router.get("/me/library/digital", response_model=ApiResponse[list])
 async def library_digital_route(scope: Annotated[AccessScope, Depends(get_access_scope)], user: Annotated[User, Depends(student_user)]) -> ApiResponse[list]:
     return success_response(await digital_resources(scope, user), request_id=get_request_id())
+
+
+@student_portal_router.get("/me/library/digital/{resource_id}/download", response_model=ApiResponse[dict])
+async def library_digital_download_route(
+    resource_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    payload = await digital_resource_download(scope, user, resource_id)
+    return success_response(payload.model_dump(), request_id=get_request_id())
+
+
+@student_portal_router.get("/me/library/digital/{resource_id}/external-link", response_model=ApiResponse[dict])
+async def library_digital_external_route(
+    resource_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    payload = await digital_resource_external_link(scope, user, resource_id)
+    return success_response(payload.model_dump(), request_id=get_request_id())
 
 
 @student_portal_router.get("/me/library/history", response_model=ApiResponse[list])

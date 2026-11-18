@@ -25,6 +25,13 @@ def test_librarian_dashboard_permissions() -> None:
     assert Permission.LIBRARY_INVENTORY_READ in perms
     assert Permission.LIBRARY_INVENTORY_MANAGE in perms
     assert Permission.LIBRARY_ADMIN_MANAGE not in perms
+    assert Permission.LIBRARY_DIGITAL_READ in perms
+    assert Permission.LIBRARY_DIGITAL_MANAGE in perms
+    assert Permission.LIBRARY_NOTIFICATION_READ in perms
+    assert Permission.LIBRARY_NOTIFICATION_MANAGE in perms
+    assert Permission.LIBRARY_NOTIFICATION_RUN in perms
+    assert Permission.LIBRARY_REPORT_READ in perms
+    assert Permission.LIBRARY_REPORT_EXPORT in perms
 
 
 def test_student_has_minimal_permissions() -> None:

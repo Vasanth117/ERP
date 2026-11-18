@@ -56,4 +56,10 @@ async def reconcile_successful_payment(tx: PaymentTransaction) -> PaymentTransac
         issued_at=utcnow(),
         storage_token=token,
     ).insert()
+    try:
+        from app.modules.library.fine_integration import on_demand_paid
+
+        await on_demand_paid(tx.tenant_id, tx.demand_id, tx.transaction_id)
+    except Exception:
+        pass
     return tx

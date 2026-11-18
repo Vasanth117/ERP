@@ -257,6 +257,14 @@ async def issue_loan(scope: AccessScope, payload: IssueLoanRequest) -> Circulati
         resource_type="circulation",
         resource_id=circulation_id,
     )
+    circ_doc = await LibraryCirculation.find_one(
+        Eq(LibraryCirculation.tenant_id, tenant_id),
+        Eq(LibraryCirculation.circulation_id, circulation_id),
+    )
+    if circ_doc:
+        from app.modules.library.notification_triggers import on_loan_issued
+
+        await on_loan_issued(tenant_id, circ_doc)
     return _to_read(circ)
 
 
@@ -305,6 +313,14 @@ async def return_loan(scope: AccessScope, circulation_id: str, payload: ReturnLo
             from app.modules.library.reservation_service import on_copy_available
 
             await on_copy_available(tenant_id, copy.book_id, copy.branch_code, actor_id=scope.user_id)
+    from app.modules.library.fine_service import process_return_fines
+
+    await process_return_fines(
+        tenant_id,
+        circulation_id=circ.circulation_id,
+        disposition=payload.disposition,
+        actor_id=scope.user_id,
+    )
     await _record(
         tenant_id,
         circulation_id=circ.circulation_id,

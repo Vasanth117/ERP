@@ -40,7 +40,6 @@ from app.modules.library.library_models import (
     LibraryCatalogItem,
     LibraryCirculation,
     LibraryCopy,
-    LibraryDigitalResource,
     LibraryFine,
     LibraryReservation,
 )
@@ -271,71 +270,53 @@ async def fulfill_reservation(scope: AccessScope, payload: ReservationFulfill) -
 
 async def decide_fine(scope: AccessScope, payload: FineDecision) -> dict:
     authorize(scope, Permission.LIBRARY_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    fine = await LibraryFine.find_one(Eq(LibraryFine.tenant_id, tenant_id), Eq(LibraryFine.fine_id, payload.fine_id))
-    if fine is None:
-        raise AppError(code="NOT_FOUND", message="Fine not found", status_code=404)
-    if payload.decision not in (LibraryFineStatus.PAID, LibraryFineStatus.WAIVED):
-        raise AppError(code="VALIDATION_ERROR", message="Decision must be paid or waived", status_code=422)
-    fine.status = payload.decision
-    await fine.save()
-    return {"fine_id": payload.fine_id, "status": fine.status.value}
+    from app.modules.library.fine_service import college_admin_decide_fine
+
+    return await college_admin_decide_fine(scope, payload.fine_id, payload.decision, payload.note)
 
 
 async def create_acquisition(scope: AccessScope, payload: AcquisitionCreate) -> dict:
     authorize(scope, Permission.LIBRARY_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    await _assert_branch(tenant_id, payload.branch_code)
-    if await LibraryAcquisition.find_one(Eq(LibraryAcquisition.tenant_id, tenant_id), Eq(LibraryAcquisition.acquisition_id, payload.acquisition_id)):
-        raise AppError(code="CONFLICT", message="Acquisition exists", status_code=409)
-    row = LibraryAcquisition(
-        tenant_id=tenant_id,
-        acquisition_id=payload.acquisition_id,
-        branch_code=payload.branch_code.upper() if payload.branch_code else None,
-        vendor=payload.vendor,
-        book_id=payload.book_id,
-        quantity=payload.quantity,
-        actor_id=scope.user_id,
+    from app.modules.library.acquisition_enums import LibraryAcquisitionType
+    from app.modules.library.acquisition_schemas import AcquisitionCreateRequest
+    from app.modules.library.acquisition_service import create_acquisition as create_library_acquisition
+
+    title = payload.metadata.get("title") if payload.metadata else None
+    if not title:
+        title = payload.book_id or "Library acquisition"
+    result = await create_library_acquisition(
+        scope,
+        AcquisitionCreateRequest(
+            acquisition_id=payload.acquisition_id,
+            request_type=LibraryAcquisitionType.PURCHASE,
+            title=str(title),
+            book_id=payload.book_id,
+            branch_code=payload.branch_code,
+            quantity=payload.quantity,
+        ),
     )
-    await row.insert()
-    return {"acquisition_id": payload.acquisition_id}
+    if payload.vendor:
+        tenant_id = require_college_tenant_scope(scope)
+        doc = await LibraryAcquisition.find_one(
+            Eq(LibraryAcquisition.tenant_id, tenant_id),
+            Eq(LibraryAcquisition.acquisition_id, result.acquisition_id),
+        )
+        if doc:
+            doc.vendor = payload.vendor
+            doc.status = "ordered"
+            await doc.save()
+    return {"acquisition_id": result.acquisition_id, "status": result.status}
 
 
 async def add_digital_resource(scope: AccessScope, *, resource_id: str, title: str, url: str | None) -> dict:
     authorize(scope, Permission.LIBRARY_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    doc = await LibraryDigitalResource.find_one(Eq(LibraryDigitalResource.tenant_id, tenant_id), Eq(LibraryDigitalResource.resource_id, resource_id))
-    if doc is None:
-        doc = LibraryDigitalResource(tenant_id=tenant_id, resource_id=resource_id, title=title, url=url)
-        await doc.insert()
-    else:
-        doc.title = title
-        doc.url = url
-        doc.updated_at = utcnow()
-        await doc.save()
-    return {"resource_id": resource_id}
+    from app.modules.library.digital_service import college_admin_add_digital_resource
+
+    return await college_admin_add_digital_resource(scope, resource_id=resource_id, title=title, url=url)
 
 
 async def library_report(scope: AccessScope, *, branch_code: str | None = None) -> dict:
     authorize(scope, Permission.LIBRARY_ADMIN_READ)
-    tenant_id = require_college_tenant_scope(scope)
-    await _assert_branch(tenant_id, branch_code)
-    active = await LibraryCirculation.find(
-        Eq(LibraryCirculation.tenant_id, tenant_id),
-        Eq(LibraryCirculation.status, LibraryCirculationStatus.ACTIVE),
-    ).count()
-    overdue = await LibraryCirculation.find(
-        Eq(LibraryCirculation.tenant_id, tenant_id),
-        Eq(LibraryCirculation.status, LibraryCirculationStatus.OVERDUE),
-    ).count()
-    fines_open = await LibraryFine.find(Eq(LibraryFine.tenant_id, tenant_id), Eq(LibraryFine.status, LibraryFineStatus.OPEN)).count()
-    copies = await LibraryCopy.find(Eq(LibraryCopy.tenant_id, tenant_id)).count()
-    available = await LibraryCopy.find(Eq(LibraryCopy.tenant_id, tenant_id), Eq(LibraryCopy.status, LibraryCopyStatus.AVAILABLE)).count()
-    return {
-        "branch_code": branch_code,
-        "active_circulation": active,
-        "overdue_circulation": overdue,
-        "open_fines": fines_open,
-        "total_copies": copies,
-        "available_copies": available,
-    }
+    from app.modules.library.report_service import library_legacy_summary
+
+    return await library_legacy_summary(scope, branch_code=branch_code)

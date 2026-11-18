@@ -37,8 +37,11 @@ class LibraryReservationStatus(str, Enum):
 
 class LibraryFineStatus(str, Enum):
     OPEN = "open"
+    PENDING_WAIVER = "pending_waiver"
+    PENDING_WRITEOFF = "pending_writeoff"
     PAID = "paid"
     WAIVED = "waived"
+    WRITTEN_OFF = "written_off"
 
 
 class LibraryDashboardDateRange(str, Enum):

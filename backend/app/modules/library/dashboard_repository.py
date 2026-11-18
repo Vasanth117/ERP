@@ -48,7 +48,18 @@ from app.modules.library.library_models import (
     LibraryReservation,
 )
 
-_PENDING_ACQUISITION_STATUSES = frozenset({"ordered", "pending", "in_transit"})
+_PENDING_ACQUISITION_STATUSES = frozenset(
+    {
+        "ordered",
+        "pending",
+        "in_transit",
+        "submitted",
+        "pending_approval",
+        "approved",
+        "quoted",
+        "partial_received",
+    }
+)
 
 
 class LibraryDashboardRepository:
