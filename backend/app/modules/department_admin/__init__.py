@@ -1,0 +1,1 @@
+"""Department Admin portal — departmental scope over existing institutional data."""

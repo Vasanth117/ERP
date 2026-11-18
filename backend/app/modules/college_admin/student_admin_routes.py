@@ -27,6 +27,8 @@ from app.modules.college_admin.student_admin_schemas import (
     StudentStatusChange,
     TransferCreate,
 )
+from app.modules.department_admin.phase3_schemas import SectionTransferRead, SectionTransferReview
+from app.modules.department_admin.section_transfer_service import review_section_transfer
 from app.modules.college_admin.student_admin_service import (
     add_guardian,
     bulk_import_students,
@@ -187,3 +189,14 @@ async def profile_correction_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[dict]:
     return success_response(await decide_profile_correction(scope, payload), request_id=get_request_id())
+
+
+@router.post("/section-transfer-requests/{request_id}/review", response_model=ApiResponse[SectionTransferRead])
+async def college_section_transfer_review_route(
+    request_id: str,
+    payload: SectionTransferReview,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[SectionTransferRead]:
+    data = await review_section_transfer(scope, user, request_id, payload)
+    return success_response(data, request_id=get_request_id())

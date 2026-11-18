@@ -7,6 +7,7 @@ from app.modules.academics.router import router as academics_router
 from app.modules.attendance.router import router as attendance_router
 from app.modules.audit.router import router as audit_router
 from app.modules.college_admin.router import router as college_admin_router
+from app.modules.department_admin.router import router as department_admin_router
 from app.modules.auth.router import router as auth_router
 from app.modules.examinations.router import router as examinations_router
 from app.modules.faculty.router import router as faculty_router
@@ -22,7 +23,18 @@ from app.modules.users.router import router as users_router
 
 api_router = APIRouter()
 
-ACTIVE_MODULES = ["auth", "tenants", "platform", "configuration", "users", "audit", "college_admin", "faculty", "students"]
+ACTIVE_MODULES = [
+    "auth",
+    "tenants",
+    "platform",
+    "configuration",
+    "users",
+    "audit",
+    "college_admin",
+    "department_admin",
+    "faculty",
+    "students",
+]
 PLANNED_MODULES = [
     "academics",
     "attendance",
@@ -53,6 +65,7 @@ api_router.include_router(platform_router, prefix="/platform", tags=["platform"]
 api_router.include_router(users_router, prefix="/users", tags=["users"])
 api_router.include_router(audit_router, prefix="/audit", tags=["audit"])
 api_router.include_router(college_admin_router, prefix="/college-admin", tags=["college-admin"])
+api_router.include_router(department_admin_router, prefix="/department", tags=["department-admin"])
 api_router.include_router(academics_router, prefix="/academics", tags=["academics"])
 api_router.include_router(students_router, prefix="/students", tags=["students"])
 api_router.include_router(faculty_router, prefix="/faculty", tags=["faculty"])

@@ -124,6 +124,7 @@ class Permission(str, Enum):
   STUDENT_ACADEMIC_READ = "student:academic:read"
   STUDENT_ENROLLMENT_READ = "student:enrollment:read"
   STUDENT_ENROLLMENT_REQUEST = "student:enrollment:request"
+  STUDENT_SECTION_TRANSFER_REQUEST = "student:section_transfer:request"
   STUDENT_CURRICULUM_READ = "student:curriculum:read"
   STUDENT_REGISTRATION_READ = "student:registration:read"
   STUDENT_REGISTRATION_MANAGE = "student:registration:manage"
@@ -157,6 +158,51 @@ class Permission(str, Enum):
   STUDENT_COMMUNICATION_MANAGE = "student:communication:manage"
   STUDENT_REPORTS_READ = "student:reports:read"
   STUDENT_REPORTS_MANAGE = "student:reports:manage"
+  DEPARTMENT_SELF_ACCESS = "department:self:access"
+  DEPARTMENT_DASHBOARD_READ = "department:dashboard:read"
+  DEPARTMENT_PROFILE_READ = "department:profile:read"
+  DEPARTMENT_PROFILE_UPDATE = "department:profile:update"
+  DEPARTMENT_SETTINGS_READ = "department:settings:read"
+  DEPARTMENT_SETTINGS_MANAGE = "department:settings:manage"
+  DEPARTMENT_ACADEMIC_CONFIG_READ = "department:academic_config:read"
+  DEPARTMENT_FACULTY_READ = "department:faculty:read"
+  DEPARTMENT_FACULTY_MANAGE = "department:faculty:manage"
+  DEPARTMENT_ACADEMIC_READ = "department:academic:read"
+  DEPARTMENT_ACADEMIC_MANAGE = "department:academic:manage"
+  DEPARTMENT_CLASS_READ = "department:class:read"
+  DEPARTMENT_CLASS_MANAGE = "department:class:manage"
+  DEPARTMENT_STUDENT_READ = "department:student:read"
+  DEPARTMENT_STUDENT_MANAGE = "department:student:manage"
+  DEPARTMENT_TIMETABLE_READ = "department:timetable:read"
+  DEPARTMENT_TIMETABLE_MANAGE = "department:timetable:manage"
+  DEPARTMENT_ATTENDANCE_READ = "department:attendance:read"
+  DEPARTMENT_ATTENDANCE_MANAGE = "department:attendance:manage"
+  DEPARTMENT_ASSESSMENT_READ = "department:assessment:read"
+  DEPARTMENT_ASSESSMENT_MANAGE = "department:assessment:manage"
+  DEPARTMENT_ASSESSMENT_MARKS_DETAIL_READ = "department:assessment:marks_detail:read"
+  DEPARTMENT_PERFORMANCE_READ = "department:performance:read"
+  DEPARTMENT_CALENDAR_READ = "department:calendar:read"
+  DEPARTMENT_CALENDAR_MANAGE = "department:calendar:manage"
+  DEPARTMENT_COMMUNICATION_READ = "department:communication:read"
+  DEPARTMENT_COMMUNICATION_MANAGE = "department:communication:manage"
+  DEPARTMENT_REQUESTS_READ = "department:requests:read"
+  DEPARTMENT_REQUESTS_MANAGE = "department:requests:manage"
+  DEPARTMENT_RESOURCES_READ = "department:resources:read"
+  DEPARTMENT_RESOURCES_MANAGE = "department:resources:manage"
+  DEPARTMENT_REPORTS_READ = "department:reports:read"
+  DEPARTMENT_REPORTS_GENERATE = "department:reports:generate"
+  DEPARTMENT_DATA_TRANSFER_READ = "department:data_transfer:read"
+  DEPARTMENT_DATA_TRANSFER_MANAGE = "department:data_transfer:manage"
+  DEPARTMENT_DOCUMENTS_READ = "department:documents:read"
+  DEPARTMENT_DOCUMENTS_MANAGE = "department:documents:manage"
+  DEPARTMENT_AUDIT_READ = "department:audit:read"
+  DEPARTMENT_AUDIT_EXPORT = "department:audit:export"
+  DEPARTMENT_HELPDESK_READ = "department:helpdesk:read"
+  DEPARTMENT_HELPDESK_MANAGE = "department:helpdesk:manage"
+  DEPARTMENT_PLACEMENT_READ = "department:placement:read"
+  DEPARTMENT_PLACEMENT_MANAGE = "department:placement:manage"
+  DEPARTMENT_RESEARCH_READ = "department:research:read"
+  DEPARTMENT_RESEARCH_MANAGE = "department:research:manage"
 
 
 ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
@@ -242,6 +288,50 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.TENANT_READ,
       Permission.TENANT_DEPARTMENT_READ,
       Permission.TENANT_USER_READ,
+      Permission.DEPARTMENT_SELF_ACCESS,
+      Permission.DEPARTMENT_DASHBOARD_READ,
+      Permission.DEPARTMENT_PROFILE_READ,
+      Permission.DEPARTMENT_PROFILE_UPDATE,
+      Permission.DEPARTMENT_SETTINGS_READ,
+      Permission.DEPARTMENT_SETTINGS_MANAGE,
+      Permission.DEPARTMENT_ACADEMIC_CONFIG_READ,
+      Permission.DEPARTMENT_FACULTY_READ,
+      Permission.DEPARTMENT_FACULTY_MANAGE,
+      Permission.DEPARTMENT_ACADEMIC_READ,
+      Permission.DEPARTMENT_ACADEMIC_MANAGE,
+      Permission.DEPARTMENT_CLASS_READ,
+      Permission.DEPARTMENT_CLASS_MANAGE,
+      Permission.DEPARTMENT_STUDENT_READ,
+      Permission.DEPARTMENT_STUDENT_MANAGE,
+      Permission.DEPARTMENT_TIMETABLE_READ,
+      Permission.DEPARTMENT_TIMETABLE_MANAGE,
+      Permission.DEPARTMENT_ATTENDANCE_READ,
+      Permission.DEPARTMENT_ATTENDANCE_MANAGE,
+      Permission.DEPARTMENT_ASSESSMENT_READ,
+      Permission.DEPARTMENT_ASSESSMENT_MANAGE,
+      Permission.DEPARTMENT_PERFORMANCE_READ,
+      Permission.DEPARTMENT_CALENDAR_READ,
+      Permission.DEPARTMENT_CALENDAR_MANAGE,
+      Permission.DEPARTMENT_COMMUNICATION_READ,
+      Permission.DEPARTMENT_COMMUNICATION_MANAGE,
+      Permission.DEPARTMENT_REQUESTS_READ,
+      Permission.DEPARTMENT_REQUESTS_MANAGE,
+      Permission.DEPARTMENT_RESOURCES_READ,
+      Permission.DEPARTMENT_RESOURCES_MANAGE,
+      Permission.DEPARTMENT_REPORTS_READ,
+      Permission.DEPARTMENT_REPORTS_GENERATE,
+      Permission.DEPARTMENT_DATA_TRANSFER_READ,
+      Permission.DEPARTMENT_DATA_TRANSFER_MANAGE,
+      Permission.DEPARTMENT_DOCUMENTS_READ,
+      Permission.DEPARTMENT_DOCUMENTS_MANAGE,
+      Permission.DEPARTMENT_AUDIT_READ,
+      Permission.DEPARTMENT_AUDIT_EXPORT,
+      Permission.DEPARTMENT_HELPDESK_READ,
+      Permission.DEPARTMENT_HELPDESK_MANAGE,
+      Permission.DEPARTMENT_PLACEMENT_READ,
+      Permission.DEPARTMENT_PLACEMENT_MANAGE,
+      Permission.DEPARTMENT_RESEARCH_READ,
+      Permission.DEPARTMENT_RESEARCH_MANAGE,
     }
   ),
   Role.FACULTY: frozenset(
@@ -280,6 +370,7 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.STUDENT_ACADEMIC_READ,
       Permission.STUDENT_ENROLLMENT_READ,
       Permission.STUDENT_ENROLLMENT_REQUEST,
+      Permission.STUDENT_SECTION_TRANSFER_REQUEST,
       Permission.STUDENT_CURRICULUM_READ,
       Permission.STUDENT_REGISTRATION_READ,
       Permission.STUDENT_REGISTRATION_MANAGE,
