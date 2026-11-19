@@ -14,8 +14,12 @@ class FeeDemandStatus(str, Enum):
 class PaymentTransactionStatus(str, Enum):
     INITIATED = "initiated"
     PENDING = "pending"
+    PROCESSING = "processing"
     SUCCESS = "success"
     FAILED = "failed"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+    VERIFICATION_REQUIRED = "verification_required"
     REFUNDED = "refunded"
 
 

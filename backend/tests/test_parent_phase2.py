@@ -34,9 +34,13 @@ from app.modules.students.models import StudentAcademicRecord, StudentProfile
 from app.modules.tenants.models import Department, Tenant
 
 
+from db_helpers import drop_all_test_collections
+
+
 @pytest.fixture
 async def db_ready():
     try:
+        await drop_all_test_collections()
         await connect_to_mongo()
     except Exception as exc:
         pytest.skip(f"MongoDB not available: {exc}")
@@ -145,12 +149,14 @@ async def _link_parent_student(suffix: str) -> tuple[User, User, AccessScope]:
         role=Role.PARENT,
         user_id=parent.id,
         tenant_id=tenant.id,
+        department_id=None,
         effective_permissions=permissions_for_role(Role.PARENT),
     )
     admin_scope = AccessScope(
         role=Role.COLLEGE_ADMIN,
         user_id=admin.id,
         tenant_id=tenant.id,
+        department_id=None,
         effective_permissions=permissions_for_role(Role.COLLEGE_ADMIN),
     )
     preview = await resolve_student_reference(

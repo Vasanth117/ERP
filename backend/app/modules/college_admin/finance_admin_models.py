@@ -55,10 +55,24 @@ class StudentFeeAssessment(Document):
     assessed_amount: float = Field(ge=0)
     concession_amount: float = Field(default=0, ge=0)
     net_amount: float = Field(ge=0)
+    scholarship_amount: float = Field(default=0, ge=0)
+    waiver_amount: float = Field(default=0, ge=0)
+    adjustment_amount: float = Field(default=0, ge=0)
+    mandatory_amount: float = Field(default=0, ge=0)
+    optional_amount: float = Field(default=0, ge=0)
+    programme_code: str | None = None
+    batch_label: str | None = None
+    campus_id: PydanticObjectId | None = None
+    student_category: str | None = None
+    workflow_status: str = Field(default="posted", max_length=32)
+    bulk_batch_id: str | None = None
     demand_id: str | None = None
     invoice_id: str | None = None
+    approved_by: PydanticObjectId | None = None
+    approved_at: datetime | None = None
     actor_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "student_fee_assessments"
@@ -69,6 +83,17 @@ class StudentFeeAssessment(Document):
                 name="unique_fee_assessment",
             ),
             IndexModel([("tenant_id", ASCENDING), ("student_user_id", ASCENDING)], name="assessments_by_student"),
+            IndexModel(
+                [
+                    ("tenant_id", ASCENDING),
+                    ("student_user_id", ASCENDING),
+                    ("academic_year_label", ASCENDING),
+                    ("semester_label", ASCENDING),
+                    ("structure_id", ASCENDING),
+                ],
+                name="assessments_scope_lookup",
+            ),
+            IndexModel([("tenant_id", ASCENDING), ("workflow_status", ASCENDING)], name="assessments_by_workflow_status"),
         ]
 
 
@@ -79,8 +104,15 @@ class FinancialPeriod(Document):
     start_date: date
     end_date: date
     status: FinancialPeriodStatus = FinancialPeriodStatus.OPEN
+    financial_year_id: str | None = None
+    period_type: str = "custom"
+    academic_year_label: str | None = None
+    lifecycle_status: str = "open"
+    locked: bool = False
+    closed_at: datetime | None = None
     updated_by: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "financial_periods"

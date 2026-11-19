@@ -137,27 +137,52 @@ class InstitutionVendorRecord(Document):
     tenant_id: PydanticObjectId
     vendor_id: str
     name: str
+    vendor_code: str | None = None
+    category: str | None = None
     gstin: str | None = None
     contact_email: str | None = None
+    contact_phone: str | None = None
+    address: str | None = None
+    authorized_representative: str | None = None
+    verification_status: str = "pending"
+    vendor_status: str = "active"
+    document_refs: list[str] = Field(default_factory=list)
     active: bool = True
     metadata: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "institution_vendor_records"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("vendor_id", ASCENDING)], unique=True, name="unique_vendor"),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("vendor_code", ASCENDING)],
+                unique=True,
+                sparse=True,
+                name="unique_vendor_code",
+            ),
         ]
 
 
 class InstitutionPurchaseRequest(Document):
     tenant_id: PydanticObjectId
     request_id: str
+    request_number: str | None = None
     vendor_id: str | None = None
     department_id: PydanticObjectId | None = None
     budget_id: str | None = None
+    finance_budget_id: str | None = None
+    cost_centre_code: str | None = None
     description: str = Field(max_length=2000)
+    quantity: float = Field(default=1, ge=0)
+    estimated_unit_cost: float | None = None
     estimated_amount: float = Field(ge=0)
+    required_date: date | None = None
+    priority: str = "normal"
+    reason: str | None = None
+    document_refs: list[str] = Field(default_factory=list)
+    requested_by: PydanticObjectId | None = None
     status: PurchaseRequestStatus = PurchaseRequestStatus.DRAFT
     workflow_instance_id: str | None = None
     actor_id: PydanticObjectId | None = None
@@ -176,7 +201,14 @@ class InstitutionPurchaseOrder(Document):
     order_id: str
     request_id: str | None = None
     vendor_id: str
+    finance_budget_id: str | None = None
+    cost_centre_code: str | None = None
     total_amount: float = Field(ge=0)
+    tax_amount: float = Field(default=0, ge=0)
+    payment_terms: str | None = None
+    delivery_terms: str | None = None
+    expected_delivery: date | None = None
+    published: bool = False
     status: PurchaseOrderStatus = PurchaseOrderStatus.DRAFT
     actor_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
@@ -192,11 +224,19 @@ class InstitutionPurchaseOrder(Document):
 class InstitutionVendorInvoice(Document):
     tenant_id: PydanticObjectId
     invoice_id: str
+    vendor_invoice_number: str | None = None
     vendor_id: str
     order_id: str | None = None
+    invoice_date: date | None = None
     amount: float = Field(ge=0)
+    tax_amount: float = Field(default=0, ge=0)
+    discount_amount: float = Field(default=0, ge=0)
+    total_payable: float | None = None
+    paid_amount: float = Field(default=0, ge=0)
+    verification_status: str = "pending"
     payment_status: InvoicePaymentStatus = InvoicePaymentStatus.PENDING
     due_date: date | None = None
+    document_refs: list[str] = Field(default_factory=list)
     actor_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

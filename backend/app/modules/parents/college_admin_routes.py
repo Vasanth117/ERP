@@ -19,10 +19,16 @@ from app.modules.parents.college_review_service import (
 from app.modules.parents.enquiry_admin_service import (
     list_academic_enquiries_admin,
     list_attendance_enquiries_admin,
+    list_document_access_requests_admin,
     list_finance_enquiries_admin,
+    list_relationship_review_requests_admin,
+    list_student_service_enquiries_admin,
     respond_academic_enquiry,
     respond_attendance_enquiry,
+    respond_document_access_request,
     respond_finance_enquiry,
+    respond_relationship_review_request,
+    respond_student_service_enquiry,
 )
 from app.modules.parents.phase2_schemas import ParentEnquiryReview
 from app.modules.parents.phase4_schemas import ParentServiceRequestAdminUpdate
@@ -189,5 +195,81 @@ async def respond_parent_finance_enquiry_route(
 ) -> ApiResponse[dict]:
     return success_response(
         await respond_finance_enquiry(scope, to_object_id(enquiry_id, "enquiry_id"), payload, reviewer_id=admin.id),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/document-access-requests", response_model=ApiResponse[list[dict]])
+async def list_parent_document_access_requests_admin_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    status: str | None = None,
+) -> ApiResponse[list[dict]]:
+    return success_response(
+        await list_document_access_requests_admin(scope, status=status), request_id=get_request_id()
+    )
+
+
+@router.post("/document-access-requests/{request_id}/respond", response_model=ApiResponse[dict])
+async def respond_parent_document_access_request_route(
+    request_id: str,
+    payload: ParentEnquiryReview,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    admin: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(
+        await respond_document_access_request(
+            scope, to_object_id(request_id, "request_id"), payload, reviewer_id=admin.id
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/student-service-enquiries", response_model=ApiResponse[list[dict]])
+async def list_parent_student_service_enquiries_admin_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    status: str | None = None,
+) -> ApiResponse[list[dict]]:
+    return success_response(
+        await list_student_service_enquiries_admin(scope, status=status), request_id=get_request_id()
+    )
+
+
+@router.post("/student-service-enquiries/{enquiry_id}/respond", response_model=ApiResponse[dict])
+async def respond_parent_student_service_enquiry_route(
+    enquiry_id: str,
+    payload: ParentEnquiryReview,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    admin: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(
+        await respond_student_service_enquiry(scope, enquiry_id, payload, reviewer_id=admin.id),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/relationship-review-requests", response_model=ApiResponse[list[dict]])
+async def list_parent_relationship_review_requests_admin_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    status: str | None = None,
+) -> ApiResponse[list[dict]]:
+    return success_response(
+        await list_relationship_review_requests_admin(scope, status=status), request_id=get_request_id()
+    )
+
+
+@router.post("/relationship-review-requests/{request_id}/respond", response_model=ApiResponse[dict])
+async def respond_parent_relationship_review_request_route(
+    request_id: str,
+    payload: ParentEnquiryReview,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    admin: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(
+        await respond_relationship_review_request(
+            scope, to_object_id(request_id, "request_id"), payload, reviewer_id=admin.id
+        ),
         request_id=get_request_id(),
     )

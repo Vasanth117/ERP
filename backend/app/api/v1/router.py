@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app import __version__
+from app.modules.accounts_finance.router import router as accounts_finance_router
 from app.modules.academics.router import router as academics_router
 from app.modules.attendance.router import router as attendance_router
 from app.modules.audit.router import router as audit_router
@@ -37,6 +38,7 @@ ACTIVE_MODULES = [
     "students",
     "parents",
     "hostel",
+    "accounts_finance",
 ]
 PLANNED_MODULES = [
     "academics",
@@ -78,4 +80,5 @@ api_router.include_router(finance_router, prefix="/finance", tags=["finance"])
 api_router.include_router(hr_router, prefix="/hr", tags=["hr"])
 api_router.include_router(library_router, prefix="/library", tags=["library"])
 api_router.include_router(hostel_router, prefix="/hostel", tags=["hostel"])
+api_router.include_router(accounts_finance_router, prefix="/accounts-finance", tags=["accounts-finance"])
 api_router.include_router(transport_router, prefix="/transport", tags=["transport"])

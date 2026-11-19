@@ -101,6 +101,82 @@ class Permission(str, Enum):
   FINANCE_ADMIN_TRANSACTIONS = "college:finance:transactions"
   FINANCE_ADMIN_RECONCILE = "college:finance:reconcile"
   FINANCE_ADMIN_APPROVE = "college:finance:approve"
+  FINANCE_DASHBOARD_READ = "finance:dashboard:read"
+  FINANCE_FEE_CATEGORY_READ = "finance:fee_category:read"
+  FINANCE_FEE_CATEGORY_MANAGE = "finance:fee_category:manage"
+  FINANCE_STRUCTURE_READ = "finance:structure:read"
+  FINANCE_STRUCTURE_MANAGE = "finance:structure:manage"
+  FINANCE_STRUCTURE_APPROVE = "finance:structure:approve"
+  FINANCE_TRANSACTIONS_READ = "finance:transactions:read"
+  FINANCE_ASSESSMENT_READ = "finance:assessment:read"
+  FINANCE_ASSESSMENT_MANAGE = "finance:assessment:manage"
+  FINANCE_ASSESSMENT_APPROVE = "finance:assessment:approve"
+  FINANCE_INVOICE_READ = "finance:invoice:read"
+  FINANCE_INVOICE_MANAGE = "finance:invoice:manage"
+  FINANCE_INVOICE_ISSUE = "finance:invoice:issue"
+  FINANCE_PAYMENT_CONFIG = "finance:payment:config"
+  FINANCE_PAYMENT_READ = "finance:payment:read"
+  FINANCE_OFFLINE_COLLECT = "finance:offline:collect"
+  FINANCE_OFFLINE_VERIFY = "finance:offline:verify"
+  FINANCE_LEDGER_READ = "finance:ledger:read"
+  FINANCE_LEDGER_MANAGE = "finance:ledger:manage"
+  FINANCE_RECEIPT_READ = "finance:receipt:read"
+  FINANCE_RECEIPT_ISSUE = "finance:receipt:issue"
+  FINANCE_RECEIPT_MANAGE = "finance:receipt:manage"
+  FINANCE_SCHOLARSHIP_READ = "finance:scholarship:read"
+  FINANCE_SCHOLARSHIP_MANAGE = "finance:scholarship:manage"
+  FINANCE_SCHOLARSHIP_APPROVE = "finance:scholarship:approve"
+  FINANCE_CONCESSION_READ = "finance:concession:read"
+  FINANCE_CONCESSION_MANAGE = "finance:concession:manage"
+  FINANCE_CONCESSION_APPROVE = "finance:concession:approve"
+  FINANCE_INSTALLMENT_READ = "finance:installment:read"
+  FINANCE_INSTALLMENT_MANAGE = "finance:installment:manage"
+  FINANCE_INSTALLMENT_APPROVE = "finance:installment:approve"
+  FINANCE_LATE_FEE_READ = "finance:late_fee:read"
+  FINANCE_LATE_FEE_MANAGE = "finance:late_fee:manage"
+  FINANCE_LATE_FEE_APPROVE = "finance:late_fee:approve"
+  FINANCE_OUTSTANDING_READ = "finance:outstanding:read"
+  FINANCE_REFUND_READ = "finance:refund:read"
+  FINANCE_REFUND_MANAGE = "finance:refund:manage"
+  FINANCE_REFUND_APPROVE = "finance:refund:approve"
+  FINANCE_RECONCILIATION_READ = "finance:reconciliation:read"
+  FINANCE_RECONCILIATION_MANAGE = "finance:reconciliation:manage"
+  FINANCE_RECONCILIATION_CONFIRM = "finance:reconciliation:confirm"
+  FINANCE_REPORT_READ = "finance:report:read"
+  FINANCE_REPORT_MANAGE = "finance:report:manage"
+  FINANCE_REPORT_EXPORT = "finance:report:export"
+  FINANCE_PERIOD_READ = "finance:period:read"
+  FINANCE_PERIOD_MANAGE = "finance:period:manage"
+  FINANCE_PERIOD_CLOSE = "finance:period:close"
+  FINANCE_PERIOD_REOPEN_APPROVE = "finance:period:reopen_approve"
+  FINANCE_GL_READ = "finance:gl:read"
+  FINANCE_GL_MANAGE = "finance:gl:manage"
+  FINANCE_GL_APPROVE = "finance:gl:approve"
+  FINANCE_GL_JOURNAL_POST = "finance:gl:journal_post"
+  FINANCE_BUDGET_READ = "finance:budget:read"
+  FINANCE_BUDGET_MANAGE = "finance:budget:manage"
+  FINANCE_BUDGET_APPROVE = "finance:budget:approve"
+  FINANCE_VENDOR_READ = "finance:vendor:read"
+  FINANCE_VENDOR_MANAGE = "finance:vendor:manage"
+  FINANCE_VENDOR_BANK = "finance:vendor:bank"
+  FINANCE_PROCUREMENT_READ = "finance:procurement:read"
+  FINANCE_PROCUREMENT_MANAGE = "finance:procurement:manage"
+  FINANCE_PROCUREMENT_APPROVE = "finance:procurement:approve"
+  FINANCE_PROCUREMENT_PAY = "finance:procurement:pay"
+  FINANCE_EXPENSE_READ = "finance:expense:read"
+  FINANCE_EXPENSE_MANAGE = "finance:expense:manage"
+  FINANCE_EXPENSE_APPROVE = "finance:expense:approve"
+  FINANCE_TAX_READ = "finance:tax:read"
+  FINANCE_TAX_MANAGE = "finance:tax:manage"
+  FINANCE_TAX_APPROVE = "finance:tax:approve"
+  FINANCE_NOTIFY_READ = "finance:notify:read"
+  FINANCE_NOTIFY_MANAGE = "finance:notify:manage"
+  FINANCE_SETTINGS_READ = "finance:settings:read"
+  FINANCE_SETTINGS_MANAGE = "finance:settings:manage"
+  FINANCE_SETTINGS_APPROVE = "finance:settings:approve"
+  FINANCE_AUDIT_READ = "finance:audit:read"
+  FINANCE_AUDIT_EXPORT = "finance:audit:export"
+  FINANCE_AUDIT_INVESTIGATE = "finance:audit:investigate"
   HR_ADMIN_READ = "college:hr:read"
   HR_ADMIN_MANAGE = "college:hr:manage"
   HR_ADMIN_LEAVE_APPROVE = "college:hr:leave_approve"
@@ -784,7 +860,88 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.PARENT_SECURITY_MANAGE,
     }
   ),
-  Role.FINANCE_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
+  Role.FINANCE_STAFF: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.TENANT_AUDIT_READ,
+      Permission.FINANCE_DASHBOARD_READ,
+      Permission.FINANCE_FEE_CATEGORY_READ,
+      Permission.FINANCE_FEE_CATEGORY_MANAGE,
+      Permission.FINANCE_STRUCTURE_READ,
+      Permission.FINANCE_STRUCTURE_MANAGE,
+      Permission.FINANCE_STRUCTURE_APPROVE,
+      Permission.FINANCE_TRANSACTIONS_READ,
+      Permission.FINANCE_ASSESSMENT_READ,
+      Permission.FINANCE_ASSESSMENT_MANAGE,
+      Permission.FINANCE_ASSESSMENT_APPROVE,
+      Permission.FINANCE_INVOICE_READ,
+      Permission.FINANCE_INVOICE_MANAGE,
+      Permission.FINANCE_INVOICE_ISSUE,
+      Permission.FINANCE_PAYMENT_CONFIG,
+      Permission.FINANCE_PAYMENT_READ,
+      Permission.FINANCE_OFFLINE_COLLECT,
+      Permission.FINANCE_OFFLINE_VERIFY,
+      Permission.FINANCE_LEDGER_READ,
+      Permission.FINANCE_LEDGER_MANAGE,
+      Permission.FINANCE_RECEIPT_READ,
+      Permission.FINANCE_RECEIPT_ISSUE,
+      Permission.FINANCE_RECEIPT_MANAGE,
+      Permission.FINANCE_SCHOLARSHIP_READ,
+      Permission.FINANCE_SCHOLARSHIP_MANAGE,
+      Permission.FINANCE_SCHOLARSHIP_APPROVE,
+      Permission.FINANCE_CONCESSION_READ,
+      Permission.FINANCE_CONCESSION_MANAGE,
+      Permission.FINANCE_CONCESSION_APPROVE,
+      Permission.FINANCE_INSTALLMENT_READ,
+      Permission.FINANCE_INSTALLMENT_MANAGE,
+      Permission.FINANCE_INSTALLMENT_APPROVE,
+      Permission.FINANCE_LATE_FEE_READ,
+      Permission.FINANCE_LATE_FEE_MANAGE,
+      Permission.FINANCE_LATE_FEE_APPROVE,
+      Permission.FINANCE_OUTSTANDING_READ,
+      Permission.FINANCE_REFUND_READ,
+      Permission.FINANCE_REFUND_MANAGE,
+      Permission.FINANCE_REFUND_APPROVE,
+      Permission.FINANCE_RECONCILIATION_READ,
+      Permission.FINANCE_RECONCILIATION_MANAGE,
+      Permission.FINANCE_RECONCILIATION_CONFIRM,
+      Permission.FINANCE_REPORT_READ,
+      Permission.FINANCE_REPORT_MANAGE,
+      Permission.FINANCE_REPORT_EXPORT,
+      Permission.FINANCE_PERIOD_READ,
+      Permission.FINANCE_PERIOD_MANAGE,
+      Permission.FINANCE_PERIOD_CLOSE,
+      Permission.FINANCE_PERIOD_REOPEN_APPROVE,
+      Permission.FINANCE_GL_READ,
+      Permission.FINANCE_GL_MANAGE,
+      Permission.FINANCE_GL_APPROVE,
+      Permission.FINANCE_GL_JOURNAL_POST,
+      Permission.FINANCE_BUDGET_READ,
+      Permission.FINANCE_BUDGET_MANAGE,
+      Permission.FINANCE_BUDGET_APPROVE,
+      Permission.FINANCE_VENDOR_READ,
+      Permission.FINANCE_VENDOR_MANAGE,
+      Permission.FINANCE_VENDOR_BANK,
+      Permission.FINANCE_PROCUREMENT_READ,
+      Permission.FINANCE_PROCUREMENT_MANAGE,
+      Permission.FINANCE_PROCUREMENT_APPROVE,
+      Permission.FINANCE_PROCUREMENT_PAY,
+      Permission.FINANCE_EXPENSE_READ,
+      Permission.FINANCE_EXPENSE_MANAGE,
+      Permission.FINANCE_EXPENSE_APPROVE,
+      Permission.FINANCE_TAX_READ,
+      Permission.FINANCE_TAX_MANAGE,
+      Permission.FINANCE_TAX_APPROVE,
+      Permission.FINANCE_NOTIFY_READ,
+      Permission.FINANCE_NOTIFY_MANAGE,
+      Permission.FINANCE_SETTINGS_READ,
+      Permission.FINANCE_SETTINGS_MANAGE,
+      Permission.FINANCE_SETTINGS_APPROVE,
+      Permission.FINANCE_AUDIT_READ,
+      Permission.FINANCE_AUDIT_EXPORT,
+      Permission.FINANCE_AUDIT_INVESTIGATE,
+    }
+  ),
   Role.HR_STAFF: frozenset(
     {
       Permission.TENANT_READ,
@@ -982,7 +1139,35 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.LIBRARY_INVENTORY_DISCREPANCY_MANAGE,
     }
   ),
-  Role.ACCOUNTS_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
+  Role.ACCOUNTS_STAFF: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.TENANT_AUDIT_READ,
+      Permission.FINANCE_DASHBOARD_READ,
+      Permission.FINANCE_FEE_CATEGORY_READ,
+      Permission.FINANCE_FEE_CATEGORY_MANAGE,
+      Permission.FINANCE_STRUCTURE_READ,
+      Permission.FINANCE_STRUCTURE_MANAGE,
+      Permission.FINANCE_TRANSACTIONS_READ,
+      Permission.FINANCE_ASSESSMENT_READ,
+      Permission.FINANCE_ASSESSMENT_MANAGE,
+      Permission.FINANCE_INVOICE_READ,
+      Permission.FINANCE_INVOICE_MANAGE,
+      Permission.FINANCE_PAYMENT_READ,
+      Permission.FINANCE_OFFLINE_COLLECT,
+      Permission.FINANCE_LEDGER_READ,
+      Permission.FINANCE_RECEIPT_READ,
+      Permission.FINANCE_RECEIPT_ISSUE,
+      Permission.FINANCE_SCHOLARSHIP_READ,
+      Permission.FINANCE_CONCESSION_READ,
+      Permission.FINANCE_CONCESSION_MANAGE,
+      Permission.FINANCE_INSTALLMENT_READ,
+      Permission.FINANCE_OUTSTANDING_READ,
+      Permission.FINANCE_LATE_FEE_READ,
+      Permission.FINANCE_REFUND_READ,
+      Permission.FINANCE_RECONCILIATION_READ,
+    }
+  ),
 }
 
 

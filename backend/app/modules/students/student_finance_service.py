@@ -173,16 +173,7 @@ async def initiate_payment(scope: AccessScope, user: User, payload: PaymentIniti
         raise AppError(code="NOT_FOUND", message="Fee demand not found", status_code=404)
     if match.status not in _OPEN_STATUSES:
         raise AppError(code="CONFLICT", message="Fee demand is not payable", status_code=409)
-    success_tx = await PaymentTransaction.find_one(
-        {
-            "tenant_id": tenant_id,
-            "student_user_id": user.id,
-            "demand_id": payload.demand_id,
-            "status": PaymentTransactionStatus.SUCCESS,
-            "webhook_verified": True,
-        }
-    )
-    if success_tx is not None:
+    if match.status == FeeDemandStatus.PAID:
         raise AppError(code="CONFLICT", message="Demand already paid", status_code=409)
     if payload.payment_mode == "offline":
         ref = (payload.offline_reference or "").strip()
@@ -192,25 +183,56 @@ async def initiate_payment(scope: AccessScope, user: User, payload: PaymentIniti
                 message="offline_reference is required for offline payments",
                 status_code=422,
             )
-    amount = match.amount + match.late_fee
+    amount = getattr(payload, "amount", None)
+    if payload.payment_mode == "online":
+        from app.modules.accounts_finance.payment_core import initiate_online_payment
+
+        result = await initiate_online_payment(
+            tenant_id=tenant_id,
+            student_user_id=user.id,
+            payer_user_id=user.id,
+            demand_id=payload.demand_id,
+            idempotency_key=payload.idempotency_key,
+            amount=amount,
+        )
+        transaction_id = result["transaction_id"]
+        await StudentPaymentAttempt(
+            tenant_id=tenant_id,
+            user_id=user.id,
+            idempotency_key=payload.idempotency_key,
+            transaction_id=transaction_id,
+            demand_id=payload.demand_id,
+        ).insert()
+        await record_audit(
+            actor_id=scope.user_id,
+            action="student.finance.payment_initiated",
+            resource_type="payment_transaction",
+            resource_id=transaction_id,
+            tenant_id=tenant_id,
+        )
+        return PaymentInitiateRead(
+            transaction_id=transaction_id,
+            status=result["status"],
+            amount=result["amount"],
+            gateway=result["gateway"],
+        )
+    payable = match.amount + match.late_fee
+    if amount is not None:
+        payable = min(payable, amount)
     transaction_id = f"pay_{uuid4().hex}"
     offline_ref = (payload.offline_reference or "").strip() or None
-    gateway = "offline" if payload.payment_mode == "offline" else "stub"
-    initial_status = (
-        PaymentTransactionStatus.PENDING if payload.payment_mode == "offline" else PaymentTransactionStatus.INITIATED
-    )
     tx = PaymentTransaction(
         tenant_id=tenant_id,
         student_user_id=user.id,
         transaction_id=transaction_id,
         idempotency_key=payload.idempotency_key,
         demand_id=payload.demand_id,
-        amount=amount,
-        status=initial_status,
-        gateway=gateway,
-        payment_mode=payload.payment_mode,
+        amount=payable,
+        status=PaymentTransactionStatus.PENDING,
+        gateway="offline",
+        payment_mode="offline",
         offline_reference=offline_ref,
-        gateway_reference=offline_ref if payload.payment_mode == "offline" else None,
+        gateway_reference=offline_ref,
     )
     await tx.insert()
     await StudentPaymentAttempt(

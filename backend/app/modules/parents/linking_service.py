@@ -9,7 +9,7 @@ from beanie import PydanticObjectId
 from app.common.access import AccessScope
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
-from app.common.time import utcnow
+from app.common.time import as_utc_aware, utcnow
 from app.core.exceptions import AppError
 from app.modules.auth.models import User
 from app.modules.college_admin.student_admin_models import StudentRecord
@@ -111,7 +111,7 @@ async def resolve_student_reference(
 async def _consume_hint(tenant_id: PydanticObjectId, parent_user_id: PydanticObjectId, hint_token: str) -> PydanticObjectId:
     token_hash = hashlib.sha256(hint_token.encode()).hexdigest()
     hint = await ParentLinkReferenceHint.find_one({"token_hash": token_hash, "consumed": False})
-    if hint is None or hint.expires_at < utcnow():
+    if hint is None or as_utc_aware(hint.expires_at) < utcnow():
         raise AppError(code="VALIDATION_ERROR", message="Student reference session expired; resolve again", status_code=422)
     if str(hint.tenant_id) != str(tenant_id) or str(hint.parent_user_id) != str(parent_user_id):
         raise AppError(code="FORBIDDEN", message="Invalid reference token", status_code=403)

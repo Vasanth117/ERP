@@ -32,6 +32,7 @@ class PaymentInitiateInput(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=64)
     payment_mode: str = Field(default="online", pattern=r"^(online|offline)$")
     offline_reference: str | None = Field(default=None, max_length=120)
+    amount: float | None = Field(default=None, ge=0)
 
     model_config = {"extra": "forbid"}
 

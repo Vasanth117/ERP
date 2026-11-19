@@ -10,7 +10,7 @@ from app.common.access import AccessScope
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.common.schemas import Page, Pagination
-from app.common.time import utcnow
+from app.common.time import as_utc_aware, utcnow
 from app.core.exceptions import AppError
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import User
@@ -154,7 +154,7 @@ async def confirm_contact_verification(
     doc = await ParentContactVerification.get(PydanticObjectId(payload.verification_id))
     if doc is None or str(doc.tenant_id) != str(tenant_id) or str(doc.parent_user_id) != str(user.id):
         raise AppError(code="NOT_FOUND", message="Verification not found", status_code=404)
-    if doc.status != ParentContactVerificationStatus.PENDING or doc.expires_at < utcnow():
+    if doc.status != ParentContactVerificationStatus.PENDING or as_utc_aware(doc.expires_at) < utcnow():
         raise AppError(code="VALIDATION_ERROR", message="Verification expired or invalid", status_code=422)
     expected = hashlib.sha256(payload.token.encode()).hexdigest()
     if expected != doc.token_hash:

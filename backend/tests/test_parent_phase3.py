@@ -19,7 +19,8 @@ from app.modules.auth.models import User
 from app.modules.finance.finance_enums import FeeDemandStatus
 from app.modules.finance.finance_models import StudentFeeDemand
 from app.modules.parents.college_review_service import review_link_request
-from app.modules.parents.enums import ParentRelationshipType
+from app.modules.parents.enums import ParentDataPermission, ParentRelationshipType
+from app.modules.parents.models import ParentRelationshipPermissions, ParentStudentRelationship
 from app.modules.parents.examination_portal_service import (
     get_examination_overview,
     get_published_results_summary,
@@ -37,9 +38,13 @@ from app.modules.students.models import StudentProfile
 from app.modules.tenants.models import Department, Tenant
 
 
+from db_helpers import drop_all_test_collections
+
+
 @pytest.fixture
 async def db_ready():
     try:
+        await drop_all_test_collections()
         await connect_to_mongo()
     except Exception as exc:
         pytest.skip(f"MongoDB not available: {exc}")
@@ -127,12 +132,14 @@ async def _link_parent_student(suffix: str) -> tuple[User, User, AccessScope]:
         role=Role.PARENT,
         user_id=parent.id,
         tenant_id=tenant.id,
+        department_id=None,
         effective_permissions=permissions_for_role(Role.PARENT),
     )
     admin_scope = AccessScope(
         role=Role.COLLEGE_ADMIN,
         user_id=admin.id,
         tenant_id=tenant.id,
+        department_id=None,
         effective_permissions=permissions_for_role(Role.COLLEGE_ADMIN),
     )
     preview = await resolve_student_reference(
@@ -189,8 +196,18 @@ async def test_parent_hall_ticket_requires_permission(db_ready):
 async def test_parent_finance_dashboard_and_payment_idempotency(db_ready):
     suffix = uuid4().hex[:6]
     parent, student, scope = await _link_parent_student(suffix)
+    rel = await ParentStudentRelationship.find_one(
+        {"tenant_id": parent.tenant_id, "parent_user_id": parent.id, "student_user_id": student.id}
+    )
+    assert rel is not None
+    perms = await ParentRelationshipPermissions.find_one(
+        {"tenant_id": parent.tenant_id, "relationship_id": rel.id}
+    )
+    assert perms is not None
+    perms.grants[ParentDataPermission.PAY_FEES.value] = True
+    await perms.save()
     dash = await get_finance_dashboard(scope, parent, str(student.id))
-    assert dash.outstanding_amount >= 0
+    assert dash.outstanding.total_outstanding >= 0
     idem = f"idem_{suffix}"
     payload = ParentPaymentInitiateInput(
         demand_id=f"dem_{suffix}",
