@@ -69,12 +69,21 @@ class StudentFeeInvoice(Document):
     tenant_id: PydanticObjectId
     student_user_id: PydanticObjectId
     invoice_id: str
+    invoice_number: str | None = None
+    assessment_id: str | None = None
+    academic_year_label: str | None = None
+    semester_label: str | None = None
     demand_id: str | None = None
+    original_amount: float = Field(default=0, ge=0)
     amount: float = Field(ge=0)
+    tax_reference: str | None = None
+    invoice_status: str = Field(default="draft", max_length=32)
+    billing_date: date | None = None
     issued_at: datetime
     due_date: date
-    published: bool = True
+    published: bool = False
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "student_fee_invoices"
@@ -84,6 +93,17 @@ class StudentFeeInvoice(Document):
                 unique=True,
                 name="unique_fee_invoice",
             ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("invoice_number", ASCENDING)],
+                unique=True,
+                name="unique_invoice_number",
+                partialFilterExpression={"invoice_number": {"$type": "string"}},
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("student_user_id", ASCENDING), ("invoice_status", ASCENDING)],
+                name="invoices_by_student_status",
+            ),
+            IndexModel([("tenant_id", ASCENDING), ("assessment_id", ASCENDING)], name="invoices_by_assessment"),
         ]
 
 
@@ -97,6 +117,16 @@ class StudentFinancialLedgerEntry(Document):
     credit: float = Field(default=0, ge=0)
     balance_after: float
     reference_id: str | None = None
+    posting_key: str | None = None
+    academic_year_label: str | None = None
+    semester_label: str | None = None
+    invoice_id: str | None = None
+    payment_transaction_id: str | None = None
+    receipt_id: str | None = None
+    transaction_status: str = "posted"
+    narration: str | None = None
+    posted_by: PydanticObjectId | None = None
+    transaction_date: date | None = None
     posted_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
@@ -111,6 +141,12 @@ class StudentFinancialLedgerEntry(Document):
                 [("tenant_id", ASCENDING), ("student_user_id", ASCENDING), ("posted_at", DESCENDING)],
                 name="ledger_by_student",
             ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("posting_key", ASCENDING)],
+                unique=True,
+                name="unique_ledger_posting_key",
+                partialFilterExpression={"posting_key": {"$type": "string"}},
+            ),
         ]
 
 
@@ -120,6 +156,7 @@ class PaymentTransaction(Document):
     transaction_id: str
     idempotency_key: str
     demand_id: str | None = None
+    invoice_id: str | None = None
     amount: float = Field(ge=0)
     currency: str = "INR"
     status: PaymentTransactionStatus = PaymentTransactionStatus.INITIATED
@@ -128,6 +165,8 @@ class PaymentTransaction(Document):
     offline_reference: str | None = Field(default=None, max_length=120)
     payment_mode: str = Field(default="online", max_length=16)
     webhook_verified: bool = False
+    refunded_total: float = Field(default=0, ge=0)
+    reversed_total: float = Field(default=0, ge=0)
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
@@ -151,11 +190,25 @@ class PaymentReceipt(Document):
     tenant_id: PydanticObjectId
     student_user_id: PydanticObjectId
     receipt_id: str
+    receipt_number: str | None = None
     transaction_id: str
+    invoice_id: str | None = None
+    demand_id: str | None = None
     amount: float = Field(ge=0)
+    payment_mode: str | None = None
+    receipt_type: str = "payment"
+    remaining_balance: float | None = None
+    fee_breakdown: list[dict] = Field(default_factory=list)
+    academic_year_label: str | None = None
+    semester_label: str | None = None
+    receipt_status: str = "issued"
+    published: bool = True
+    issuer_user_id: PydanticObjectId | None = None
+    superseded_by: str | None = None
     issued_at: datetime
     storage_token: str | None = None
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "payment_receipts"
@@ -164,6 +217,21 @@ class PaymentReceipt(Document):
                 [("tenant_id", ASCENDING), ("receipt_id", ASCENDING)],
                 unique=True,
                 name="unique_payment_receipt",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("transaction_id", ASCENDING)],
+                unique=True,
+                name="unique_receipt_per_transaction",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("receipt_number", ASCENDING)],
+                unique=True,
+                name="unique_receipt_number",
+                partialFilterExpression={"receipt_number": {"$type": "string"}},
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("student_user_id", ASCENDING), ("issued_at", DESCENDING)],
+                name="receipts_by_student",
             ),
         ]
 
@@ -192,9 +260,29 @@ class FeeInstallmentSchedule(Document):
 class ScholarshipProgram(Document):
     tenant_id: PydanticObjectId
     programme_id: str
+    scholarship_code: str | None = None
     title: str
     description: str | None = None
+    funding_source: str | None = None
+    scholarship_type: str | None = None
+    academic_year_label: str | None = None
+    applicable_programmes: list[str] = Field(default_factory=list)
+    applicable_departments: list[str] = Field(default_factory=list)
+    eligible_student_categories: list[str] = Field(default_factory=list)
+    eligibility_conditions: dict = Field(default_factory=dict)
+    max_award_amount: float | None = Field(default=None, ge=0)
+    award_calculation_method: str | None = None
+    fund_budget_reference: str | None = None
+    max_awards: int | None = Field(default=None, ge=0)
+    application_start: date | None = None
+    application_deadline: date | None = None
+    approval_requirements: list[str] = Field(default_factory=list)
+    renewal_rules: dict = Field(default_factory=dict)
+    effective_from: date | None = None
+    effective_to: date | None = None
+    program_status: str = "draft"
     applications_open: bool = False
+    created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
@@ -204,6 +292,12 @@ class ScholarshipProgram(Document):
                 [("tenant_id", ASCENDING), ("programme_id", ASCENDING)],
                 unique=True,
                 name="unique_scholarship_program",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("scholarship_code", ASCENDING)],
+                unique=True,
+                name="unique_scholarship_code",
+                partialFilterExpression={"scholarship_code": {"$type": "string"}},
             ),
         ]
 
@@ -240,6 +334,11 @@ class OfficialScholarshipApplication(Document):
     application_id: str
     programme_id: str
     status: ScholarshipApplicationStatus = ScholarshipApplicationStatus.SUBMITTED
+    workflow_status: str = "application_submitted"
+    document_refs: list[str] = Field(default_factory=list)
+    requested_award_amount: float | None = None
+    academic_year_label: str | None = None
+    semester_label: str | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
@@ -261,6 +360,8 @@ class FeeConcession(Document):
     title: str
     amount: float = Field(ge=0)
     percent: float | None = Field(default=None, ge=0, le=100)
+    policy_id: str | None = None
+    award_id: str | None = None
     published: bool = True
     effective_from: date | None = None
     created_at: datetime = Field(default_factory=utcnow)
@@ -281,7 +382,11 @@ class RefundRecord(Document):
     student_user_id: PydanticObjectId
     refund_id: str
     transaction_id: str | None = None
+    refund_request_id: str | None = None
+    invoice_id: str | None = None
+    receipt_id: str | None = None
     amount: float = Field(ge=0)
+    category: str | None = None
     status: RefundStatus = RefundStatus.REQUESTED
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

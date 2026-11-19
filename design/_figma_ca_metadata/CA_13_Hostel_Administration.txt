@@ -1,0 +1,17 @@
+<canvas id="export" name="REST export">
+  <frame id="161:2199" name="CA 13.01 – Hostel Dashboard" />
+  <frame id="161:2589" name="CA 13.02 – Hostel Building Management" />
+  <frame id="161:2906" name="CA 13.03 – Room Management" />
+  <frame id="161:3257" name="CA 13.04 – Bed Allocation" />
+  <frame id="161:3565" name="CA 13.05 – Hostel Admission Applications" />
+  <frame id="161:3875" name="CA 13.06 – Resident Management" />
+  <frame id="161:4221" name="CA 13.07 – Hostel Check-in / Checkout" />
+  <frame id="161:4530" name="CA 13.08 – Hostel Fee Management" />
+  <frame id="161:4839" name="CA 13.09 – Mess Management" />
+  <frame id="161:5143" name="CA 13.10 – Visitor Management" />
+  <frame id="161:5435" name="CA 13.11 – Leave & Outpass Approval" />
+  <frame id="161:5766" name="CA 13.12 – Maintenance & Complaints" />
+  <frame id="161:6075" name="CA 13.13 – Hostel Incident Management" />
+  <frame id="161:6367" name="CA 13.14 – Hostel Reports" />
+  <frame id="161:6645" name="CA 13.15 – Hostel Settings" />
+</canvas>

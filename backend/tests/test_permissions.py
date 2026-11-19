@@ -6,12 +6,39 @@ from app.common.roles import Role
 
 def test_college_admin_can_manage_users() -> None:
     perms = permissions_for_role(Role.COLLEGE_ADMIN)
+    assert Permission.LIBRARY_INVENTORY_APPROVE in perms
+    assert Permission.LIBRARY_AUDIT_EXPORT in perms
     assert Permission.TENANT_USER_MANAGE in perms
     assert Permission.PLATFORM_TENANT_MANAGE not in perms
     assert Permission.COLLEGE_DASHBOARD_READ in perms
     assert Permission.INSTITUTION_SETTINGS_MANAGE in perms
     assert Permission.INSTITUTION_USER_MANAGE in perms
     assert Permission.INSTITUTION_ORG_MANAGE in perms
+
+
+def test_librarian_dashboard_permissions() -> None:
+    perms = permissions_for_role(Role.LIBRARIAN)
+    assert Permission.LIBRARY_SELF_ACCESS in perms
+    assert Permission.LIBRARY_DASHBOARD_READ in perms
+    assert Permission.LIBRARY_FACILITY_READ in perms
+    assert Permission.LIBRARY_FACILITY_MANAGE in perms
+    assert Permission.LIBRARY_CATALOGUE_READ in perms
+    assert Permission.LIBRARY_CATALOGUE_MANAGE in perms
+    assert Permission.LIBRARY_INVENTORY_READ in perms
+    assert Permission.LIBRARY_INVENTORY_MANAGE in perms
+    assert Permission.LIBRARY_ADMIN_MANAGE not in perms
+    assert Permission.LIBRARY_DIGITAL_READ in perms
+    assert Permission.LIBRARY_DIGITAL_MANAGE in perms
+    assert Permission.LIBRARY_NOTIFICATION_READ in perms
+    assert Permission.LIBRARY_NOTIFICATION_MANAGE in perms
+    assert Permission.LIBRARY_NOTIFICATION_RUN in perms
+    assert Permission.LIBRARY_REPORT_READ in perms
+    assert Permission.LIBRARY_REPORT_EXPORT in perms
+    assert Permission.LIBRARY_SETTINGS_READ in perms
+    assert Permission.LIBRARY_SETTINGS_MANAGE in perms
+    assert Permission.LIBRARY_AUDIT_READ in perms
+    assert Permission.LIBRARY_AUDIT_EXPORT in perms
+    assert Permission.LIBRARY_INVENTORY_APPROVE not in perms
 
 
 def test_student_has_minimal_permissions() -> None:
@@ -49,8 +76,12 @@ def test_student_portal_permissions_complete() -> None:
     assert Permission.STUDENT_FINANCE_MANAGE in perms
     assert Permission.STUDENT_LIBRARY_READ in perms
     assert Permission.STUDENT_RESIDENCE_READ in perms
+    assert Permission.STUDENT_RESIDENCE_MANAGE in perms
+    assert Permission.STUDENT_SERVICES_READ in perms
     assert Permission.STUDENT_SERVICES_MANAGE in perms
     assert Permission.STUDENT_COMMUNICATION_READ in perms
+    assert Permission.STUDENT_COMMUNICATION_MANAGE in perms
+    assert Permission.STUDENT_REPORTS_READ in perms
     assert Permission.STUDENT_REPORTS_MANAGE in perms
     assert Permission.FACULTY_SELF_ACCESS not in perms
 

@@ -127,6 +127,7 @@ class StudentCommunicationPreferences(Document):
     academic_enabled: bool = True
     finance_enabled: bool = True
     examination_enabled: bool = True
+    library_enabled: bool = True
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:

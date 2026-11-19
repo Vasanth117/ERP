@@ -49,23 +49,47 @@ from app.modules.college_admin.schemas import (
 from app.modules.college_admin.settings_registry import InstitutionBrandingUpdate, InstitutionSettingsUpdate
 from app.modules.college_admin.academic_routes import router as academic_config_router
 from app.modules.college_admin.student_admin_routes import router as student_admin_router
+from app.modules.parents.college_admin_routes import router as parent_admin_router
 from app.modules.college_admin.faculty_admin_routes import router as faculty_admin_router
 from app.modules.college_admin.attendance_admin_routes import router as attendance_admin_router
 from app.modules.college_admin.examination_admin_routes import router as examination_admin_router
 from app.modules.college_admin.finance_admin_routes import router as finance_admin_router
 from app.modules.college_admin.hr_admin_routes import router as hr_admin_router
 from app.modules.college_admin.library_admin_routes import router as library_admin_router
+from app.modules.college_admin.hostel_admin_routes import router as hostel_admin_router
+from app.modules.college_admin.communication_admin_routes import router as communication_admin_router
+from app.modules.college_admin.lms_admin_routes import router as lms_admin_router
+from app.modules.college_admin.reports_admin_routes import router as reports_admin_router
+from app.modules.college_admin.workflow_admin_routes import router as workflow_admin_router
+from app.modules.college_admin.security_admin_routes import router as security_admin_router
+from app.modules.college_admin.import_admin_routes import router as import_admin_router
+from app.modules.college_admin.integration_admin_routes import router as integration_admin_router
+from app.modules.college_admin.helpdesk_admin_routes import router as helpdesk_admin_router
+from app.modules.college_admin.finance_ext_routes import router as finance_ext_router
+from app.modules.college_admin.operations_ext_routes import router as operations_ext_router
 
 router = APIRouter()
 
 router.include_router(academic_config_router, prefix="/academic-config", tags=["college-admin-academic-config"])
 router.include_router(student_admin_router, prefix="/student-administration", tags=["college-admin-student-admin"])
+router.include_router(parent_admin_router, prefix="/parent-administration", tags=["college-admin-parent-admin"])
 router.include_router(faculty_admin_router, prefix="/faculty-administration", tags=["college-admin-faculty-admin"])
 router.include_router(attendance_admin_router, prefix="/attendance-administration", tags=["college-admin-attendance-admin"])
 router.include_router(examination_admin_router, prefix="/examination-administration", tags=["college-admin-examination-admin"])
 router.include_router(finance_admin_router, prefix="/finance-administration", tags=["college-admin-finance-admin"])
 router.include_router(hr_admin_router, prefix="/hr-administration", tags=["college-admin-hr-admin"])
 router.include_router(library_admin_router, prefix="/library-administration", tags=["college-admin-library-admin"])
+router.include_router(hostel_admin_router, prefix="/hostel-administration", tags=["college-admin-hostel-admin"])
+router.include_router(communication_admin_router, prefix="/communication-administration", tags=["college-admin-communication-admin"])
+router.include_router(lms_admin_router, prefix="/lms-administration", tags=["college-admin-lms-admin"])
+router.include_router(reports_admin_router, prefix="/reports-analytics", tags=["college-admin-reports-analytics"])
+router.include_router(workflow_admin_router, prefix="/workflow-administration", tags=["college-admin-workflow-admin"])
+router.include_router(security_admin_router, prefix="/security-administration", tags=["college-admin-security-admin"])
+router.include_router(import_admin_router, prefix="/data-import", tags=["college-admin-data-import"])
+router.include_router(integration_admin_router, prefix="/integration-administration", tags=["college-admin-integration-admin"])
+router.include_router(helpdesk_admin_router, prefix="/helpdesk", tags=["college-admin-helpdesk"])
+router.include_router(finance_ext_router, prefix="/finance-extensions", tags=["college-admin-finance-extensions"])
+router.include_router(operations_ext_router, prefix="/operations-extensions", tags=["college-admin-operations-extensions"])
 
 
 @router.get("/dashboard", response_model=ApiResponse[CollegeDashboardOverview])

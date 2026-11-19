@@ -4,7 +4,7 @@ from typing import Any
 
 from beanie import PydanticObjectId
 
-from app.api.deps import AccessScope
+from app.common.access import AccessScope
 from app.authorization.policy import authorize
 from app.authorization.permissions import Permission
 from app.common.context import get_request_id

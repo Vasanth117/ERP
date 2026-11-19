@@ -22,14 +22,17 @@ def verify_webhook_signature(payload: bytes, signature: str | None) -> bool:
 
 
 async def apply_verified_payment(transaction_id: str, *, gateway_reference: str) -> PaymentTransaction:
+    from app.modules.accounts_finance.payment_core import process_payment_webhook
+
+    result = await process_payment_webhook(
+        tenant_id=None,
+        body=f'{{"transaction_id":"{transaction_id}","gateway_reference":"{gateway_reference}"}}'.encode(),
+        signature=None,
+        payload={"transaction_id": transaction_id, "gateway_reference": gateway_reference},
+        trusted_internal=True,
+    )
     doc = await PaymentTransaction.find_one({"transaction_id": transaction_id})
     if doc is None:
         raise AppError(code="NOT_FOUND", message="Payment transaction not found", status_code=404)
-    if doc.status == PaymentTransactionStatus.SUCCESS:
-        return doc
-    doc.status = PaymentTransactionStatus.SUCCESS
-    doc.gateway_reference = gateway_reference
-    doc.webhook_verified = True
-    await doc.save()
-    await reconcile_successful_payment(doc)
+    _ = result
     return doc

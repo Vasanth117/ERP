@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="161:11018" name="CA 15.01 – LMS Dashboard" />
+  <frame id="161:11386" name="CA 15.02 – Course Management" />
+  <frame id="161:11719" name="CA 15.03 – Subject & Course Mapping" />
+  <frame id="161:12013" name="CA 15.04 – Learning Material Management" />
+  <frame id="161:12317" name="CA 15.05 – Video Lecture Management" />
+  <frame id="161:12622" name="CA 15.06 – Unit & Chapter Management" />
+  <frame id="161:12914" name="CA 15.07 – Assignment Management" />
+  <frame id="161:13220" name="CA 15.08 – Quiz Management" />
+  <frame id="161:13508" name="CA 15.09 – Assessment Management" />
+  <frame id="161:13796" name="CA 15.10 – Student Learning Progress" />
+  <frame id="161:14094" name="CA 15.11 – Faculty Content Management" />
+  <frame id="161:14368" name="CA 15.12 – LMS Reports" />
+  <frame id="161:14642" name="CA 15.13 – LMS Settings" />
+</canvas>

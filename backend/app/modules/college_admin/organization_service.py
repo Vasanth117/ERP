@@ -35,6 +35,18 @@ from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.tenants.models import Department
 
 
+def _authorize_org_read(scope: AccessScope) -> None:
+    if Permission.INSTITUTION_ORG_READ in scope.effective_permissions or Permission.HR_ORG_READ in scope.effective_permissions:
+        return
+    authorize(scope, Permission.INSTITUTION_ORG_READ)
+
+
+def _authorize_org_manage(scope: AccessScope) -> None:
+    if Permission.INSTITUTION_ORG_MANAGE in scope.effective_permissions or Permission.HR_ORG_MANAGE in scope.effective_permissions:
+        return
+    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+
+
 async def _record_department_history(
     *,
     tenant_id: PydanticObjectId,
@@ -115,7 +127,7 @@ def _parse_campus_ids(raw: list[str] | None) -> list[PydanticObjectId]:
 
 
 async def create_organization_unit(scope: AccessScope, payload: OrganizationUnitCreate) -> OrganizationUnitRead:
-    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+    _authorize_org_manage(scope)
     tenant_id = require_college_tenant_scope(scope)
     code = payload.unit_code.upper()
     if await InstitutionOrganizationUnit.find_one(Eq(InstitutionOrganizationUnit.tenant_id, tenant_id), Eq(InstitutionOrganizationUnit.unit_code, code)):
@@ -135,14 +147,14 @@ async def create_organization_unit(scope: AccessScope, payload: OrganizationUnit
 
 
 async def list_organization_units(scope: AccessScope) -> list[OrganizationUnitRead]:
-    authorize(scope, Permission.INSTITUTION_ORG_READ)
+    _authorize_org_read(scope)
     tenant_id = require_college_tenant_scope(scope)
     rows = await InstitutionOrganizationUnit.find(Eq(InstitutionOrganizationUnit.tenant_id, tenant_id)).sort("+unit_code").to_list()
     return [OrganizationUnitRead.from_document(row) for row in rows]
 
 
 async def create_institution_department(scope: AccessScope, payload: InstitutionDepartmentCreate) -> InstitutionDepartmentRead:
-    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+    _authorize_org_manage(scope)
     tenant_id = require_college_tenant_scope(scope)
     code = payload.department_code.upper()
     if await InstitutionDepartment.find_one(
@@ -170,6 +182,7 @@ async def create_institution_department(scope: AccessScope, payload: Institution
         tenant_id=tenant_id,
         department_code=code,
         name=payload.name,
+        description=payload.description,
         central_department_id=central.id,
         organization_unit_id=org_unit_id,
         parent_department_id=parent_id,
@@ -201,7 +214,7 @@ async def create_institution_department(scope: AccessScope, payload: Institution
 
 
 async def list_institution_departments(scope: AccessScope, pagination: Pagination) -> Page[InstitutionDepartmentRead]:
-    authorize(scope, Permission.INSTITUTION_ORG_READ)
+    _authorize_org_read(scope)
     tenant_id = require_college_tenant_scope(scope)
     query = InstitutionDepartment.find(Eq(InstitutionDepartment.tenant_id, tenant_id))
     total = await query.count()
@@ -215,7 +228,7 @@ async def list_institution_departments(scope: AccessScope, pagination: Paginatio
 
 
 async def get_institution_department(scope: AccessScope, department_id: PydanticObjectId) -> InstitutionDepartmentRead:
-    authorize(scope, Permission.INSTITUTION_ORG_READ)
+    _authorize_org_read(scope)
     tenant_id = require_college_tenant_scope(scope)
     doc = await InstitutionDepartment.get(department_id)
     if doc is None or doc.tenant_id != tenant_id:
@@ -228,13 +241,15 @@ async def update_institution_department(
     department_id: PydanticObjectId,
     payload: InstitutionDepartmentUpdate,
 ) -> InstitutionDepartmentRead:
-    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+    _authorize_org_manage(scope)
     tenant_id = require_college_tenant_scope(scope)
     doc = await InstitutionDepartment.get(department_id)
     if doc is None or doc.tenant_id != tenant_id:
         raise AppError(code="NOT_FOUND", message="Department not found", status_code=404)
 
     before = doc.model_dump(mode="json")
+    if payload.description is not None:
+        doc.description = payload.description
     if payload.parent_department_id is not None:
         parent_id = to_object_id(payload.parent_department_id, "parent_department_id") if payload.parent_department_id else None
         await _assert_department_parent_valid(tenant_id, doc.id, parent_id)
@@ -283,7 +298,7 @@ async def assign_department_head(
     department_id: PydanticObjectId,
     payload: DepartmentHeadAssign,
 ) -> InstitutionDepartmentRead:
-    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+    _authorize_org_manage(scope)
     tenant_id = require_college_tenant_scope(scope)
     doc = await InstitutionDepartment.get(department_id)
     if doc is None or doc.tenant_id != tenant_id:
@@ -315,7 +330,7 @@ async def transfer_department(
     department_id: PydanticObjectId,
     payload: DepartmentTransfer,
 ) -> InstitutionDepartmentRead:
-    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+    _authorize_org_manage(scope)
     tenant_id = require_college_tenant_scope(scope)
     doc = await InstitutionDepartment.get(department_id)
     if doc is None or doc.tenant_id != tenant_id:
@@ -345,7 +360,7 @@ async def get_department_history(
     scope: AccessScope,
     department_id: PydanticObjectId,
 ) -> list[DepartmentHistoryRead]:
-    authorize(scope, Permission.INSTITUTION_ORG_READ)
+    _authorize_org_read(scope)
     tenant_id = require_college_tenant_scope(scope)
     doc = await InstitutionDepartment.get(department_id)
     if doc is None or doc.tenant_id != tenant_id:
@@ -375,7 +390,7 @@ async def associate_department_staff(
     association_role: str = "staff",
     is_primary: bool = False,
 ) -> dict:
-    authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
+    _authorize_org_manage(scope)
     tenant_id = require_college_tenant_scope(scope)
     doc = await InstitutionDepartment.get(department_id)
     if doc is None or doc.tenant_id != tenant_id:

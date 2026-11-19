@@ -60,8 +60,14 @@ async def published_hall_ticket(
     )
 
 
+def _aware(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 def window_open(window: ExaminationRegistrationWindow | None) -> bool:
     if window is None:
         return False
     now = _utcnow()
-    return window.registration_open_at <= now <= window.registration_close_at
+    return _aware(window.registration_open_at) <= now <= _aware(window.registration_close_at)

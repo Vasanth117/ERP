@@ -1,0 +1,14 @@
+<canvas id="export" name="REST export">
+  <frame id="64:190" name="CA 01.01 – College Admin Dashboard" />
+  <frame id="65:185" name="CA 01.02 – Institutional Overview" />
+  <frame id="65:618" name="CA 01.03 – Student Statistics" />
+  <frame id="65:1116" name="CA 01.04 – Faculty & Employee Statistics" />
+  <frame id="65:1592" name="CA 01.05 – Department Performance Overview" />
+  <frame id="66:1973" name="CA 01.06 – Academic Performance Analytics" />
+  <frame id="66:2485" name="CA 01.07 – Attendance Overview" />
+  <frame id="66:2970" name="CA 01.08 – Examination Overview" />
+  <frame id="66:3440" name="CA 01.09 – Finance Summary" />
+  <frame id="67:3905" name="CA 01.10 – Pending Approvals Dashboard" />
+  <frame id="67:4394" name="CA 01.11 – Recent Institutional Activities" />
+  <frame id="67:4882" name="CA 01.12 – Important Alerts & Notifications" />
+</canvas>

@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from beanie import PydanticObjectId
+from bson import ObjectId
 
 from app.authorization.permissions import permissions_for_role
 from app.common.access import AccessScope
@@ -28,9 +30,12 @@ from app.modules.tenants.models import Department, Tenant
 async def db_ready():
     try:
         await connect_to_mongo()
-        await connect_redis()
     except Exception as exc:
-        pytest.skip(f"Dependencies not available: {exc}")
+        pytest.skip(f"MongoDB not available: {exc}")
+    try:
+        await connect_redis()
+    except Exception:
+        pass
     for model in document_models():
         await model.get_motor_collection().delete_many({})
     yield
@@ -111,7 +116,7 @@ async def _seed_data(tenant: Tenant, user: User) -> None:
     ).insert()
     await StudentAssessmentMark(
         tenant_id=tenant.id,
-        batch_id=tenant.id,
+        batch_id=PydanticObjectId(ObjectId()),
         assessment_id="asm1",
         component_id="c1",
         student_user_id=user.id,
@@ -121,7 +126,7 @@ async def _seed_data(tenant: Tenant, user: User) -> None:
     ).insert()
     await StudentAssessmentMark(
         tenant_id=tenant.id,
-        batch_id=tenant.id,
+        batch_id=PydanticObjectId(ObjectId()),
         assessment_id="asm1",
         component_id="c1pub",
         student_user_id=user.id,

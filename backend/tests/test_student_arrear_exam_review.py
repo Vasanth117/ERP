@@ -34,9 +34,12 @@ from app.modules.tenants.models import Department, Tenant
 async def db_ready():
     try:
         await connect_to_mongo()
-        await connect_redis()
     except Exception as exc:
-        pytest.skip(f"Dependencies not available: {exc}")
+        pytest.skip(f"MongoDB not available: {exc}")
+    try:
+        await connect_redis()
+    except Exception:
+        pass
     for model in document_models():
         await model.get_motor_collection().delete_many({})
     yield

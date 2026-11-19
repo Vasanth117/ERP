@@ -1,0 +1,13 @@
+<canvas id="export" name="REST export">
+  <frame id="74:5933" name="CA 04.01 – Department Management Dashboard" />
+  <frame id="74:6360" name="CA 04.02 – All Departments" />
+  <frame id="74:6817" name="CA 04.03 – Create Department" />
+  <frame id="74:7217" name="CA 04.04 – Department Details" />
+  <frame id="74:7681" name="CA 04.05 – Department Edit" />
+  <frame id="74:8049" name="CA 04.06 – Department Head Assignment" />
+  <frame id="74:8482" name="CA 04.07 – Organizational Hierarchy" />
+  <frame id="74:8896" name="CA 04.08 – Programme & Course Mapping" />
+  <frame id="74:9310" name="CA 04.09 – Department Faculty Allocation" />
+  <frame id="74:9796" name="CA 04.10 – Department Resource Management" />
+  <frame id="74:10186" name="CA 04.11 – Department Status & History" />
+</canvas>

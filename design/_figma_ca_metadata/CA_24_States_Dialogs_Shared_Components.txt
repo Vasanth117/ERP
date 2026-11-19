@@ -1,0 +1,13 @@
+<canvas id="export" name="REST export">
+  <frame id="162:11304" name="CA 24.01 – Empty state – no records" />
+  <frame id="162:11549" name="CA 24.02 – Empty state – no search results" />
+  <frame id="162:11790" name="CA 24.03 – Loading state" />
+  <frame id="162:12029" name="CA 24.04 – Error state – failed to load" />
+  <frame id="162:12275" name="CA 24.05 – Access denied" />
+  <frame id="162:12514" name="CA 24.06 – Validation errors on form" />
+  <frame id="162:12773" name="CA 24.07 – Confirm delete dialog" />
+  <frame id="162:13003" name="CA 24.08 – Approve / reject dialog" />
+  <frame id="162:13246" name="CA 24.09 – Bulk action confirmation" />
+  <frame id="162:13477" name="CA 24.10 – Success feedback" />
+  <frame id="162:13711" name="CA 24.11 – Unsaved changes warning" />
+</canvas>

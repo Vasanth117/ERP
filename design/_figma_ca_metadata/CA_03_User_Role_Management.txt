@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="73:5933" name="CA 03.01 – User Management Dashboard" />
+  <frame id="73:6360" name="CA 03.02 – All Users List" />
+  <frame id="73:6841" name="CA 03.03 – User Details" />
+  <frame id="73:7237" name="CA 03.04 – Create New User" />
+  <frame id="73:7646" name="CA 03.05 – Edit User Information" />
+  <frame id="73:8020" name="CA 03.06 – Bulk User Invitation" />
+  <frame id="73:8452" name="CA 03.07 – Role Management Dashboard" />
+  <frame id="73:8881" name="CA 03.08 – Create / Edit Role" />
+  <frame id="73:9371" name="CA 03.09 – Permission Management" />
+  <frame id="73:9940" name="CA 03.10 – Role Assignment" />
+  <frame id="73:10336" name="CA 03.11 – User Account Activation / Suspension" />
+  <frame id="73:10742" name="CA 03.12 – Login & Account Activity" />
+  <frame id="73:11173" name="CA 03.13 – User Access History" />
+</canvas>

@@ -8,7 +8,17 @@ class LibraryCopyStatus(str, Enum):
     ISSUED = "issued"
     RESERVED = "reserved"
     MAINTENANCE = "maintenance"
+    DAMAGED = "damaged"
     LOST = "lost"
+    WITHDRAWN = "withdrawn"
+
+
+class LibraryCopyCondition(str, Enum):
+    EXCELLENT = "excellent"
+    GOOD = "good"
+    FAIR = "fair"
+    POOR = "poor"
+    UNUSABLE = "unusable"
 
 
 class LibraryCirculationStatus(str, Enum):
@@ -22,9 +32,20 @@ class LibraryReservationStatus(str, Enum):
     READY = "ready"
     FULFILLED = "fulfilled"
     CANCELLED = "cancelled"
+    EXPIRED = "expired"
 
 
 class LibraryFineStatus(str, Enum):
     OPEN = "open"
+    PENDING_WAIVER = "pending_waiver"
+    PENDING_WRITEOFF = "pending_writeoff"
     PAID = "paid"
     WAIVED = "waived"
+    WRITTEN_OFF = "written_off"
+
+
+class LibraryDashboardDateRange(str, Enum):
+    TODAY = "today"
+    WEEK = "week"
+    MONTH = "month"
+    SEMESTER = "semester"

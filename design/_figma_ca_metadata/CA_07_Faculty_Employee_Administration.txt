@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="159:2199" name="CA 07.01 – Faculty & Employee Dashboard" />
+  <frame id="159:2648" name="CA 07.02 – Faculty Directory" />
+  <frame id="159:3007" name="CA 07.03 – Faculty Profile" />
+  <frame id="159:3382" name="CA 07.04 – Employee Directory" />
+  <frame id="159:3741" name="CA 07.05 – Add New Faculty / Employee" />
+  <frame id="159:4109" name="CA 07.06 – Employee Profile Management" />
+  <frame id="159:4430" name="CA 07.07 – Department & Designation Assignment" />
+  <frame id="159:4759" name="CA 07.08 – Faculty Subject Allocation" />
+  <frame id="159:5133" name="CA 07.09 – Faculty Workload Management" />
+  <frame id="159:5488" name="CA 07.10 – Faculty Timetable" />
+  <frame id="159:5832" name="CA 07.11 – Employee Document Verification" />
+  <frame id="159:6175" name="CA 07.12 – Employee Status Management" />
+  <frame id="159:6540" name="CA 07.13 – Faculty / Employee History" />
+</canvas>

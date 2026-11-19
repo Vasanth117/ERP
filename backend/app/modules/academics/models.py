@@ -8,9 +8,10 @@ from datetime import date, datetime, time
 from typing import Any
 
 from beanie import Document, PydanticObjectId
-from pydantic import Field
+from pydantic import Field, field_validator
 from pymongo import ASCENDING, DESCENDING, IndexModel
 
+from app.common.mongo_time import _parse_time_value, _serialize_time
 from app.common.time import utcnow
 from app.modules.academics.enums import SessionType, TimetableEntryStatus
 
@@ -42,8 +43,8 @@ class TimetableEntry(Document):
     academic_year_label: str
     semester_label: str
     day_of_week: int = Field(ge=0, le=6, description="0=Monday")
-    start_time: time
-    end_time: time
+    start_time: str = Field(description="Slot start (HH:MM:SS, UTC-neutral)")
+    end_time: str = Field(description="Slot end (HH:MM:SS, UTC-neutral)")
     course_code: str
     course_name: str
     course_id: str | None = None
@@ -58,6 +59,15 @@ class TimetableEntry(Document):
     effective_to: date | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
+
+    @field_validator("start_time", "end_time", mode="before")
+    @classmethod
+    def _coerce_time_fields(cls, value: time | str) -> str:
+        if isinstance(value, time):
+            return _serialize_time(value)
+        if isinstance(value, str):
+            return _serialize_time(_parse_time_value(value))
+        raise TypeError(f"Unsupported timetable time: {type(value)!r}")
 
     class Settings:
         name = "timetable_entries"

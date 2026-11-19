@@ -27,6 +27,7 @@ INSTITUTION_SETTINGS_ALLOWLIST: dict[str, type] = {
     "grade_display_scale": str,
     "show_department_in_reports": bool,
     "notification_digest_enabled": bool,
+    "inter_batch_section_transfer_requires_college_approval": bool,
 }
 
 
@@ -40,6 +41,7 @@ class InstitutionSettingsUpdate(BaseModel):
     grade_display_scale: str | None = Field(default=None, max_length=32)
     show_department_in_reports: bool | None = None
     notification_digest_enabled: bool | None = None
+    inter_batch_section_transfer_requires_college_approval: bool | None = None
 
     def to_settings_dict(self) -> dict[str, Any]:
         return {k: v for k, v in self.model_dump(exclude_none=True).items()}

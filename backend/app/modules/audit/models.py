@@ -27,4 +27,9 @@ class AuditLog(Document):
       IndexModel([("tenant_id", ASCENDING), ("created_at", ASCENDING)], name="audit_by_tenant"),
       IndexModel([("created_at", ASCENDING)], name="audit_by_time"),
       IndexModel([("actor_id", ASCENDING), ("created_at", ASCENDING)], name="audit_by_actor"),
+      IndexModel(
+        [("tenant_id", ASCENDING), ("metadata.central_department_id", ASCENDING), ("created_at", ASCENDING)],
+        name="audit_by_dept",
+        partialFilterExpression={"metadata.central_department_id": {"$exists": True}},
+      ),
     ]

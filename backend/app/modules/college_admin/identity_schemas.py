@@ -205,6 +205,7 @@ class OrganizationUnitRead(BaseModel):
 class InstitutionDepartmentCreate(BaseModel):
     department_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
     organization_unit_id: str | None = None
     parent_department_id: str | None = None
     campus_ids: list[str] = Field(default_factory=list)
@@ -214,6 +215,7 @@ class InstitutionDepartmentCreate(BaseModel):
 
 class InstitutionDepartmentUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
     organization_unit_id: str | None = None
     parent_department_id: str | None = None
     campus_ids: list[str] | None = None
@@ -226,6 +228,7 @@ class InstitutionDepartmentRead(BaseModel):
     department_id: str
     department_code: str
     name: str
+    description: str | None = None
     central_department_id: str | None
     organization_unit_id: str | None
     parent_department_id: str | None
@@ -242,6 +245,7 @@ class InstitutionDepartmentRead(BaseModel):
             department_id=str(doc.id),
             department_code=doc.department_code,
             name=doc.name,
+            description=doc.description,
             central_department_id=str(doc.central_department_id) if doc.central_department_id else None,
             organization_unit_id=str(doc.organization_unit_id) if doc.organization_unit_id else None,
             parent_department_id=str(doc.parent_department_id) if doc.parent_department_id else None,

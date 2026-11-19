@@ -1,0 +1,19 @@
+<canvas id="export" name="REST export">
+  <frame id="159:10708" name="CA 09.01 – Examination Dashboard" />
+  <frame id="159:11129" name="CA 09.02 – Examination Session Management" />
+  <frame id="159:11453" name="CA 09.03 – Examination Configuration" />
+  <frame id="159:11789" name="CA 09.04 – Exam Timetable Management" />
+  <frame id="159:12120" name="CA 09.05 – Exam Registration Management" />
+  <frame id="159:12476" name="CA 09.06 – Student Exam Eligibility" />
+  <frame id="159:12796" name="CA 09.07 – Hall Ticket Administration" />
+  <frame id="159:13128" name="CA 09.08 – Examination Hall & Seating Management" />
+  <frame id="159:13460" name="CA 09.09 – Invigilator Allocation" />
+  <frame id="159:13777" name="CA 09.10 – Marks Entry Management" />
+  <frame id="159:14116" name="CA 09.11 – Internal & External Assessment" />
+  <frame id="159:14421" name="CA 09.12 – Result Processing" />
+  <frame id="159:14699" name="CA 09.13 – Result Approval" />
+  <frame id="159:15003" name="CA 09.14 – Result Publication" />
+  <frame id="159:15302" name="CA 09.15 – Revaluation Management" />
+  <frame id="159:15612" name="CA 09.16 – Supplementary Examination Management" />
+  <frame id="159:15909" name="CA 09.17 – Examination Reports" />
+</canvas>

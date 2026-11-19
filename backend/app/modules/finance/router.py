@@ -7,7 +7,8 @@ from fastapi import APIRouter, Header, Request, status
 from app.common.context import get_request_id
 from app.common.envelope import ApiResponse, success_response
 from app.core.exceptions import AppError
-from app.modules.finance.payment_verification import apply_verified_payment, verify_webhook_signature
+from app.modules.accounts_finance.payment_core import process_payment_webhook
+from app.modules.finance.payment_verification import verify_webhook_signature
 
 router = APIRouter()
 
@@ -28,8 +29,10 @@ async def payment_webhook_route(
     gateway_reference = payload.get("gateway_reference") or payload.get("reference")
     if not transaction_id or not gateway_reference:
         raise AppError(code="VALIDATION_ERROR", message="transaction_id and gateway_reference required", status_code=422)
-    tx = await apply_verified_payment(transaction_id, gateway_reference=str(gateway_reference))
-    return success_response(
-        {"transaction_id": tx.transaction_id, "status": tx.status.value, "verified": tx.webhook_verified},
-        request_id=get_request_id(),
+    result = await process_payment_webhook(
+        tenant_id=None,
+        body=body,
+        signature=x_payment_signature,
+        payload=payload,
     )
+    return success_response(result, request_id=get_request_id())

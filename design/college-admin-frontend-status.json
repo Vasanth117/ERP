@@ -1,0 +1,20 @@
+{
+  "fileKey": "Hy7qeZdVNmzD6PN0ZkgBfK",
+  "portalBasePath": "/college-admin",
+  "figmaFramesInRegistry": 316,
+  "generatedAppRoutes": 293,
+  "metadataSource": "Figma REST export (design/_figma_ca_metadata)",
+  "implementation": {
+    "CA01_CA02": { "status": "api_integrated", "note": "Hand-built dashboard + institution" },
+    "CA03_CA04": { "status": "api_integrated", "note": "Dedicated screen components" },
+    "CA05_CA06": { "status": "api_integrated", "note": "academics-screens + students-screens" },
+    "CA07_CA24": {
+      "status": "routes_and_design_shell",
+      "note": "All Figma frames registered; GenericModuleScreen + per-frame routes. Pixel parity via get_design_context per frame."
+    }
+  },
+  "syncCommands": [
+    "py scripts/export_figma_ca_metadata_rest.py",
+    "py scripts/sync_college_admin_pages.py"
+  ]
+}

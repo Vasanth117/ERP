@@ -7,6 +7,8 @@ alwaysApply: false
 # Figma ↔ ERP System
 
 - Source of truth for UI: read `design/figma.json` for the Figma `fileKey`, `defaultNodeId`, and `url`.
+- Page index (197 Figma pages by ERP module): `design/figma-pages.json` — resolve `nodeId` from there, then call Figma MCP `get_design_context` / `get_screenshot` with `fileKey` `Hy7qeZdVNmzD6PN0ZkgBfK`.
+- Figma MCP is enabled in `.cursor/mcp.json` (`https://mcp.figma.com/mcp`). Re-sync pages after Figma renames: run `python scripts/build_figma_pages_catalog.py` (requires `design/_figma_pages_raw.json` from Figma MCP `use_figma` page export).
 - Before implementing screens from Figma, use the **figma-design-to-code** skill and Figma MCP `get_design_context` with that file/node (not a guessed URL).
 - Frontend talks to FastAPI at `http://localhost:8000` with prefix `/api/v1` (see `backend/app/core/config.py` and `backend/app/api/v1/router.py`).
 - Auth: `POST /api/v1/auth/login`, session via Bearer token; super admins may send `X-Tenant-Id`.

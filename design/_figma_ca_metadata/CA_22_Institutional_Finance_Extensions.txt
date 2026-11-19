@@ -1,0 +1,17 @@
+<canvas id="export" name="REST export">
+  <frame id="162:2199" name="CA 22.01 – Institutional Finance Dashboard" />
+  <frame id="162:2569" name="CA 22.02 – General Ledger" />
+  <frame id="162:2901" name="CA 22.03 – Chart of Accounts" />
+  <frame id="162:3198" name="CA 22.04 – Budget Management" />
+  <frame id="162:3499" name="CA 22.05 – Department Budget Allocation" />
+  <frame id="162:3804" name="CA 22.06 – Income & Expense Management" />
+  <frame id="162:4094" name="CA 22.07 – Vendor Management" />
+  <frame id="162:4384" name="CA 22.08 – Purchase Orders" />
+  <frame id="162:4704" name="CA 22.09 – Procurement Management" />
+  <frame id="162:5024" name="CA 22.10 – Vendor Payments" />
+  <frame id="162:5331" name="CA 22.11 – Expense Reimbursements" />
+  <frame id="162:5621" name="CA 22.12 – Bank Reconciliation" />
+  <frame id="162:5922" name="CA 22.13 – Financial Period Closing" />
+  <frame id="162:6238" name="CA 22.14 – Financial Statements" />
+  <frame id="162:6521" name="CA 22.15 – Tax & Compliance Reports" />
+</canvas>

@@ -31,9 +31,12 @@ from app.modules.tenants.models import Department, Tenant
 async def db_ready():
     try:
         await connect_to_mongo()
-        await connect_redis()
     except Exception as exc:
-        pytest.skip(f"Dependencies not available: {exc}")
+        pytest.skip(f"MongoDB not available: {exc}")
+    try:
+        await connect_redis()
+    except Exception:
+        pass
     for model in document_models():
         await model.get_motor_collection().delete_many({})
     yield
@@ -97,14 +100,16 @@ async def _seed_academic_context(tenant: Tenant, user: User) -> None:
         room="LH-1",
     ).insert()
     profile = await StudentProfile.find_one({"user_id": user.id})
-    if profile:
-        profile.student_id = "STU-001"
-        profile.roll_number = "21CSE001"
-        profile.programme_code = "BTECH-CSE"
-        profile.programme_name = "B.Tech CSE"
-        profile.batch_label = "2021"
-        profile.section_code = "A"
-        await profile.save()
+    if profile is None:
+        profile = StudentProfile(tenant_id=tenant.id, user_id=user.id)
+        await profile.insert()
+    profile.student_id = "STU-001"
+    profile.roll_number = "21CSE001"
+    profile.programme_code = "BTECH-CSE"
+    profile.programme_name = "B.Tech CSE"
+    profile.batch_label = "2021"
+    profile.section_code = "A"
+    await profile.save()
     await StudentAcademicRecord(
         tenant_id=tenant.id,
         user_id=user.id,

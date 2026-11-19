@@ -1,0 +1,14 @@
+<canvas id="export" name="REST export">
+  <frame id="161:35019" name="CA 21.01 – Helpdesk Dashboard" />
+  <frame id="161:35392" name="CA 21.02 – All Support Tickets" />
+  <frame id="161:35736" name="CA 21.03 – Ticket Details" />
+  <frame id="161:36054" name="CA 21.04 – Create Support Ticket" />
+  <frame id="161:36359" name="CA 21.05 – Ticket Assignment" />
+  <frame id="161:36648" name="CA 21.06 – Ticket Priority Management" />
+  <frame id="161:36931" name="CA 21.07 – Ticket Status Management" />
+  <frame id="161:37204" name="CA 21.08 – Escalation Management" />
+  <frame id="161:37499" name="CA 21.09 – Support Communication" />
+  <frame id="161:37771" name="CA 21.10 – Ticket Resolution" />
+  <frame id="161:38053" name="CA 21.11 – Support Reports" />
+  <frame id="161:38325" name="CA 21.12 – Helpdesk Settings" />
+</canvas>

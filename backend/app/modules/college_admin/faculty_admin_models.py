@@ -15,7 +15,12 @@ from app.modules.faculty.models import QualificationRecord
 
 class FacultyEmploymentStatus(str, Enum):
     ACTIVE = "active"
+    INACTIVE = "inactive"
+    PROBATION = "probation"
+    AWAITING_CONFIRMATION = "awaiting_confirmation"
+    CONFIRMED = "confirmed"
     ON_LEAVE = "on_leave"
+    NOTICE_PERIOD = "notice_period"
     TRANSFERRED = "transferred"
     RESIGNED = "resigned"
     TERMINATED = "terminated"

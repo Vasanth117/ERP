@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="160:11570" name="CA 12.01 – Library Dashboard" />
+  <frame id="160:11930" name="CA 12.02 – Library Branch Management" />
+  <frame id="160:12220" name="CA 12.03 – Book Catalogue" />
+  <frame id="160:12552" name="CA 12.04 – Book Inventory" />
+  <frame id="160:12874" name="CA 12.05 – Book Acquisition" />
+  <frame id="160:13164" name="CA 12.06 – Book Issue & Return Management" />
+  <frame id="160:13469" name="CA 12.07 – Reservation Management" />
+  <frame id="160:13760" name="CA 12.08 – Library Member Management" />
+  <frame id="160:14067" name="CA 12.09 – Fine Management" />
+  <frame id="160:14367" name="CA 12.10 – Lost & Damaged Books" />
+  <frame id="160:14657" name="CA 12.11 – Digital Library Management" />
+  <frame id="160:14947" name="CA 12.12 – Library Reports" />
+  <frame id="160:15223" name="CA 12.13 – Library Settings" />
+</canvas>

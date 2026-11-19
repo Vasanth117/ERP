@@ -15,6 +15,20 @@ class HostelApplication(Document):
     student_user_id: PydanticObjectId
     application_id: str
     academic_year_label: str
+    semester_label: str | None = None
+    requested_hostel_category: str | None = None
+    preferred_hostel_code: str | None = None
+    preferred_room_type: str | None = None
+    period_start: date | None = None
+    period_end: date | None = None
+    reason: str | None = Field(default=None, max_length=4000)
+    eligibility_payload: dict = Field(default_factory=dict)
+    document_refs: list[str] = Field(default_factory=list)
+    internal_remarks: str | None = Field(default=None, max_length=4000)
+    eligibility_result: dict | None = None
+    active_offer_id: str | None = None
+    allocation_id: str | None = None
+    waitlist_list_id: str | None = None
     status: HostelApplicationStatus = HostelApplicationStatus.SUBMITTED
     submitted_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
@@ -30,6 +44,14 @@ class HostelApplication(Document):
             IndexModel(
                 [("tenant_id", ASCENDING), ("student_user_id", ASCENDING)],
                 name="hostel_app_by_student",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("status", ASCENDING), ("academic_year_label", ASCENDING)],
+                name="hostel_apps_by_status_year",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("preferred_hostel_code", ASCENDING), ("status", ASCENDING)],
+                name="hostel_apps_by_preference",
             ),
         ]
 

@@ -1,0 +1,1055 @@
+{
+  "fileKey": "Hy7qeZdVNmzD6PN0ZkgBfK",
+  "fileName": "ERP",
+  "pageCount": 197,
+  "modules": {
+    "collegeAdmin": {
+      "pages": [
+        {
+          "id": "64:2",
+          "name": "CA 01 – College Admin Dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=64-2"
+        },
+        {
+          "id": "72:5932",
+          "name": "CA 02 – Institution & Campus Settings",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=72-5932"
+        },
+        {
+          "id": "73:5932",
+          "name": "CA 03 – User & Role Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=73-5932"
+        },
+        {
+          "id": "74:5932",
+          "name": "CA 04 – Department & Organization",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=74-5932"
+        },
+        {
+          "id": "75:5932",
+          "name": "CA 05 – Academic Configuration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=75-5932"
+        },
+        {
+          "id": "75:11520",
+          "name": "CA 06 – Student Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=75-11520"
+        },
+        {
+          "id": "159:2198",
+          "name": "CA 07 – Faculty & Employee Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=159-2198"
+        },
+        {
+          "id": "159:6843",
+          "name": "CA 08 – Attendance Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=159-6843"
+        },
+        {
+          "id": "159:10707",
+          "name": "CA 09 – Examination Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=159-10707"
+        },
+        {
+          "id": "160:2198",
+          "name": "CA 10 – Finance Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=160-2198"
+        },
+        {
+          "id": "160:7147",
+          "name": "CA 11 – HR Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=160-7147"
+        },
+        {
+          "id": "160:11569",
+          "name": "CA 12 – Library Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=160-11569"
+        },
+        {
+          "id": "161:2198",
+          "name": "CA 13 – Hostel Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-2198"
+        },
+        {
+          "id": "161:6941",
+          "name": "CA 14 – Communication Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-6941"
+        },
+        {
+          "id": "161:11017",
+          "name": "CA 15 – LMS Administration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-11017"
+        },
+        {
+          "id": "161:14938",
+          "name": "CA 16 – Reports & Analytics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-14938"
+        },
+        {
+          "id": "161:19761",
+          "name": "CA 17 – Workflow & Approval Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-19761"
+        },
+        {
+          "id": "161:23475",
+          "name": "CA 18 – Audit & Security Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-23475"
+        },
+        {
+          "id": "161:26820",
+          "name": "CA 19 – Data Import & Migration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-26820"
+        },
+        {
+          "id": "161:30992",
+          "name": "CA 20 – Integration Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-30992"
+        },
+        {
+          "id": "161:35018",
+          "name": "CA 21 – Helpdesk & Support",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=161-35018"
+        },
+        {
+          "id": "162:2198",
+          "name": "CA 22 – Institutional Finance Extensions",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=162-2198"
+        },
+        {
+          "id": "162:6804",
+          "name": "CA 23 – Institutional Operations Extensions",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=162-6804"
+        },
+        {
+          "id": "162:11303",
+          "name": "CA 24 – States, Dialogs & Shared Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=162-11303"
+        }
+      ]
+    },
+    "departmentAdmin": {
+      "pages": [
+        {
+          "id": "77:15082",
+          "name": "DA 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=77-15082"
+        },
+        {
+          "id": "83:15082",
+          "name": "DA 01 – Dashboard & Profile",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=83-15082"
+        },
+        {
+          "id": "84:15082",
+          "name": "DA 02 – Faculty & Workload",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=84-15082"
+        },
+        {
+          "id": "85:15082",
+          "name": "DA 03 – Academic & Curriculum",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=85-15082"
+        },
+        {
+          "id": "86:15082",
+          "name": "DA 04 – Batch & Students",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=86-15082"
+        },
+        {
+          "id": "86:18647",
+          "name": "DA 05 – Timetable & Resources",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=86-18647"
+        },
+        {
+          "id": "87:15082",
+          "name": "DA 06 – Attendance",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=87-15082"
+        },
+        {
+          "id": "87:18017",
+          "name": "DA 07 – Assessment & Performance",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=87-18017"
+        },
+        {
+          "id": "89:15082",
+          "name": "DA 08 – Communication & Approvals",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=89-15082"
+        },
+        {
+          "id": "93:15082",
+          "name": "DA 09 – States & Dialogs",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=93-15082"
+        }
+      ]
+    },
+    "examination": {
+      "pages": [
+        {
+          "id": "117:2",
+          "name": "EX 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=117-2"
+        },
+        {
+          "id": "118:2",
+          "name": "EX 01 – Examination Cell Dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=118-2"
+        },
+        {
+          "id": "118:3165",
+          "name": "EX 02 – Exam Session Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=118-3165"
+        },
+        {
+          "id": "119:2",
+          "name": "EX 03 – Assessment Configuration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=119-2"
+        },
+        {
+          "id": "119:4386",
+          "name": "EX 04 – Exam Scheduling & Timetable",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=119-4386"
+        },
+        {
+          "id": "120:2",
+          "name": "EX 05 – Student Eligibility & Registration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=120-2"
+        },
+        {
+          "id": "120:5161",
+          "name": "EX 06 – Hall Ticket Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=120-5161"
+        },
+        {
+          "id": "121:2",
+          "name": "EX 07 – Examination Logistics & Seating",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=121-2"
+        },
+        {
+          "id": "121:5233",
+          "name": "EX 08 – Marks Entry & Assessment",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=121-5233"
+        },
+        {
+          "id": "122:2",
+          "name": "EX 09 – Grading Policy & GPA/CGPA",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=122-2"
+        },
+        {
+          "id": "122:4803",
+          "name": "EX 10 – Result Review & Approval",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=122-4803"
+        },
+        {
+          "id": "123:2",
+          "name": "EX 11 – Result Processing & Publication",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=123-2"
+        },
+        {
+          "id": "123:5138",
+          "name": "EX 12 – Transcripts & Academic Statements",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=123-5138"
+        },
+        {
+          "id": "124:2",
+          "name": "EX 13 – Revaluation & Supplementary",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=124-2"
+        },
+        {
+          "id": "124:5994",
+          "name": "EX 14 – Incidents & Malpractice",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=124-5994"
+        },
+        {
+          "id": "124:10081",
+          "name": "EX 15 – Notifications & Communication",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=124-10081"
+        },
+        {
+          "id": "124:14811",
+          "name": "EX 16 – Reports & Analytics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=124-14811"
+        },
+        {
+          "id": "124:20818",
+          "name": "EX 17 – Integration, Security & Audit",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=124-20818"
+        },
+        {
+          "id": "124:26329",
+          "name": "EX 18 – States, Dialogs & Shared Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=124-26329"
+        },
+        {
+          "id": "253:845375",
+          "name": "exam dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=253-845375"
+        }
+      ]
+    },
+    "facultyPortal": {
+      "pages": [
+        {
+          "id": "90:15082",
+          "name": "FP 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-15082"
+        },
+        {
+          "id": "90:15354",
+          "name": "FP 01 – Dashboard & Workspace",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-15354"
+        },
+        {
+          "id": "90:16990",
+          "name": "FP 02 – Faculty Profile",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-16990"
+        },
+        {
+          "id": "90:19066",
+          "name": "FP 03 – Courses & Academic Content",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-19066"
+        },
+        {
+          "id": "90:21680",
+          "name": "FP 04 – Timetable & Calendar",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-21680"
+        },
+        {
+          "id": "90:23973",
+          "name": "FP 05 – Attendance Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-23973"
+        },
+        {
+          "id": "90:26680",
+          "name": "FP 06 – LMS & Assignments",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-26680"
+        },
+        {
+          "id": "90:30058",
+          "name": "FP 07 – Assessment & Grading",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-30058"
+        },
+        {
+          "id": "90:33292",
+          "name": "FP 08 – Student Support & Mentoring",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-33292"
+        },
+        {
+          "id": "90:36008",
+          "name": "FP 09 – Communication",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-36008"
+        },
+        {
+          "id": "90:38429",
+          "name": "FP 10 – Self-Service & Reports",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=90-38429"
+        },
+        {
+          "id": "93:16668",
+          "name": "FP 11 – States & Dialogs",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=93-16668"
+        }
+      ]
+    },
+    "finance": {
+      "pages": [
+        {
+          "id": "149:463",
+          "name": "FN 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=149-463"
+        },
+        {
+          "id": "150:2",
+          "name": "FN 01 – Finance Dashboard & Financial Overview",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=150-2"
+        },
+        {
+          "id": "151:2",
+          "name": "FN 02 – Fee Structure Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=151-2"
+        },
+        {
+          "id": "151:4972",
+          "name": "FN 03 – Student Fee Assessment",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=151-4972"
+        },
+        {
+          "id": "151:9817",
+          "name": "FN 04 – Invoice & Demand Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=151-9817"
+        },
+        {
+          "id": "152:2",
+          "name": "FN 05 – Online Payment Integration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-2"
+        },
+        {
+          "id": "152:4962",
+          "name": "FN 06 – Offline Payment Collection",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-4962"
+        },
+        {
+          "id": "152:9392",
+          "name": "FN 07 – Student Financial Ledger",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-9392"
+        },
+        {
+          "id": "152:14150",
+          "name": "FN 08 – Receipt Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-14150"
+        },
+        {
+          "id": "152:18027",
+          "name": "FN 09 – Scholarships & Financial Aid",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-18027"
+        },
+        {
+          "id": "152:22748",
+          "name": "FN 10 – Fee Concessions & Waivers",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-22748"
+        },
+        {
+          "id": "152:26861",
+          "name": "FN 11 – Installments & Payment Plans",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-26861"
+        },
+        {
+          "id": "152:31021",
+          "name": "FN 12 – Refunds & Reversals",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-31021"
+        },
+        {
+          "id": "152:36234",
+          "name": "FN 13 – Payment Reconciliation",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-36234"
+        },
+        {
+          "id": "152:40858",
+          "name": "FN 14 – Late Fees & Outstanding Dues",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-40858"
+        },
+        {
+          "id": "152:45162",
+          "name": "FN 15 – Financial Reports & Analytics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-45162"
+        },
+        {
+          "id": "152:51139",
+          "name": "FN 16 – Financial Period Closing",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-51139"
+        },
+        {
+          "id": "152:56647",
+          "name": "FN 17 – General Ledger & Accounting",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-56647"
+        },
+        {
+          "id": "152:62654",
+          "name": "FN 18 – Budget Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-62654"
+        },
+        {
+          "id": "152:68194",
+          "name": "FN 19 – Procurement & Vendor Finance",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-68194"
+        },
+        {
+          "id": "152:73892",
+          "name": "FN 20 – Expenses & Reimbursements",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-73892"
+        },
+        {
+          "id": "152:78911",
+          "name": "FN 21 – Tax & Regulatory Reporting",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-78911"
+        },
+        {
+          "id": "152:83355",
+          "name": "FN 22 – Notifications & Reminders",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-83355"
+        },
+        {
+          "id": "152:87880",
+          "name": "FN 23 – Finance Settings & Permissions",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-87880"
+        },
+        {
+          "id": "152:92714",
+          "name": "FN 24 – Audit & Transaction History",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=152-92714"
+        },
+        {
+          "id": "155:5861",
+          "name": "FN 25 – States, Dialogs & Shared Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=155-5861"
+        }
+      ]
+    },
+    "hostel": {
+      "pages": [
+        {
+          "id": "205:357983",
+          "name": "HA 00 – Design System & Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=205-357983"
+        },
+        {
+          "id": "205:358396",
+          "name": "HA 01 – Hostel Dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=205-358396"
+        },
+        {
+          "id": "205:360522",
+          "name": "HA 02 – Hostel & Building Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=205-360522"
+        },
+        {
+          "id": "207:360358",
+          "name": "HA 03 – Room & Bed Allocation",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-360358"
+        },
+        {
+          "id": "207:367083",
+          "name": "HA 04 – Hostel Applications & Waiting List",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-367083"
+        },
+        {
+          "id": "207:369868",
+          "name": "HA 05 – Resident Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-369868"
+        },
+        {
+          "id": "207:372978",
+          "name": "HA 06 – Mess Management & Billing",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-372978"
+        },
+        {
+          "id": "207:376443",
+          "name": "HA 07 – Visitor Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-376443"
+        },
+        {
+          "id": "207:379408",
+          "name": "HA 08 – Hostel Leave & Outpass Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-379408"
+        },
+        {
+          "id": "207:382564",
+          "name": "HA 09 – Maintenance & Complaints",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-382564"
+        },
+        {
+          "id": "207:385705",
+          "name": "HA 10 – Hostel Rules & Incident Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-385705"
+        },
+        {
+          "id": "207:389109",
+          "name": "HA 11 – Communication & Notifications",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-389109"
+        },
+        {
+          "id": "207:391996",
+          "name": "HA 12 – Reports & Analytics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-391996"
+        },
+        {
+          "id": "207:395200",
+          "name": "HA 13 – Integrations Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-395200"
+        },
+        {
+          "id": "207:397198",
+          "name": "HA 14 – Audit History & Configuration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-397198"
+        },
+        {
+          "id": "207:400753",
+          "name": "HA 15 – Common Modals & Shared Screens",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=207-400753"
+        }
+      ]
+    },
+    "hr": {
+      "pages": [
+        {
+          "id": "125:2",
+          "name": "HR 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=125-2"
+        },
+        {
+          "id": "126:2",
+          "name": "HR 01 – HR Dashboard & Employee Overview",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=126-2"
+        },
+        {
+          "id": "126:4058",
+          "name": "HR 02 – Employee Profile Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=126-4058"
+        },
+        {
+          "id": "126:9207",
+          "name": "HR 03 – Organization & Employment Structure",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=126-9207"
+        },
+        {
+          "id": "126:13434",
+          "name": "HR 04 – Employee Document Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=126-13434"
+        },
+        {
+          "id": "127:2",
+          "name": "HR 05 – Recruitment & Applicant Tracking",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=127-2"
+        },
+        {
+          "id": "127:6299",
+          "name": "HR 06 – Employee Onboarding Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=127-6299"
+        },
+        {
+          "id": "128:2",
+          "name": "HR 07 – Employment Changes & Offboarding",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=128-2"
+        },
+        {
+          "id": "128:5802",
+          "name": "HR 08 – Leave Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=128-5802"
+        },
+        {
+          "id": "129:2",
+          "name": "HR 09 – Employee Attendance & Work Schedules",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=129-2"
+        },
+        {
+          "id": "129:5490",
+          "name": "HR 10 – Salary Structure Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=129-5490"
+        },
+        {
+          "id": "133:2",
+          "name": "HR 11 – Payroll Processing",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-2"
+        },
+        {
+          "id": "133:5820",
+          "name": "HR 12 – Salary Slips & Payroll Documents",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-5820"
+        },
+        {
+          "id": "133:9599",
+          "name": "HR 13 – Statutory Payroll & Tax Configuration",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-9599"
+        },
+        {
+          "id": "133:13335",
+          "name": "HR 14 – Employee Self-Service",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-13335"
+        },
+        {
+          "id": "133:17490",
+          "name": "HR 15 – Employee Benefits & Claims",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-17490"
+        },
+        {
+          "id": "133:22053",
+          "name": "HR 16 – Performance & Training Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-22053"
+        },
+        {
+          "id": "133:27407",
+          "name": "HR 17 – HR Notifications & Communication",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-27407"
+        },
+        {
+          "id": "133:32156",
+          "name": "HR 18 – HR Reports & Analytics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-32156"
+        },
+        {
+          "id": "133:38411",
+          "name": "HR 19 – HR Settings & Policies",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-38411"
+        },
+        {
+          "id": "133:43106",
+          "name": "HR 20 – HR Audit History & Access Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-43106"
+        },
+        {
+          "id": "133:47929",
+          "name": "HR 21 – States, Dialogs & Shared Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=133-47929"
+        },
+        {
+          "id": "248:389935",
+          "name": "HR DASHBOARD",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=248-389935"
+        }
+      ]
+    },
+    "legacyCanvas": {
+      "pages": [
+        {
+          "id": "0:1",
+          "name": "Page 1",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=0-1"
+        },
+        {
+          "id": "241:389934",
+          "name": "Page 194",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=241-389934"
+        }
+      ]
+    },
+    "library": {
+      "pages": [
+        {
+          "id": "106:2",
+          "name": "LP 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=106-2"
+        },
+        {
+          "id": "107:2",
+          "name": "LP 01 – Library Dashboard & Overview",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=107-2"
+        },
+        {
+          "id": "107:2548",
+          "name": "LP 02 – Library & Branch Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=107-2548"
+        },
+        {
+          "id": "108:2",
+          "name": "LP 03 – Book Catalogue Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=108-2"
+        },
+        {
+          "id": "108:4205",
+          "name": "LP 04 – Book Copy Inventory Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=108-4205"
+        },
+        {
+          "id": "109:2",
+          "name": "LP 05 – Library Member Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=109-2"
+        },
+        {
+          "id": "109:4040",
+          "name": "LP 06 – Book Issue, Return & Renewal",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=109-4040"
+        },
+        {
+          "id": "110:2",
+          "name": "LP 07 – Book Reservations & Hold Queue",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=110-2"
+        },
+        {
+          "id": "111:2",
+          "name": "LP 08 – Fines, Lost & Damaged Books",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=111-2"
+        },
+        {
+          "id": "111:5050",
+          "name": "LP 09 – Book Acquisition & Procurement",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=111-5050"
+        },
+        {
+          "id": "112:2",
+          "name": "LP 10 – Digital Library & E-Resources",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=112-2"
+        },
+        {
+          "id": "112:4020",
+          "name": "LP 11 – Library Notifications & Communication",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=112-4020"
+        },
+        {
+          "id": "113:2",
+          "name": "LP 12 – Library Reports & Analytics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=113-2"
+        },
+        {
+          "id": "113:5089",
+          "name": "LP 13 – Library Settings & Borrowing Policies",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=113-5089"
+        },
+        {
+          "id": "114:2",
+          "name": "LP 14 – Library Audit History & Inventory Control",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=114-2"
+        },
+        {
+          "id": "115:14988",
+          "name": "LP 15 – States, Dialogs & Shared Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=115-14988"
+        },
+        {
+          "id": "253:389934",
+          "name": "Library dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=253-389934"
+        }
+      ]
+    },
+    "parentPortal": {
+      "pages": [
+        {
+          "id": "96:2",
+          "name": "PP 00 – Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=96-2"
+        },
+        {
+          "id": "97:2",
+          "name": "PP 01 – Parent Dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=97-2"
+        },
+        {
+          "id": "97:1858",
+          "name": "PP 02 – Student Linking",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=97-1858"
+        },
+        {
+          "id": "98:2",
+          "name": "PP 03 – Student Profile",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=98-2"
+        },
+        {
+          "id": "98:2129",
+          "name": "PP 04 – Attendance",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=98-2129"
+        },
+        {
+          "id": "99:2",
+          "name": "PP 05 – Examinations & Academics",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=99-2"
+        },
+        {
+          "id": "99:3538",
+          "name": "PP 06 – Fees & Payments",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=99-3538"
+        },
+        {
+          "id": "100:2",
+          "name": "PP 07 – Communication",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=100-2"
+        },
+        {
+          "id": "100:2534",
+          "name": "PP 08 – Documents & Requests",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=100-2534"
+        },
+        {
+          "id": "101:2",
+          "name": "PP 09 – Parent–College Engagement",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=101-2"
+        },
+        {
+          "id": "101:2819",
+          "name": "PP 10 – Student Services & Reports",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=101-2819"
+        },
+        {
+          "id": "103:2",
+          "name": "PP 11 – States & Dialogs",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=103-2"
+        }
+      ]
+    },
+    "platform": {
+      "pages": [
+        {
+          "id": "46:4652",
+          "name": "00 – Design System",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4652"
+        },
+        {
+          "id": "46:4653",
+          "name": "01 – Super Admin App Shell",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4653"
+        },
+        {
+          "id": "46:4654",
+          "name": "02 – Platform Dashboard",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4654"
+        },
+        {
+          "id": "46:4655",
+          "name": "03 – Tenant Management & Onboarding",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4655"
+        },
+        {
+          "id": "46:4656",
+          "name": "04 – Tenant Lifecycle",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4656"
+        },
+        {
+          "id": "46:4657",
+          "name": "05 – Platform Configuration & Branding",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4657"
+        },
+        {
+          "id": "46:4658",
+          "name": "06 – Users & Access Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4658"
+        },
+        {
+          "id": "46:4659",
+          "name": "07 – Security & Audit",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4659"
+        },
+        {
+          "id": "46:4660",
+          "name": "08 – Platform Health & Incidents",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4660"
+        },
+        {
+          "id": "46:4661",
+          "name": "09 – Integrations & Providers",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4661"
+        },
+        {
+          "id": "46:4662",
+          "name": "10 – Data Export & Retention",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4662"
+        },
+        {
+          "id": "46:4663",
+          "name": "11 – SaaS Subscription & Billing",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4663"
+        },
+        {
+          "id": "46:4664",
+          "name": "12 – Responsive Designs",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=46-4664"
+        }
+      ]
+    },
+    "studentPortal": {
+      "pages": [
+        {
+          "id": "163:2",
+          "name": "ST 00 – Student Portal Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=163-2"
+        },
+        {
+          "id": "164:2",
+          "name": "ST 01 – Student Dashboard & Profile",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-2"
+        },
+        {
+          "id": "164:3627",
+          "name": "ST 02 – Academic Management & Enrollment",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-3627"
+        },
+        {
+          "id": "164:7289",
+          "name": "ST 03 – Course, Subject & Curriculum",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-7289"
+        },
+        {
+          "id": "164:10576",
+          "name": "ST 04 – Course Registration & Electives",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-10576"
+        },
+        {
+          "id": "164:14233",
+          "name": "ST 05 – Timetable & Academic Calendar",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-14233"
+        },
+        {
+          "id": "164:17399",
+          "name": "ST 06 – Attendance & Shortage Tracking",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-17399"
+        },
+        {
+          "id": "164:21043",
+          "name": "ST 07 – Internal Assessment & CIA Marks",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-21043"
+        },
+        {
+          "id": "164:24200",
+          "name": "ST 08 – Assignments, Quizzes & Continuous Assessment",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-24200"
+        },
+        {
+          "id": "164:29246",
+          "name": "ST 09 – Laboratory & Practical Marks",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-29246"
+        },
+        {
+          "id": "164:32901",
+          "name": "ST 10 – Semester Examination Management",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-32901"
+        },
+        {
+          "id": "164:36275",
+          "name": "ST 11 – Examination Registration & Hall Ticket",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-36275"
+        },
+        {
+          "id": "164:40492",
+          "name": "ST 12 – Examination Results & Subject Marks",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-40492"
+        },
+        {
+          "id": "164:47873",
+          "name": "ST 13 – Grades, GPA & CGPA",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-47873"
+        },
+        {
+          "id": "164:44041",
+          "name": "ST 14 – Marksheet, Grade Card & Transcript",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-44041"
+        },
+        {
+          "id": "164:50999",
+          "name": "ST 15 – Arrear & Supplementary Examinations",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-50999"
+        },
+        {
+          "id": "164:54678",
+          "name": "ST 16 – Revaluation & Marks Correction",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-54678"
+        },
+        {
+          "id": "164:58737",
+          "name": "ST 17 – LMS & Study Materials",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-58737"
+        },
+        {
+          "id": "164:62399",
+          "name": "ST 18 – Fees, Payments & Scholarships",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=164-62399"
+        },
+        {
+          "id": "165:2",
+          "name": "ST 19 – Library, Hostel, Transport & Services",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=165-2"
+        },
+        {
+          "id": "165:5758",
+          "name": "ST 20 – Communication, Documents & Student Services",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=165-5758"
+        },
+        {
+          "id": "165:13564",
+          "name": "ST 21 – States, Dialogs & Shared Components",
+          "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=165-13564"
+        }
+      ]
+    }
+  },
+  "moduleOrder": [
+    "platform",
+    "collegeAdmin",
+    "departmentAdmin",
+    "facultyPortal",
+    "studentPortal",
+    "parentPortal",
+    "library",
+    "examination",
+    "hr",
+    "finance",
+    "hostel",
+    "legacyCanvas",
+    "other"
+  ]
+}

@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="161:26821" name="CA 19.01 – Data Management Dashboard" />
+  <frame id="161:27183" name="CA 19.02 – Data Import Dashboard" />
+  <frame id="161:27469" name="CA 19.03 – Student Data Import" />
+  <frame id="161:27775" name="CA 19.04 – Faculty Data Import" />
+  <frame id="161:28081" name="CA 19.05 – Department Data Import" />
+  <frame id="161:28387" name="CA 19.06 – Bulk Data Upload" />
+  <frame id="161:28683" name="CA 19.07 – File Mapping & Field Configuration" />
+  <frame id="161:29029" name="CA 19.08 – Data Validation" />
+  <frame id="161:29389" name="CA 19.09 – Import Error Details" />
+  <frame id="161:29745" name="CA 19.10 – Import Preview & Confirmation" />
+  <frame id="161:30083" name="CA 19.11 – Migration Progress" />
+  <frame id="161:30374" name="CA 19.12 – Import History" />
+  <frame id="161:30706" name="CA 19.13 – Data Export Management" />
+</canvas>

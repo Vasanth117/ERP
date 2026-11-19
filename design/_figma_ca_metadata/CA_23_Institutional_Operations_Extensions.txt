@@ -1,0 +1,17 @@
+<canvas id="export" name="REST export">
+  <frame id="162:6805" name="CA 23.01 – Operations Dashboard" />
+  <frame id="162:7177" name="CA 23.02 – Campus Asset Management" />
+  <frame id="162:7497" name="CA 23.03 – Building & Infrastructure Management" />
+  <frame id="162:7798" name="CA 23.04 – Classroom Management" />
+  <frame id="162:8084" name="CA 23.05 – Laboratory Management" />
+  <frame id="162:8370" name="CA 23.06 – Equipment Inventory" />
+  <frame id="162:8656" name="CA 23.07 – Maintenance Requests" />
+  <frame id="162:8965" name="CA 23.08 – Maintenance Work Orders" />
+  <frame id="162:9281" name="CA 23.09 – Vendor & Service Provider Management" />
+  <frame id="162:9567" name="CA 23.10 – Procurement Requests" />
+  <frame id="162:9853" name="CA 23.11 – Transport Fleet Management" />
+  <frame id="162:10156" name="CA 23.12 – Vehicle Management" />
+  <frame id="162:10442" name="CA 23.13 – Campus Facility Booking" />
+  <frame id="162:10728" name="CA 23.14 – Security & Visitor Management" />
+  <frame id="162:11031" name="CA 23.15 – Institutional Operations Reports" />
+</canvas>

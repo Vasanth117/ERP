@@ -194,6 +194,21 @@ async def notifications_feed(scope: AccessScope, user: User, pagination: Paginat
                     read=read_map.get(key) is not None and read_map[key].read_at is not None,
                 )
             )
+    if prefs.library_enabled:
+        from app.modules.library.notification_service import patron_notifications
+
+        for r in await patron_notifications(tenant_id, user.id, limit=30):
+            key = r["notification_key"]
+            entries.append(
+                NotificationFeedRead(
+                    notification_key=key,
+                    source="library",
+                    title=r["title"],
+                    body=r["body"],
+                    created_at=r["created_at"],
+                    read=read_map.get(key) is not None and read_map[key].read_at is not None,
+                )
+            )
     entries.sort(key=lambda x: x.created_at, reverse=True)
     slice_items = entries[pagination.offset : pagination.offset + pagination.limit]
     return Page(items=slice_items, total=len(entries), limit=pagination.limit, offset=pagination.offset)
@@ -232,6 +247,7 @@ async def get_preferences(scope: AccessScope, user: User) -> CommunicationPrefer
             academic_enabled=True,
             finance_enabled=True,
             examination_enabled=True,
+            library_enabled=True,
         )
     return CommunicationPreferencesRead(
         email_enabled=row.email_enabled,
@@ -239,6 +255,7 @@ async def get_preferences(scope: AccessScope, user: User) -> CommunicationPrefer
         academic_enabled=row.academic_enabled,
         finance_enabled=row.finance_enabled,
         examination_enabled=row.examination_enabled,
+        library_enabled=getattr(row, "library_enabled", True),
     )
 
 

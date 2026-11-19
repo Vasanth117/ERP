@@ -1,6 +1,6 @@
 """College admin library administration collections."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from beanie import Document, PydanticObjectId
@@ -12,17 +12,25 @@ from app.common.time import utcnow
 
 class LibraryBranch(Document):
     tenant_id: PydanticObjectId
+    library_code: str | None = Field(default=None, max_length=32)
     branch_code: str
     name: str = Field(max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
     campus_id: PydanticObjectId | None = None
     address: str | None = Field(default=None, max_length=500)
+    contact_email: str | None = Field(default=None, max_length=254)
+    contact_phone: str | None = Field(default=None, max_length=32)
+    operating_status: str = Field(default="active", max_length=32)
     is_active: bool = True
+    created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
+    updated_by: PydanticObjectId | None = None
 
     class Settings:
         name = "library_branches"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("branch_code", ASCENDING)], unique=True, name="unique_library_branch"),
+            IndexModel([("tenant_id", ASCENDING), ("library_code", ASCENDING)], name="library_branches_by_library"),
         ]
 
 
@@ -51,8 +59,11 @@ class LibraryBookCopyRecord(Document):
     barcode: str
     accession_number: str | None = None
     branch_code: str | None = None
+    shelf_location_code: str | None = None
     authoritative_copy_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+    updated_by: PydanticObjectId | None = None
 
     class Settings:
         name = "library_book_copies"
@@ -64,22 +75,45 @@ class LibraryBookCopyRecord(Document):
                 name="unique_accession_per_tenant",
                 partialFilterExpression={"accession_number": {"$type": "string"}},
             ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("barcode", ASCENDING)],
+                unique=True,
+                name="unique_admin_copy_barcode",
+            ),
+            IndexModel([("tenant_id", ASCENDING), ("branch_code", ASCENDING)], name="book_copies_by_branch"),
         ]
 
 
 class LibraryMembershipReference(Document):
     tenant_id: PydanticObjectId
+    membership_number: str
     member_user_id: PydanticObjectId
     member_type: str = "student"
+    member_category: str = "student"
     branch_code: str | None = None
     eligible: bool = True
     borrowing_limit: int = Field(default=5, ge=0)
+    status: str = "active"
+    activated_on: date | None = None
+    expires_on: date | None = None
+    suspension_reason: str | None = Field(default=None, max_length=500)
+    suspended_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    created_by: PydanticObjectId | None = None
     updated_at: datetime = Field(default_factory=utcnow)
+    updated_by: PydanticObjectId | None = None
 
     class Settings:
         name = "library_membership_references"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("member_user_id", ASCENDING)], unique=True, name="unique_library_member"),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("membership_number", ASCENDING)],
+                unique=True,
+                name="unique_membership_number",
+            ),
+            IndexModel([("tenant_id", ASCENDING), ("status", ASCENDING), ("member_category", ASCENDING)], name="membership_by_status"),
+            IndexModel([("tenant_id", ASCENDING), ("branch_code", ASCENDING)], name="membership_by_branch"),
         ]
 
 
@@ -109,6 +143,7 @@ class LibraryCirculationRecord(Document):
     branch_code: str | None = None
     action: str
     actor_id: PydanticObjectId | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
@@ -123,17 +158,34 @@ class LibraryAcquisition(Document):
     acquisition_id: str
     branch_code: str | None = None
     vendor: str | None = None
+    vendor_id: str | None = None
     book_id: str | None = None
+    title: str | None = Field(default=None, max_length=300)
+    isbn: str | None = Field(default=None, max_length=20)
+    request_type: str = Field(default="purchase", max_length=32)
     quantity: int = Field(default=1, ge=1)
-    status: str = "ordered"
+    quantity_received: int = Field(default=0, ge=0)
+    status: str = "draft"
+    approval_status: str = "draft"
+    purchase_request_id: str | None = None
+    purchase_order_id: str | None = None
+    selected_quotation_id: str | None = None
+    suggested_by: PydanticObjectId | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
     actor_id: PydanticObjectId | None = None
+    updated_at: datetime = Field(default_factory=utcnow)
     created_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "library_acquisitions"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("acquisition_id", ASCENDING)], unique=True, name="unique_acquisition"),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("status", ASCENDING), ("created_at", DESCENDING)],
+                name="acquisitions_by_status",
+            ),
+            IndexModel([("tenant_id", ASCENDING), ("purchase_order_id", ASCENDING)], name="acquisition_by_po"),
+            IndexModel([("tenant_id", ASCENDING), ("branch_code", ASCENDING), ("status", ASCENDING)], name="acquisition_by_branch"),
         ]
 
 
@@ -143,6 +195,7 @@ class LibraryInventoryHistory(Document):
     copy_id: str | None = None
     event_type: str
     note: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
     actor_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
 
@@ -150,4 +203,5 @@ class LibraryInventoryHistory(Document):
         name = "library_inventory_history"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("created_at", DESCENDING)], name="inventory_history_recent"),
+            IndexModel([("tenant_id", ASCENDING), ("copy_id", ASCENDING), ("created_at", DESCENDING)], name="inventory_history_by_copy"),
         ]

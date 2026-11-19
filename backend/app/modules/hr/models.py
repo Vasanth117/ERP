@@ -7,7 +7,7 @@ from pydantic import Field
 from pymongo import ASCENDING, IndexModel
 
 from app.common.time import utcnow
-from app.modules.hr.enums import LeaveRequestStatus
+from app.modules.hr.enums import LeaveDayPortion, LeaveRequestStatus
 
 
 class LeaveRequest(Document):
@@ -18,9 +18,18 @@ class LeaveRequest(Document):
     leave_type: str = "casual"
     start_date: date
     end_date: date
+    day_portion: LeaveDayPortion = LeaveDayPortion.FULL
+    working_days: float = 0
     reason: str = Field(max_length=500)
+    document_refs: list[str] = Field(default_factory=list)
+    contact_during_leave: str | None = Field(default=None, max_length=500)
+    alternate_arrangement: str | None = Field(default=None, max_length=1000)
     status: LeaveRequestStatus = LeaveRequestStatus.SUBMITTED
     approver_note: str | None = None
+    manager_reviewer_id: PydanticObjectId | None = None
+    hr_reviewer_id: PydanticObjectId | None = None
+    cancellation_reason: str | None = Field(default=None, max_length=2000)
+    balance_days_deducted: float | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 

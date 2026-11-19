@@ -3,14 +3,14 @@
 from datetime import date
 
 from beanie import PydanticObjectId
-
 from app.api.deps import AccessScope
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.core.exceptions import AppError
 from app.modules.audit.service import record_audit
 from app.modules.auth.models import User
-from app.modules.library.library_enums import LibraryCirculationStatus
+from app.modules.library.library_enums import LibraryCirculationStatus, LibraryReservationStatus
+from app.modules.library.library_models import LibraryReservation
 from app.modules.students.integrations import library_reader
 from app.modules.students.policy import require_student_scope
 from app.modules.students.student_portal_models import StudentLibraryActivityView
@@ -19,6 +19,7 @@ from app.modules.students.student_portal_schemas import (
     LibraryCatalogRead,
     LibraryFineRead,
     LibraryIssuedBookRead,
+    LibraryReservationCreate,
 )
 
 
@@ -84,6 +85,39 @@ async def overdue_books(scope: AccessScope, user: User) -> list[LibraryIssuedBoo
     return [r for r in issued if r.overdue]
 
 
+async def submit_reservation(scope: AccessScope, user: User, payload: LibraryReservationCreate) -> dict:
+    authorize(scope, Permission.STUDENT_LIBRARY_READ)
+    tenant_id = require_student_scope(scope)
+    book_id = payload.book_id.strip()
+    rid = payload.reservation_id.strip()
+    from app.modules.library.reservation_service import create_reservation_core
+
+    doc = await create_reservation_core(
+        tenant_id,
+        member_user_id=user.id,
+        book_id=book_id,
+        branch_code=None,
+        reservation_id=rid,
+        priority=0,
+        actor_id=user.id,
+        skip_unavailable_check=True,
+        require_membership=False,
+    )
+    await StudentLibraryActivityView(
+        tenant_id=tenant_id,
+        user_id=user.id,
+        activity_type="reservation_create",
+        reference_id=book_id,
+        title=doc.title,
+    ).insert()
+    return {
+        "reservation_id": rid,
+        "book_id": book_id,
+        "status": doc.status.value,
+        "queue_position": doc.queue_position,
+    }
+
+
 async def reservations(scope: AccessScope, user: User) -> list[dict]:
     authorize(scope, Permission.STUDENT_LIBRARY_READ)
     tenant_id = require_student_scope(scope)
@@ -110,9 +144,11 @@ async def fines(scope: AccessScope, user: User) -> list[LibraryFineRead]:
 
 
 async def digital_resources(scope: AccessScope, user: User) -> list[DigitalResourceRead]:
+    from app.modules.library.digital_service import list_patron_digital_resources
+
     authorize(scope, Permission.STUDENT_LIBRARY_READ)
     tenant_id = require_student_scope(scope)
-    rows = await library_reader.digital_resources(tenant_id)
+    patrons = await list_patron_digital_resources(scope, user)
     await StudentLibraryActivityView(
         tenant_id=tenant_id,
         user_id=user.id,
@@ -121,9 +157,30 @@ async def digital_resources(scope: AccessScope, user: User) -> list[DigitalResou
         title="Digital library",
     ).insert()
     return [
-        DigitalResourceRead(resource_id=r.resource_id, title=r.title, description=r.description, url=r.url)
-        for r in rows
+        DigitalResourceRead(
+            resource_id=r.resource_id,
+            title=r.title,
+            description=r.description,
+            url=None,
+        )
+        for r in patrons
     ]
+
+
+async def digital_resource_download(scope: AccessScope, user: User, resource_id: str):
+    from app.modules.library.digital_service import download_digital_resource
+
+    authorize(scope, Permission.STUDENT_LIBRARY_READ)
+    require_student_scope(scope)
+    return await download_digital_resource(scope, user, resource_id)
+
+
+async def digital_resource_external_link(scope: AccessScope, user: User, resource_id: str):
+    from app.modules.library.digital_service import external_link_for_resource
+
+    authorize(scope, Permission.STUDENT_LIBRARY_READ)
+    require_student_scope(scope)
+    return await external_link_for_resource(scope, user, resource_id)
 
 
 async def borrowing_history(scope: AccessScope, user: User, limit: int = 100) -> list[dict]:

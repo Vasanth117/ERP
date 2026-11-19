@@ -298,7 +298,12 @@ async def submit_assignment_file(
         if ext not in {e.lower() for e in rule.allowed_extensions}:
             raise AppError(code="VALIDATION_ERROR", message="File type is not allowed", status_code=422)
     now = datetime.now(timezone.utc)
-    late = now > assignment.deadline_at
+    deadline = assignment.deadline_at
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=timezone.utc)
+    else:
+        deadline = deadline.astimezone(timezone.utc)
+    late = now > deadline
     if late and rule and not rule.late_submission_allowed:
         raise AppError(code="VALIDATION_ERROR", message="Late submission is not allowed", status_code=422)
     existing = await AssignmentSubmission.find_one(
