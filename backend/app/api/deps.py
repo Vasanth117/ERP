@@ -150,6 +150,9 @@ def pagination_params(
     return Pagination(limit=limit, offset=offset)
 
 
+get_pagination = pagination_params
+
+
 def assert_tenant_access(scope: AccessScope, tenant_id: PydanticObjectId) -> None:
     if scope.is_super_admin and scope.tenant_id is None:
         return

@@ -64,12 +64,17 @@ async def submit_leave(scope: AccessScope, user: User, payload: LeaveRequestCrea
     tenant_id = require_faculty_scope(scope)
     if payload.end_date < payload.start_date:
         raise AppError(code="VALIDATION_ERROR", message="Leave end date must be on or after start date", status_code=422)
+    from app.modules.hr.enums import LeaveDayPortion
+    from app.modules.hr.leave_working_days import count_working_leave_days
+
+    working_days = await count_working_leave_days(tenant_id, payload.start_date, payload.end_date, LeaveDayPortion.FULL)
     req = LeaveRequest(
         tenant_id=tenant_id,
         employee_user_id=user.id,
         leave_type=payload.leave_type,
         start_date=payload.start_date,
         end_date=payload.end_date,
+        working_days=working_days,
         reason=payload.reason.strip(),
         status=LeaveRequestStatus.SUBMITTED,
     )

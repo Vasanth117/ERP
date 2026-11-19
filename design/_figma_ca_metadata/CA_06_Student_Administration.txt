@@ -1,0 +1,17 @@
+<canvas id="export" name="REST export">
+  <frame id="75:11521" name="CA 06.01 – Student Administration Dashboard" />
+  <frame id="75:12000" name="CA 06.02 – All Students List" />
+  <frame id="158:2564" name="CA 06.03 – Student Details" />
+  <frame id="158:2987" name="CA 06.04 – Student Admission" />
+  <frame id="158:3354" name="CA 06.05 – New Student Registration" />
+  <frame id="158:3788" name="CA 06.06 – Student Profile Management" />
+  <frame id="158:4129" name="CA 06.07 – Student Document Verification" />
+  <frame id="158:4489" name="CA 06.08 – Student Enrollment Management" />
+  <frame id="158:4860" name="CA 06.09 – Batch & Section Allocation" />
+  <frame id="158:5236" name="CA 06.10 – Student Transfer Management" />
+  <frame id="158:5608" name="CA 06.11 – Student Promotion Management" />
+  <frame id="158:5911" name="CA 06.12 – Student Status Management" />
+  <frame id="158:6282" name="CA 06.13 – Student ID Card Management" />
+  <frame id="158:6620" name="CA 06.14 – Student Withdrawal / Discontinuation" />
+  <frame id="158:7002" name="CA 06.15 – Student Academic History" />
+</canvas>

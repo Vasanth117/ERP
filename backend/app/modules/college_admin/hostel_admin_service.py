@@ -111,9 +111,11 @@ async def review_application(scope: AccessScope, payload: HostelApplicationRevie
     app.updated_at = utcnow()
     await app.save()
     if payload.decision == HostelApplicationStatus.WAITLISTED:
-        pos = await HostelWaitingListEntry.find(Eq(HostelWaitingListEntry.tenant_id, tenant_id)).count() + 1
+        list_id = f"wl_{app.academic_year_label}_ANY"
+        pos = await HostelWaitingListEntry.find(Eq(HostelWaitingListEntry.tenant_id, tenant_id), Eq(HostelWaitingListEntry.list_id, list_id)).count() + 1
         await HostelWaitingListEntry(
             tenant_id=tenant_id,
+            list_id=list_id,
             student_user_id=app.student_user_id,
             application_id=app.application_id,
             position=pos,
@@ -258,61 +260,67 @@ async def log_visitor(scope: AccessScope, payload: VisitorLogCreate) -> dict:
 
 
 async def decide_outpass(scope: AccessScope, payload: OutpassDecision) -> dict:
+    from app.modules.hostel.leave_outpass_schemas import ApprovalDecision
+    from app.modules.hostel.leave_outpass_service import review_request
+
     authorize(scope, Permission.HOSTEL_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    req = await HostelOutpassRequest.find_one(Eq(HostelOutpassRequest.tenant_id, tenant_id), Eq(HostelOutpassRequest.request_id, payload.request_id))
-    if req is None:
-        raise AppError(code="NOT_FOUND", message="Outpass not found", status_code=404)
-    req.status = "approved" if payload.approved else "rejected"
-    req.approver_id = scope.user_id
-    await req.save()
-    return {"request_id": req.request_id, "status": req.status}
+    require_college_tenant_scope(scope)
+    row = await review_request(
+        scope,
+        ApprovalDecision(request_id=payload.request_id, kind="outpass", approve=payload.approved),
+    )
+    return {"request_id": row.request_id, "status": row.status.value}
 
 
 async def create_maintenance(scope: AccessScope, payload: MaintenanceCreate) -> dict:
+    from app.modules.hostel.maintenance_schemas import ComplaintSubmit
+    from app.modules.hostel.maintenance_service import submit_complaint
+
     authorize(scope, Permission.HOSTEL_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    request_id = f"mnt_{uuid4().hex[:10]}"
-    await HostelMaintenanceRequest(
-        tenant_id=tenant_id,
-        request_id=request_id,
-        building_code=payload.building_code.upper(),
-        room_code=payload.room_code.upper(),
-        description=payload.description,
-        actor_id=scope.user_id,
-    ).insert()
-    return {"request_id": request_id}
+    require_college_tenant_scope(scope)
+    row = await submit_complaint(
+        scope,
+        ComplaintSubmit(
+            building_code=payload.building_code,
+            room_code=payload.room_code,
+            category_code="OTHER",
+            subject="Maintenance request",
+            description=payload.description,
+        ),
+    )
+    return {"request_id": row.complaint_id, "complaint_id": row.complaint_id}
 
 
 async def create_incident(scope: AccessScope, payload: IncidentCreate) -> dict:
+    from app.modules.hostel.rules_incident_models import HostelIncidentSeverity
+    from app.modules.hostel.rules_incident_schemas import IncidentReportInput
+    from app.modules.hostel.rules_incident_service import report_incident
+
     authorize(scope, Permission.HOSTEL_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    if await HostelIncident.find_one(Eq(HostelIncident.tenant_id, tenant_id), Eq(HostelIncident.incident_id, payload.incident_id)):
-        raise AppError(code="CONFLICT", message="Incident id exists", status_code=409)
-    await HostelIncident(
-        tenant_id=tenant_id,
-        incident_id=payload.incident_id,
-        building_code=payload.building_code.upper() if payload.building_code else None,
-        description=payload.description,
-        severity=payload.severity,
-        actor_id=scope.user_id,
-    ).insert()
-    return {"incident_id": payload.incident_id}
+    require_college_tenant_scope(scope)
+    row = await report_incident(
+        scope,
+        IncidentReportInput(
+            category="general",
+            description=payload.description,
+            building_code=payload.building_code,
+            severity=HostelIncidentSeverity(payload.severity) if payload.severity in HostelIncidentSeverity._value2member_map_ else HostelIncidentSeverity.LOW,
+        ),
+    )
+    return {"incident_id": row.incident_id}
 
 
 async def upsert_rule(scope: AccessScope, payload: HostelRuleUpsert) -> dict:
+    from app.modules.hostel.rules_incident_schemas import HostelRuleUpsertPortal
+    from app.modules.hostel.rules_incident_service import upsert_rule as portal_upsert_rule
+
     authorize(scope, Permission.HOSTEL_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    doc = await HostelRule.find_one(Eq(HostelRule.tenant_id, tenant_id), Eq(HostelRule.rule_code, payload.rule_code))
-    if doc:
-        doc.title = payload.title
-        doc.body = payload.body
-        doc.version += 1
-        doc.updated_at = utcnow()
-        await doc.save()
-    else:
-        await HostelRule(tenant_id=tenant_id, rule_code=payload.rule_code, title=payload.title, body=payload.body).insert()
-    return {"rule_code": payload.rule_code}
+    require_college_tenant_scope(scope)
+    row = await portal_upsert_rule(
+        scope,
+        HostelRuleUpsertPortal(rule_code=payload.rule_code, title=payload.title, body=payload.body),
+    )
+    return {"rule_code": row.rule_code, "version": row.version}
 
 
 async def upsert_mess_plan(scope: AccessScope, payload: MessPlanUpsert) -> dict:

@@ -49,6 +49,7 @@ from app.modules.college_admin.schemas import (
 from app.modules.college_admin.settings_registry import InstitutionBrandingUpdate, InstitutionSettingsUpdate
 from app.modules.college_admin.academic_routes import router as academic_config_router
 from app.modules.college_admin.student_admin_routes import router as student_admin_router
+from app.modules.parents.college_admin_routes import router as parent_admin_router
 from app.modules.college_admin.faculty_admin_routes import router as faculty_admin_router
 from app.modules.college_admin.attendance_admin_routes import router as attendance_admin_router
 from app.modules.college_admin.examination_admin_routes import router as examination_admin_router
@@ -71,6 +72,7 @@ router = APIRouter()
 
 router.include_router(academic_config_router, prefix="/academic-config", tags=["college-admin-academic-config"])
 router.include_router(student_admin_router, prefix="/student-administration", tags=["college-admin-student-admin"])
+router.include_router(parent_admin_router, prefix="/parent-administration", tags=["college-admin-parent-admin"])
 router.include_router(faculty_admin_router, prefix="/faculty-administration", tags=["college-admin-faculty-admin"])
 router.include_router(attendance_admin_router, prefix="/attendance-administration", tags=["college-admin-attendance-admin"])
 router.include_router(examination_admin_router, prefix="/examination-administration", tags=["college-admin-examination-admin"])

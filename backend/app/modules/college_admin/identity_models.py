@@ -227,6 +227,7 @@ class InstitutionDepartment(Document):
     tenant_id: PydanticObjectId
     department_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
     central_department_id: PydanticObjectId | None = None
     organization_unit_id: PydanticObjectId | None = None
     parent_department_id: PydanticObjectId | None = None

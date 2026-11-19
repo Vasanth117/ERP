@@ -3,6 +3,18 @@
   "fileKey": "Hy7qeZdVNmzD6PN0ZkgBfK",
   "fileName": "ERP",
   "defaultNodeId": "0:1",
+  "pageUnderConstruction": {
+    "pageId": "342:213",
+    "frameId": "342:214",
+    "name": "Page Under Construction",
+    "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=342-214"
+  },
+  "mainLandingPage": {
+    "pageId": "308:390020",
+    "frameId": "338:279",
+    "name": "Select an Entry Point",
+    "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=338-279"
+  },
   "mcp": {
     "server": "figma",
     "endpoint": "https://mcp.figma.com/mcp",

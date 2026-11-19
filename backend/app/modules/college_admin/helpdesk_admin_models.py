@@ -32,6 +32,7 @@ class RequesterAudience(str, Enum):
     STUDENT = "student"
     FACULTY = "faculty"
     EMPLOYEE = "employee"
+    PARENT = "parent"
     INSTITUTION = "institution"
 
 

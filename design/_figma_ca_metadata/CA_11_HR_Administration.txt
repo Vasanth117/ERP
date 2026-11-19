@@ -1,0 +1,16 @@
+<canvas id="export" name="REST export">
+  <frame id="160:7148" name="CA 11.01 – HR Dashboard" />
+  <frame id="160:7538" name="CA 11.02 – Employee Management" />
+  <frame id="160:7882" name="CA 11.03 – Recruitment Management" />
+  <frame id="160:8204" name="CA 11.04 – Employee Onboarding" />
+  <frame id="160:8512" name="CA 11.05 – Employee Attendance" />
+  <frame id="160:8829" name="CA 11.06 – Leave Management" />
+  <frame id="160:9168" name="CA 11.07 – Leave Approval" />
+  <frame id="160:9482" name="CA 11.08 – Salary Structure Management" />
+  <frame id="160:9787" name="CA 11.09 – Payroll Processing" />
+  <frame id="160:10114" name="CA 11.10 – Salary Slip Management" />
+  <frame id="160:10410" name="CA 11.11 – Employee Benefits & Claims" />
+  <frame id="160:10718" name="CA 11.12 – Performance Management" />
+  <frame id="160:10983" name="CA 11.13 – HR Reports" />
+  <frame id="160:11270" name="CA 11.14 – HR Settings & Policies" />
+</canvas>

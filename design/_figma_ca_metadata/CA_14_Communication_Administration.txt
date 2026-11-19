@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="161:6942" name="CA 14.01 – Communication Dashboard" />
+  <frame id="161:7309" name="CA 14.02 – Announcements Management" />
+  <frame id="161:7642" name="CA 14.03 – Create Announcement" />
+  <frame id="161:7956" name="CA 14.04 – Student Notifications" />
+  <frame id="161:8276" name="CA 14.05 – Faculty Notifications" />
+  <frame id="161:8567" name="CA 14.06 – Parent Communication" />
+  <frame id="161:8858" name="CA 14.07 – Email Communication" />
+  <frame id="161:9163" name="CA 14.08 – SMS Communication" />
+  <frame id="161:9468" name="CA 14.09 – WhatsApp Communication" />
+  <frame id="161:9765" name="CA 14.10 – Communication Templates" />
+  <frame id="161:10068" name="CA 14.11 – Scheduled Messages" />
+  <frame id="161:10356" name="CA 14.12 – Delivery Status Monitoring" />
+  <frame id="161:10679" name="CA 14.13 – Communication History" />
+</canvas>

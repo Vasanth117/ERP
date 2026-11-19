@@ -105,6 +105,67 @@ class Permission(str, Enum):
   HR_ADMIN_MANAGE = "college:hr:manage"
   HR_ADMIN_LEAVE_APPROVE = "college:hr:leave_approve"
   HR_ADMIN_PAYROLL_CONFIG = "college:hr:payroll_config"
+  HR_SELF_ACCESS = "hr:self:access"
+  HR_DASHBOARD_READ = "hr:dashboard:read"
+  HR_EMPLOYEE_READ = "hr:employee:read"
+  HR_EMPLOYEE_MANAGE = "hr:employee:manage"
+  HR_EMPLOYEE_VERIFY = "hr:employee:verify"
+  HR_LEAVE_REVIEW = "hr:leave:review"
+  HR_PROFILE_CORRECTION_REVIEW = "hr:profile_correction:review"
+  HR_ORG_READ = "hr:organization:read"
+  HR_ORG_MANAGE = "hr:organization:manage"
+  HR_ASSIGNMENT_MANAGE = "hr:assignment:manage"
+  HR_TRANSFER_MANAGE = "hr:transfer:manage"
+  HR_DOCUMENT_READ = "hr:document:read"
+  HR_DOCUMENT_MANAGE = "hr:document:manage"
+  HR_DOCUMENT_VERIFY = "hr:document:verify"
+  HR_RECRUITMENT_READ = "hr:recruitment:read"
+  HR_RECRUITMENT_MANAGE = "hr:recruitment:manage"
+  HR_RECRUITMENT_APPROVE = "hr:recruitment:approve"
+  HR_RECRUITMENT_CHANNEL_APPLY = "hr:recruitment:channel_apply"
+  HR_ONBOARDING_READ = "hr:onboarding:read"
+  HR_ONBOARDING_MANAGE = "hr:onboarding:manage"
+  HR_ONBOARDING_COMPLETE = "hr:onboarding:complete"
+  HR_EMPLOYMENT_CHANGE_READ = "hr:employment:read"
+  HR_EMPLOYMENT_CHANGE_MANAGE = "hr:employment:manage"
+  HR_OFFBOARDING_READ = "hr:offboarding:read"
+  HR_OFFBOARDING_MANAGE = "hr:offboarding:manage"
+  HR_LEAVE_READ = "hr:leave:read"
+  HR_LEAVE_MANAGE = "hr:leave:manage"
+  HR_ATTENDANCE_READ = "hr:attendance:read"
+  HR_ATTENDANCE_MANAGE = "hr:attendance:manage"
+  HR_SALARY_READ = "hr:salary:read"
+  HR_SALARY_MANAGE = "hr:salary:manage"
+  HR_PAYROLL_READ = "hr:payroll:read"
+  HR_PAYROLL_PREPARE = "hr:payroll:prepare"
+  HR_PAYROLL_APPROVE = "hr:payroll:approve"
+  HR_PAYROLL_PAY = "hr:payroll:pay"
+  HR_PAYSLIP_READ = "hr:payslip:read"
+  HR_PAYSLIP_MANAGE = "hr:payslip:manage"
+  HR_STATUTORY_READ = "hr:statutory:read"
+  HR_STATUTORY_MANAGE = "hr:statutory:manage"
+  HR_TAX_READ = "hr:tax:read"
+  HR_TAX_MANAGE = "hr:tax:manage"
+  HR_TAX_REVIEW = "hr:tax:review"
+  HR_BENEFITS_READ = "hr:benefits:read"
+  HR_BENEFITS_MANAGE = "hr:benefits:manage"
+  HR_BENEFITS_APPROVE = "hr:benefits:approve"
+  HR_BENEFITS_PAY = "hr:benefits:pay"
+  HR_PERFORMANCE_READ = "hr:performance:read"
+  HR_PERFORMANCE_MANAGE = "hr:performance:manage"
+  HR_PERFORMANCE_REVIEW = "hr:performance:review"
+  HR_TRAINING_READ = "hr:training:read"
+  HR_TRAINING_MANAGE = "hr:training:manage"
+  HR_NOTIFY_READ = "hr:notify:read"
+  HR_NOTIFY_MANAGE = "hr:notify:manage"
+  HR_REPORTS_READ = "hr:reports:read"
+  HR_REPORTS_MANAGE = "hr:reports:manage"
+  HR_REPORTS_EXPORT = "hr:reports:export"
+  HR_SETTINGS_READ = "hr:settings:read"
+  HR_SETTINGS_MANAGE = "hr:settings:manage"
+  HR_AUDIT_READ = "hr:audit:read"
+  HR_AUDIT_EXPORT = "hr:audit:export"
+  HR_ACCESS_MANAGE = "hr:access:manage"
   LIBRARY_ADMIN_READ = "college:library:read"
   LIBRARY_ADMIN_MANAGE = "college:library:manage"
   LIBRARY_SELF_ACCESS = "library:self:access"
@@ -147,6 +208,41 @@ class Permission(str, Enum):
   HOSTEL_ADMIN_READ = "college:hostel:read"
   HOSTEL_ADMIN_MANAGE = "college:hostel:manage"
   HOSTEL_ADMIN_ALLOCATE = "college:hostel:allocate"
+  HOSTEL_SELF_ACCESS = "hostel:self:access"
+  HOSTEL_DASHBOARD_READ = "hostel:dashboard:read"
+  HOSTEL_INFRASTRUCTURE_READ = "hostel:infrastructure:read"
+  HOSTEL_INFRASTRUCTURE_MANAGE = "hostel:infrastructure:manage"
+  HOSTEL_ALLOCATION_READ = "hostel:allocation:read"
+  HOSTEL_ALLOCATION_MANAGE = "hostel:allocation:manage"
+  HOSTEL_APPLICATION_READ = "hostel:application:read"
+  HOSTEL_APPLICATION_MANAGE = "hostel:application:manage"
+  HOSTEL_RESIDENT_READ = "hostel:resident:read"
+  HOSTEL_RESIDENT_MANAGE = "hostel:resident:manage"
+  HOSTEL_VISITOR_READ = "hostel:visitor:read"
+  HOSTEL_VISITOR_MANAGE = "hostel:visitor:manage"
+  HOSTEL_MESS_READ = "hostel:mess:read"
+  HOSTEL_MESS_MANAGE = "hostel:mess:manage"
+  HOSTEL_LEAVE_READ = "hostel:leave:read"
+  HOSTEL_LEAVE_MANAGE = "hostel:leave:manage"
+  HOSTEL_GATE_MANAGE = "hostel:gate:manage"
+  HOSTEL_MAINTENANCE_READ = "hostel:maintenance:read"
+  HOSTEL_MAINTENANCE_MANAGE = "hostel:maintenance:manage"
+  HOSTEL_RULES_READ = "hostel:rules:read"
+  HOSTEL_RULES_MANAGE = "hostel:rules:manage"
+  HOSTEL_INCIDENT_READ = "hostel:incident:read"
+  HOSTEL_INCIDENT_MANAGE = "hostel:incident:manage"
+  HOSTEL_INCIDENT_INVESTIGATE = "hostel:incident:investigate"
+  HOSTEL_NOTIFY_READ = "hostel:notify:read"
+  HOSTEL_NOTIFY_MANAGE = "hostel:notify:manage"
+  HOSTEL_REPORTS_READ = "hostel:reports:read"
+  HOSTEL_REPORTS_EXPORT = "hostel:reports:export"
+  HOSTEL_REPORTS_MANAGE = "hostel:reports:manage"
+  HOSTEL_INTEGRATION_READ = "hostel:integration:read"
+  HOSTEL_INTEGRATION_MANAGE = "hostel:integration:manage"
+  HOSTEL_AUDIT_READ = "hostel:audit:read"
+  HOSTEL_AUDIT_EXPORT = "hostel:audit:export"
+  HOSTEL_CONFIG_READ = "hostel:config:read"
+  HOSTEL_CONFIG_MANAGE = "hostel:config:manage"
   COMMUNICATION_ADMIN_READ = "college:communication:read"
   COMMUNICATION_ADMIN_MANAGE = "college:communication:manage"
   COMMUNICATION_ADMIN_PUBLISH = "college:communication:publish"
@@ -271,6 +367,32 @@ class Permission(str, Enum):
   STUDENT_COMMUNICATION_MANAGE = "student:communication:manage"
   STUDENT_REPORTS_READ = "student:reports:read"
   STUDENT_REPORTS_MANAGE = "student:reports:manage"
+  PARENT_SELF_ACCESS = "parent:self:access"
+  PARENT_PROFILE_READ = "parent:profile:read"
+  PARENT_PROFILE_UPDATE = "parent:profile:update"
+  PARENT_DASHBOARD_READ = "parent:dashboard:read"
+  PARENT_LINKING_MANAGE = "parent:linking:manage"
+  PARENT_RELATIONSHIP_READ = "parent:relationship:read"
+  PARENT_ACADEMIC_READ = "parent:academic:read"
+  PARENT_ATTENDANCE_READ = "parent:attendance:read"
+  PARENT_ATTENDANCE_ENQUIRY = "parent:attendance:enquiry"
+  PARENT_EXAM_READ = "parent:exam:read"
+  PARENT_FINANCE_READ = "parent:finance:read"
+  PARENT_FINANCE_PAY = "parent:finance:pay"
+  PARENT_FINANCE_ENQUIRY = "parent:finance:enquiry"
+  PARENT_COMMUNICATION_READ = "parent:communication:read"
+  PARENT_COMMUNICATION_MANAGE = "parent:communication:manage"
+  PARENT_DOCUMENT_READ = "parent:document:read"
+  PARENT_SERVICE_REQUEST_SUBMIT = "parent:service_request:submit"
+  PARENT_SUPPORT_SUBMIT = "parent:support:submit"
+  PARENT_MEETING_READ = "parent:meeting:read"
+  PARENT_MEETING_MANAGE = "parent:meeting:manage"
+  PARENT_SERVICES_READ = "parent:services:read"
+  PARENT_REPORTS_READ = "parent:reports:read"
+  PARENT_SECURITY_READ = "parent:security:read"
+  PARENT_SECURITY_MANAGE = "parent:security:manage"
+  PARENT_ADMIN_READ = "college:parent_admin:read"
+  PARENT_ADMIN_MANAGE = "college:parent_admin:manage"
   DEPARTMENT_SELF_ACCESS = "department:self:access"
   DEPARTMENT_DASHBOARD_READ = "department:dashboard:read"
   DEPARTMENT_PROFILE_READ = "department:profile:read"
@@ -359,6 +481,8 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.ACADEMIC_CONFIG_MANAGE,
       Permission.STUDENT_ADMIN_READ,
       Permission.STUDENT_ADMIN_MANAGE,
+      Permission.PARENT_ADMIN_READ,
+      Permission.PARENT_ADMIN_MANAGE,
       Permission.FACULTY_ADMIN_READ,
       Permission.FACULTY_ADMIN_MANAGE,
       Permission.ATTENDANCE_ADMIN_READ,
@@ -631,9 +755,103 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.STUDENT_REPORTS_MANAGE,
     }
   ),
-  Role.PARENT: frozenset({Permission.TENANT_READ}),
+  Role.PARENT: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.PARENT_SELF_ACCESS,
+      Permission.PARENT_PROFILE_READ,
+      Permission.PARENT_PROFILE_UPDATE,
+      Permission.PARENT_DASHBOARD_READ,
+      Permission.PARENT_LINKING_MANAGE,
+      Permission.PARENT_RELATIONSHIP_READ,
+      Permission.PARENT_ACADEMIC_READ,
+      Permission.PARENT_ATTENDANCE_READ,
+      Permission.PARENT_ATTENDANCE_ENQUIRY,
+      Permission.PARENT_EXAM_READ,
+      Permission.PARENT_FINANCE_READ,
+      Permission.PARENT_FINANCE_PAY,
+      Permission.PARENT_FINANCE_ENQUIRY,
+      Permission.PARENT_COMMUNICATION_READ,
+      Permission.PARENT_COMMUNICATION_MANAGE,
+      Permission.PARENT_DOCUMENT_READ,
+      Permission.PARENT_SERVICE_REQUEST_SUBMIT,
+      Permission.PARENT_SUPPORT_SUBMIT,
+      Permission.PARENT_MEETING_READ,
+      Permission.PARENT_MEETING_MANAGE,
+      Permission.PARENT_SERVICES_READ,
+      Permission.PARENT_REPORTS_READ,
+      Permission.PARENT_SECURITY_READ,
+      Permission.PARENT_SECURITY_MANAGE,
+    }
+  ),
   Role.FINANCE_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
-  Role.HR_STAFF: frozenset({Permission.TENANT_USER_READ}),
+  Role.HR_STAFF: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.TENANT_USER_READ,
+      Permission.HR_SELF_ACCESS,
+      Permission.HR_DASHBOARD_READ,
+      Permission.HR_EMPLOYEE_READ,
+      Permission.HR_EMPLOYEE_MANAGE,
+      Permission.HR_EMPLOYEE_VERIFY,
+      Permission.HR_LEAVE_REVIEW,
+      Permission.HR_PROFILE_CORRECTION_REVIEW,
+      Permission.HR_ORG_READ,
+      Permission.HR_ORG_MANAGE,
+      Permission.HR_ASSIGNMENT_MANAGE,
+      Permission.HR_TRANSFER_MANAGE,
+      Permission.HR_DOCUMENT_READ,
+      Permission.HR_DOCUMENT_MANAGE,
+      Permission.HR_DOCUMENT_VERIFY,
+      Permission.HR_RECRUITMENT_READ,
+      Permission.HR_RECRUITMENT_MANAGE,
+      Permission.HR_RECRUITMENT_APPROVE,
+      Permission.HR_RECRUITMENT_CHANNEL_APPLY,
+      Permission.HR_ONBOARDING_READ,
+      Permission.HR_ONBOARDING_MANAGE,
+      Permission.HR_ONBOARDING_COMPLETE,
+      Permission.HR_EMPLOYMENT_CHANGE_READ,
+      Permission.HR_EMPLOYMENT_CHANGE_MANAGE,
+      Permission.HR_OFFBOARDING_READ,
+      Permission.HR_OFFBOARDING_MANAGE,
+      Permission.HR_LEAVE_READ,
+      Permission.HR_LEAVE_MANAGE,
+      Permission.HR_ATTENDANCE_READ,
+      Permission.HR_ATTENDANCE_MANAGE,
+      Permission.HR_SALARY_READ,
+      Permission.HR_SALARY_MANAGE,
+      Permission.HR_PAYROLL_READ,
+      Permission.HR_PAYROLL_PREPARE,
+      Permission.HR_PAYROLL_APPROVE,
+      Permission.HR_PAYROLL_PAY,
+      Permission.HR_PAYSLIP_READ,
+      Permission.HR_PAYSLIP_MANAGE,
+      Permission.HR_STATUTORY_READ,
+      Permission.HR_STATUTORY_MANAGE,
+      Permission.HR_TAX_READ,
+      Permission.HR_TAX_MANAGE,
+      Permission.HR_TAX_REVIEW,
+      Permission.HR_BENEFITS_READ,
+      Permission.HR_BENEFITS_MANAGE,
+      Permission.HR_BENEFITS_APPROVE,
+      Permission.HR_BENEFITS_PAY,
+      Permission.HR_PERFORMANCE_READ,
+      Permission.HR_PERFORMANCE_MANAGE,
+      Permission.HR_PERFORMANCE_REVIEW,
+      Permission.HR_TRAINING_READ,
+      Permission.HR_TRAINING_MANAGE,
+      Permission.HR_NOTIFY_READ,
+      Permission.HR_NOTIFY_MANAGE,
+      Permission.HR_REPORTS_READ,
+      Permission.HR_REPORTS_MANAGE,
+      Permission.HR_REPORTS_EXPORT,
+      Permission.HR_SETTINGS_READ,
+      Permission.HR_SETTINGS_MANAGE,
+      Permission.HR_AUDIT_READ,
+      Permission.HR_AUDIT_EXPORT,
+      Permission.HR_ACCESS_MANAGE,
+    }
+  ),
   Role.EXAMINATION_CELL: frozenset(
     {
       Permission.TENANT_READ,
@@ -689,7 +907,46 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.EXAMINATION_CELL_SECURITY_MANAGE,
     }
   ),
-  Role.HOSTEL_ADMIN: frozenset({Permission.TENANT_READ}),
+  Role.HOSTEL_ADMIN: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.HOSTEL_SELF_ACCESS,
+      Permission.HOSTEL_DASHBOARD_READ,
+      Permission.HOSTEL_INFRASTRUCTURE_READ,
+      Permission.HOSTEL_INFRASTRUCTURE_MANAGE,
+      Permission.HOSTEL_ALLOCATION_READ,
+      Permission.HOSTEL_ALLOCATION_MANAGE,
+      Permission.HOSTEL_APPLICATION_READ,
+      Permission.HOSTEL_APPLICATION_MANAGE,
+      Permission.HOSTEL_RESIDENT_READ,
+      Permission.HOSTEL_RESIDENT_MANAGE,
+      Permission.HOSTEL_VISITOR_READ,
+      Permission.HOSTEL_VISITOR_MANAGE,
+      Permission.HOSTEL_MESS_READ,
+      Permission.HOSTEL_MESS_MANAGE,
+      Permission.HOSTEL_LEAVE_READ,
+      Permission.HOSTEL_LEAVE_MANAGE,
+      Permission.HOSTEL_GATE_MANAGE,
+      Permission.HOSTEL_MAINTENANCE_READ,
+      Permission.HOSTEL_MAINTENANCE_MANAGE,
+      Permission.HOSTEL_RULES_READ,
+      Permission.HOSTEL_RULES_MANAGE,
+      Permission.HOSTEL_INCIDENT_READ,
+      Permission.HOSTEL_INCIDENT_MANAGE,
+      Permission.HOSTEL_INCIDENT_INVESTIGATE,
+      Permission.HOSTEL_NOTIFY_READ,
+      Permission.HOSTEL_NOTIFY_MANAGE,
+      Permission.HOSTEL_REPORTS_READ,
+      Permission.HOSTEL_REPORTS_EXPORT,
+      Permission.HOSTEL_REPORTS_MANAGE,
+      Permission.HOSTEL_INTEGRATION_READ,
+      Permission.HOSTEL_INTEGRATION_MANAGE,
+      Permission.HOSTEL_AUDIT_READ,
+      Permission.HOSTEL_AUDIT_EXPORT,
+      Permission.HOSTEL_CONFIG_READ,
+      Permission.HOSTEL_CONFIG_MANAGE,
+    }
+  ),
   Role.LIBRARIAN: frozenset(
     {
       Permission.TENANT_READ,

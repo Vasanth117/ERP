@@ -1,0 +1,14 @@
+<canvas id="export" name="REST export">
+  <frame id="159:6844" name="CA 08.01 – Attendance Dashboard" />
+  <frame id="159:7247" name="CA 08.02 – Student Attendance Overview" />
+  <frame id="159:7592" name="CA 08.03 – Faculty Attendance Overview" />
+  <frame id="159:7922" name="CA 08.04 – Subject-wise Attendance" />
+  <frame id="159:8235" name="CA 08.05 – Department-wise Attendance" />
+  <frame id="159:8573" name="CA 08.06 – Attendance Monitoring" />
+  <frame id="159:8881" name="CA 08.07 – Attendance Shortage Report" />
+  <frame id="159:9222" name="CA 08.08 – Attendance Correction Requests" />
+  <frame id="159:9528" name="CA 08.09 – Attendance Approval" />
+  <frame id="159:9831" name="CA 08.10 – Attendance Configuration" />
+  <frame id="159:10121" name="CA 08.11 – Attendance Rules & Policies" />
+  <frame id="159:10420" name="CA 08.12 – Attendance Reports" />
+</canvas>

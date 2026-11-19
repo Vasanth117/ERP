@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="161:30993" name="CA 20.01 – Integration Dashboard" />
+  <frame id="161:31366" name="CA 20.02 – Available Integrations" />
+  <frame id="161:31625" name="CA 20.03 – Payment Gateway Configuration" />
+  <frame id="161:31944" name="CA 20.04 – Email Provider Configuration" />
+  <frame id="161:32259" name="CA 20.05 – SMS Provider Configuration" />
+  <frame id="161:32573" name="CA 20.06 – WhatsApp Integration" />
+  <frame id="161:32894" name="CA 20.07 – Authentication Integration" />
+  <frame id="161:33210" name="CA 20.08 – External ERP Integration" />
+  <frame id="161:33528" name="CA 20.09 – Webhook Management" />
+  <frame id="161:33814" name="CA 20.10 – API Configuration" />
+  <frame id="161:34100" name="CA 20.11 – Connection Testing" />
+  <frame id="161:34394" name="CA 20.12 – Integration Error Monitoring" />
+  <frame id="161:34692" name="CA 20.13 – Integration Logs" />
+</canvas>

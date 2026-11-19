@@ -1,0 +1,14 @@
+<canvas id="export" name="REST export">
+  <frame id="161:19762" name="CA 17.01 – Approval Dashboard" />
+  <frame id="161:20158" name="CA 17.02 – Pending Approval Requests" />
+  <frame id="161:20494" name="CA 17.03 – Approval Request Details" />
+  <frame id="161:20807" name="CA 17.04 – Approval Workflow Configuration" />
+  <frame id="161:21108" name="CA 17.05 – Create Approval Workflow" />
+  <frame id="161:21433" name="CA 17.06 – Approval Level Management" />
+  <frame id="161:21703" name="CA 17.07 – Approver Assignment" />
+  <frame id="161:21981" name="CA 17.08 – Approval Rules & Conditions" />
+  <frame id="161:22259" name="CA 17.09 – Approved Requests" />
+  <frame id="161:22561" name="CA 17.10 – Rejected Requests" />
+  <frame id="161:22863" name="CA 17.11 – Escalation Management" />
+  <frame id="161:23158" name="CA 17.12 – Approval History" />
+</canvas>

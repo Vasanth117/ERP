@@ -1,0 +1,15 @@
+<canvas id="export" name="REST export">
+  <frame id="75:5933" name="CA 05.01 – Academic Configuration Dashboard" />
+  <frame id="75:6346" name="CA 05.02 – Academic Year Management" />
+  <frame id="75:6791" name="CA 05.03 – Semester Management" />
+  <frame id="75:7208" name="CA 05.04 – Programme Management" />
+  <frame id="75:7695" name="CA 05.05 – Course Configuration" />
+  <frame id="75:8122" name="CA 05.06 – Curriculum Management" />
+  <frame id="75:8561" name="CA 05.07 – Subject Management" />
+  <frame id="75:8992" name="CA 05.08 – Credit Configuration" />
+  <frame id="75:9400" name="CA 05.09 – Regulation Management" />
+  <frame id="75:9789" name="CA 05.10 – Grading System Configuration" />
+  <frame id="75:10210" name="CA 05.11 – Academic Calendar Configuration" />
+  <frame id="75:10656" name="CA 05.12 – Batch & Section Configuration" />
+  <frame id="75:11088" name="CA 05.13 – Academic Configuration History" />
+</canvas>

@@ -1,0 +1,13 @@
+<canvas id="export" name="REST export">
+  <frame id="161:23476" name="CA 18.01 – Security Dashboard" />
+  <frame id="161:23848" name="CA 18.02 – Administrative Audit Logs" />
+  <frame id="161:24184" name="CA 18.03 – User Activity Logs" />
+  <frame id="161:24472" name="CA 18.04 – Login History" />
+  <frame id="161:24789" name="CA 18.05 – Permission & Access Review" />
+  <frame id="161:25084" name="CA 18.06 – Security Events" />
+  <frame id="161:25371" name="CA 18.07 – Failed Login Monitoring" />
+  <frame id="161:25667" name="CA 18.08 – Session Management" />
+  <frame id="161:25947" name="CA 18.09 – Password & Authentication Policies" />
+  <frame id="161:26243" name="CA 18.10 – Audit Log Details" />
+  <frame id="161:26548" name="CA 18.11 – Security Reports" />
+</canvas>

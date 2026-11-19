@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import get_access_scope, pagination_params
 from app.common.access import AccessScope
@@ -10,6 +10,17 @@ from app.common.context import get_request_id
 from app.common.envelope import ApiResponse, success_response
 from app.common.schemas import Page, Pagination
 from app.modules.auth.models import User
+from app.modules.hostel.application_schemas import HostelApplicationSubmit, OfferResponse
+from app.modules.hostel.application_service import submit_application
+from app.modules.hostel.leave_outpass_schemas import LeaveSubmit, OutpassSubmit
+from app.modules.hostel.maintenance_schemas import ComplaintFeedbackInput, ComplaintClarification, ComplaintSubmit
+from app.modules.hostel.maintenance_service import add_complaint_clarification, student_list_complaints, submit_complaint, submit_complaint_feedback
+from app.modules.hostel.rules_incident_schemas import RuleAcknowledgeInput
+from app.modules.hostel.communication_schemas import InboxAcknowledge
+from app.modules.hostel.communication_service import acknowledge_inbox, mark_inbox_read, student_inbox
+from app.modules.hostel.rules_incident_service import acknowledge_rule, list_published_rules_for_resident
+from app.modules.hostel.leave_outpass_service import submit_leave_student, submit_outpass_student
+from app.modules.hostel.waiting_list_service import respond_to_offer
 from app.modules.students.academic_document_service import download_academic_document
 from app.modules.students.deps import student_portal_request_rate_limit, student_user
 from app.modules.students.student_communication_service import (
@@ -169,6 +180,26 @@ async def hostel_application_route(scope: Annotated[AccessScope, Depends(get_acc
     return success_response(data.model_dump() if data else None, request_id=get_request_id())
 
 
+@student_portal_router.post("/me/hostel/applications", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)
+async def hostel_application_submit_route(
+    payload: HostelApplicationSubmit,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    _: Annotated[None, Depends(student_portal_request_rate_limit)],
+) -> ApiResponse[dict]:
+    data = await submit_application(scope, user, payload)
+    return success_response(data.model_dump(), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/offers/respond", response_model=ApiResponse[dict])
+async def hostel_offer_respond_route(
+    payload: OfferResponse,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    return success_response(await respond_to_offer(scope, user, payload), request_id=get_request_id())
+
+
 @student_portal_router.get("/me/hostel/allocation", response_model=ApiResponse[dict | None])
 async def hostel_allocation_route(scope: Annotated[AccessScope, Depends(get_access_scope)], user: Annotated[User, Depends(student_user)]) -> ApiResponse[dict | None]:
     data = await hostel_room_allocation(scope, user)
@@ -198,6 +229,113 @@ async def hostel_request_submit_route(
 @student_portal_router.get("/me/hostel/requests/{request_id}", response_model=ApiResponse[dict])
 async def hostel_request_status_route(request_id: str, scope: Annotated[AccessScope, Depends(get_access_scope)], user: Annotated[User, Depends(student_user)]) -> ApiResponse[dict]:
     return success_response(await hostel_request_status(scope, user, request_id), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/leave", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)
+async def hostel_leave_submit_route(
+    payload: LeaveSubmit,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    _: Annotated[None, Depends(student_portal_request_rate_limit)],
+) -> ApiResponse[dict]:
+    row = await submit_leave_student(scope, user, payload)
+    return success_response(row.model_dump(), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/complaints", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)
+async def hostel_complaint_submit_route(
+    payload: ComplaintSubmit,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    _: Annotated[None, Depends(student_portal_request_rate_limit)],
+) -> ApiResponse[dict]:
+    row = await submit_complaint(scope, payload, student_user=user)
+    return success_response(row.model_dump(), request_id=get_request_id())
+
+
+@student_portal_router.get("/me/hostel/complaints", response_model=ApiResponse[dict])
+async def hostel_complaint_list_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    pagination: Annotated[Pagination, Depends(pagination_params)],
+) -> ApiResponse[dict]:
+    page = await student_list_complaints(scope, user, pagination)
+    return success_response(page.model_dump(), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/complaints/clarification", response_model=ApiResponse[dict])
+async def hostel_complaint_clarify_route(
+    payload: ComplaintClarification,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    return success_response(await add_complaint_clarification(scope, user, payload), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/complaints/feedback", response_model=ApiResponse[dict])
+async def hostel_complaint_feedback_route(
+    payload: ComplaintFeedbackInput,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    return success_response(await submit_complaint_feedback(scope, user, payload), request_id=get_request_id())
+
+
+@student_portal_router.get("/me/hostel/rules", response_model=ApiResponse[list])
+async def hostel_rules_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[list]:
+    rules = await list_published_rules_for_resident(scope, user)
+    return success_response([r.model_dump() for r in rules], request_id=get_request_id())
+
+
+@student_portal_router.get("/me/hostel/notifications", response_model=ApiResponse[dict])
+async def hostel_notifications_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    pagination: Annotated[Pagination, Depends(pagination_params)],
+) -> ApiResponse[dict]:
+    page = await student_inbox(scope, user, pagination)
+    return success_response(page.model_dump(), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/notifications/{notification_id}/read", response_model=ApiResponse[dict])
+async def hostel_notification_read_route(
+    notification_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    return success_response(await mark_inbox_read(scope, user, notification_id), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/notifications/acknowledge", response_model=ApiResponse[dict])
+async def hostel_notification_ack_route(
+    payload: InboxAcknowledge,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    return success_response(await acknowledge_inbox(scope, user, payload), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/rules/acknowledge", response_model=ApiResponse[dict])
+async def hostel_rule_ack_route(
+    payload: RuleAcknowledgeInput,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    return success_response(await acknowledge_rule(scope, user, payload), request_id=get_request_id())
+
+
+@student_portal_router.post("/me/hostel/outpass", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)
+async def hostel_outpass_submit_route(
+    payload: OutpassSubmit,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    _: Annotated[None, Depends(student_portal_request_rate_limit)],
+) -> ApiResponse[dict]:
+    row = await submit_outpass_student(scope, user, payload)
+    return success_response(row.model_dump(), request_id=get_request_id())
 
 
 # Transport

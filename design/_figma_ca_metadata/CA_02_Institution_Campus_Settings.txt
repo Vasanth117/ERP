@@ -1,0 +1,13 @@
+<canvas id="export" name="REST export">
+  <frame id="72:5933" name="CA 02.01 – Institution Profile" />
+  <frame id="72:6332" name="CA 02.02 – Institution Information" />
+  <frame id="72:6775" name="CA 02.03 – College Logo & Branding" />
+  <frame id="72:7199" name="CA 02.04 – Campus Management Dashboard" />
+  <frame id="72:7582" name="CA 02.05 – Campus Details" />
+  <frame id="72:7995" name="CA 02.06 – Campus Address & Contact Information" />
+  <frame id="72:8395" name="CA 02.07 – Academic Institution Settings" />
+  <frame id="72:8805" name="CA 02.08 – Institutional Policies" />
+  <frame id="72:9235" name="CA 02.09 – Academic Year Configuration" />
+  <frame id="72:9653" name="CA 02.10 – Institutional Calendar Settings" />
+  <frame id="72:10042" name="CA 02.11 – Campus Configuration History" />
+</canvas>

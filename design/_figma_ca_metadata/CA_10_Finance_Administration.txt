@@ -1,0 +1,17 @@
+<canvas id="export" name="REST export">
+  <frame id="160:2199" name="CA 10.01 – Finance Dashboard" />
+  <frame id="160:2630" name="CA 10.02 – Fee Structure Management" />
+  <frame id="160:2938" name="CA 10.03 – Student Fee Management" />
+  <frame id="160:3264" name="CA 10.04 – Fee Demand & Invoice Management" />
+  <frame id="160:3595" name="CA 10.05 – Online Payment Monitoring" />
+  <frame id="160:3975" name="CA 10.06 – Offline Payment Collection" />
+  <frame id="160:4301" name="CA 10.07 – Payment Transactions" />
+  <frame id="160:4645" name="CA 10.08 – Receipt Management" />
+  <frame id="160:4971" name="CA 10.09 – Outstanding Dues Management" />
+  <frame id="160:5293" name="CA 10.10 – Scholarship Management" />
+  <frame id="160:5604" name="CA 10.11 – Fee Concession & Waiver Management" />
+  <frame id="160:5915" name="CA 10.12 – Refund Management" />
+  <frame id="160:6226" name="CA 10.13 – Payment Reconciliation" />
+  <frame id="160:6552" name="CA 10.14 – Financial Reports" />
+  <frame id="160:6843" name="CA 10.15 – Finance Settings" />
+</canvas>

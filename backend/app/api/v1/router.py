@@ -17,6 +17,7 @@ from app.modules.transport.router import router as transport_router
 from app.modules.hr.router import router as hr_router
 from app.modules.library.router import router as library_router
 from app.modules.students.router import router as students_router
+from app.modules.parents.router import router as parents_router
 from app.modules.platform.router import router as platform_router
 from app.modules.tenants.router import router as tenants_router
 from app.modules.users.router import router as users_router
@@ -34,6 +35,8 @@ ACTIVE_MODULES = [
     "department_admin",
     "faculty",
     "students",
+    "parents",
+    "hostel",
 ]
 PLANNED_MODULES = [
     "academics",
@@ -42,7 +45,6 @@ PLANNED_MODULES = [
     "finance",
     "hr",
     "library",
-    "hostel",
 ]
 
 
@@ -68,6 +70,7 @@ api_router.include_router(college_admin_router, prefix="/college-admin", tags=["
 api_router.include_router(department_admin_router, prefix="/department", tags=["department-admin"])
 api_router.include_router(academics_router, prefix="/academics", tags=["academics"])
 api_router.include_router(students_router, prefix="/students", tags=["students"])
+api_router.include_router(parents_router, prefix="/parents", tags=["parents"])
 api_router.include_router(faculty_router, prefix="/faculty", tags=["faculty"])
 api_router.include_router(attendance_router, prefix="/attendance", tags=["attendance"])
 api_router.include_router(examinations_router, prefix="/examinations", tags=["examinations"])
