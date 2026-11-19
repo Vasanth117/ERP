@@ -46,6 +46,55 @@ class Permission(str, Enum):
   EXAMINATION_ADMIN_CONFIG = "college:examination:config"
   EXAMINATION_ADMIN_MARKS = "college:examination:marks"
   EXAMINATION_ADMIN_PUBLISH = "college:examination:publish"
+  EXAMINATION_CELL_DASHBOARD_READ = "examination:dashboard:read"
+  EXAMINATION_CELL_SESSION_READ = "examination:session:read"
+  EXAMINATION_CELL_SESSION_MANAGE = "examination:session:manage"
+  EXAMINATION_CELL_ASSESSMENT_READ = "examination:assessment:read"
+  EXAMINATION_CELL_ASSESSMENT_MANAGE = "examination:assessment:manage"
+  EXAMINATION_CELL_TIMETABLE_READ = "examination:timetable:read"
+  EXAMINATION_CELL_TIMETABLE_MANAGE = "examination:timetable:manage"
+  EXAMINATION_CELL_TIMETABLE_APPROVE = "examination:timetable:approve"
+  EXAMINATION_CELL_TIMETABLE_PUBLISH = "examination:timetable:publish"
+  EXAMINATION_CELL_ELIGIBILITY_READ = "examination:eligibility:read"
+  EXAMINATION_CELL_ELIGIBILITY_MANAGE = "examination:eligibility:manage"
+  EXAMINATION_CELL_REGISTRATION_READ = "examination:registration:read"
+  EXAMINATION_CELL_REGISTRATION_MANAGE = "examination:registration:manage"
+  EXAMINATION_CELL_HALL_TICKET_READ = "examination:hall_ticket:read"
+  EXAMINATION_CELL_HALL_TICKET_MANAGE = "examination:hall_ticket:manage"
+  EXAMINATION_CELL_HALL_TICKET_PUBLISH = "examination:hall_ticket:publish"
+  EXAMINATION_CELL_SEATING_READ = "examination:seating:read"
+  EXAMINATION_CELL_SEATING_MANAGE = "examination:seating:manage"
+  EXAMINATION_CELL_SEATING_PUBLISH = "examination:seating:publish"
+  EXAMINATION_CELL_MARKS_READ = "examination:marks:read"
+  EXAMINATION_CELL_MARKS_ENTER = "examination:marks:enter"
+  EXAMINATION_CELL_MARKS_MANAGE = "examination:marks:manage"
+  EXAMINATION_CELL_MARKS_MODERATE = "examination:marks:moderate"
+  EXAMINATION_CELL_GRADING_READ = "examination:grading:read"
+  EXAMINATION_CELL_GRADING_MANAGE = "examination:grading:manage"
+  EXAMINATION_CELL_RESULT_REVIEW = "examination:result:review"
+  EXAMINATION_CELL_RESULT_APPROVE = "examination:result:approve"
+  EXAMINATION_CELL_PUBLICATION_READ = "examination:publication:read"
+  EXAMINATION_CELL_PUBLICATION_MANAGE = "examination:publication:manage"
+  EXAMINATION_CELL_PUBLICATION_PUBLISH = "examination:publication:publish"
+  EXAMINATION_CELL_DOCUMENT_READ = "examination:document:read"
+  EXAMINATION_CELL_DOCUMENT_GENERATE = "examination:document:generate"
+  EXAMINATION_CELL_REVALUATION_READ = "examination:revaluation:read"
+  EXAMINATION_CELL_REVALUATION_MANAGE = "examination:revaluation:manage"
+  EXAMINATION_CELL_SUPPLEMENTARY_READ = "examination:supplementary:read"
+  EXAMINATION_CELL_SUPPLEMENTARY_MANAGE = "examination:supplementary:manage"
+  EXAMINATION_CELL_INCIDENT_READ = "examination:incident:read"
+  EXAMINATION_CELL_INCIDENT_MANAGE = "examination:incident:manage"
+  EXAMINATION_CELL_INCIDENT_INVESTIGATE = "examination:incident:investigate"
+  EXAMINATION_CELL_NOTIFICATION_READ = "examination:notification:read"
+  EXAMINATION_CELL_NOTIFICATION_MANAGE = "examination:notification:manage"
+  EXAMINATION_CELL_NOTIFICATION_PUBLISH = "examination:notification:publish"
+  EXAMINATION_CELL_REPORT_READ = "examination:report:read"
+  EXAMINATION_CELL_REPORT_EXPORT = "examination:report:export"
+  EXAMINATION_CELL_INTEGRATION_READ = "examination:integration:read"
+  EXAMINATION_CELL_INTEGRATION_MANAGE = "examination:integration:manage"
+  EXAMINATION_CELL_AUDIT_READ = "examination:audit:read"
+  EXAMINATION_CELL_SECURITY_READ = "examination:security:read"
+  EXAMINATION_CELL_SECURITY_MANAGE = "examination:security:manage"
   FINANCE_ADMIN_READ = "college:finance:read"
   FINANCE_ADMIN_CONFIG = "college:finance:config"
   FINANCE_ADMIN_MANAGE = "college:finance:manage"
@@ -88,6 +137,13 @@ class Permission(str, Enum):
   LIBRARY_REPORT_READ = "library:report:read"
   LIBRARY_REPORT_EXPORT = "library:report:export"
   LIBRARY_REPORT_FINANCE = "library:report:finance"
+  LIBRARY_SETTINGS_READ = "library:settings:read"
+  LIBRARY_SETTINGS_MANAGE = "library:settings:manage"
+  LIBRARY_SETTINGS_APPROVE = "library:settings:approve"
+  LIBRARY_AUDIT_READ = "library:audit:read"
+  LIBRARY_AUDIT_EXPORT = "library:audit:export"
+  LIBRARY_INVENTORY_DISCREPANCY_MANAGE = "library:inventory:discrepancy:manage"
+  LIBRARY_INVENTORY_APPROVE = "library:inventory:approve"
   HOSTEL_ADMIN_READ = "college:hostel:read"
   HOSTEL_ADMIN_MANAGE = "college:hostel:manage"
   HOSTEL_ADMIN_ALLOCATE = "college:hostel:allocate"
@@ -311,6 +367,55 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.EXAMINATION_ADMIN_CONFIG,
       Permission.EXAMINATION_ADMIN_MARKS,
       Permission.EXAMINATION_ADMIN_PUBLISH,
+      Permission.EXAMINATION_CELL_DASHBOARD_READ,
+      Permission.EXAMINATION_CELL_SESSION_READ,
+      Permission.EXAMINATION_CELL_SESSION_MANAGE,
+      Permission.EXAMINATION_CELL_ASSESSMENT_READ,
+      Permission.EXAMINATION_CELL_ASSESSMENT_MANAGE,
+      Permission.EXAMINATION_CELL_TIMETABLE_READ,
+      Permission.EXAMINATION_CELL_TIMETABLE_MANAGE,
+      Permission.EXAMINATION_CELL_TIMETABLE_APPROVE,
+      Permission.EXAMINATION_CELL_TIMETABLE_PUBLISH,
+      Permission.EXAMINATION_CELL_ELIGIBILITY_READ,
+      Permission.EXAMINATION_CELL_ELIGIBILITY_MANAGE,
+      Permission.EXAMINATION_CELL_REGISTRATION_READ,
+      Permission.EXAMINATION_CELL_REGISTRATION_MANAGE,
+      Permission.EXAMINATION_CELL_HALL_TICKET_READ,
+      Permission.EXAMINATION_CELL_HALL_TICKET_MANAGE,
+      Permission.EXAMINATION_CELL_HALL_TICKET_PUBLISH,
+      Permission.EXAMINATION_CELL_SEATING_READ,
+      Permission.EXAMINATION_CELL_SEATING_MANAGE,
+      Permission.EXAMINATION_CELL_SEATING_PUBLISH,
+      Permission.EXAMINATION_CELL_MARKS_READ,
+      Permission.EXAMINATION_CELL_MARKS_ENTER,
+      Permission.EXAMINATION_CELL_MARKS_MANAGE,
+      Permission.EXAMINATION_CELL_MARKS_MODERATE,
+      Permission.EXAMINATION_CELL_GRADING_READ,
+      Permission.EXAMINATION_CELL_GRADING_MANAGE,
+      Permission.EXAMINATION_CELL_RESULT_REVIEW,
+      Permission.EXAMINATION_CELL_RESULT_APPROVE,
+      Permission.EXAMINATION_CELL_PUBLICATION_READ,
+      Permission.EXAMINATION_CELL_PUBLICATION_MANAGE,
+      Permission.EXAMINATION_CELL_PUBLICATION_PUBLISH,
+      Permission.EXAMINATION_CELL_DOCUMENT_READ,
+      Permission.EXAMINATION_CELL_DOCUMENT_GENERATE,
+      Permission.EXAMINATION_CELL_REVALUATION_READ,
+      Permission.EXAMINATION_CELL_REVALUATION_MANAGE,
+      Permission.EXAMINATION_CELL_SUPPLEMENTARY_READ,
+      Permission.EXAMINATION_CELL_SUPPLEMENTARY_MANAGE,
+      Permission.EXAMINATION_CELL_INCIDENT_READ,
+      Permission.EXAMINATION_CELL_INCIDENT_MANAGE,
+      Permission.EXAMINATION_CELL_INCIDENT_INVESTIGATE,
+      Permission.EXAMINATION_CELL_NOTIFICATION_READ,
+      Permission.EXAMINATION_CELL_NOTIFICATION_MANAGE,
+      Permission.EXAMINATION_CELL_NOTIFICATION_PUBLISH,
+      Permission.EXAMINATION_CELL_REPORT_READ,
+      Permission.EXAMINATION_CELL_REPORT_EXPORT,
+      Permission.EXAMINATION_CELL_INTEGRATION_READ,
+      Permission.EXAMINATION_CELL_INTEGRATION_MANAGE,
+      Permission.EXAMINATION_CELL_AUDIT_READ,
+      Permission.EXAMINATION_CELL_SECURITY_READ,
+      Permission.EXAMINATION_CELL_SECURITY_MANAGE,
       Permission.FINANCE_ADMIN_READ,
       Permission.FINANCE_ADMIN_CONFIG,
       Permission.FINANCE_ADMIN_MANAGE,
@@ -351,6 +456,13 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.LIBRARY_REPORT_READ,
       Permission.LIBRARY_REPORT_EXPORT,
       Permission.LIBRARY_REPORT_FINANCE,
+      Permission.LIBRARY_SETTINGS_READ,
+      Permission.LIBRARY_SETTINGS_MANAGE,
+      Permission.LIBRARY_SETTINGS_APPROVE,
+      Permission.LIBRARY_AUDIT_READ,
+      Permission.LIBRARY_AUDIT_EXPORT,
+      Permission.LIBRARY_INVENTORY_DISCREPANCY_MANAGE,
+      Permission.LIBRARY_INVENTORY_APPROVE,
       Permission.HOSTEL_ADMIN_READ,
       Permission.HOSTEL_ADMIN_MANAGE,
       Permission.HOSTEL_ADMIN_ALLOCATE,
@@ -496,6 +608,7 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.STUDENT_EXAM_REGISTRATION_READ,
       Permission.STUDENT_EXAM_REGISTRATION_MANAGE,
       Permission.STUDENT_EXAM_RESULTS_READ,
+      Permission.EXAMINATION_CELL_NOTIFICATION_READ,
       Permission.STUDENT_GRADES_READ,
       Permission.STUDENT_ACADEMIC_DOCUMENTS_READ,
       Permission.STUDENT_ACADEMIC_DOCUMENTS_REQUEST,
@@ -521,7 +634,61 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
   Role.PARENT: frozenset({Permission.TENANT_READ}),
   Role.FINANCE_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
   Role.HR_STAFF: frozenset({Permission.TENANT_USER_READ}),
-  Role.EXAMINATION_CELL: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),
+  Role.EXAMINATION_CELL: frozenset(
+    {
+      Permission.TENANT_READ,
+      Permission.TENANT_AUDIT_READ,
+      Permission.EXAMINATION_CELL_DASHBOARD_READ,
+      Permission.EXAMINATION_CELL_SESSION_READ,
+      Permission.EXAMINATION_CELL_SESSION_MANAGE,
+      Permission.EXAMINATION_CELL_ASSESSMENT_READ,
+      Permission.EXAMINATION_CELL_ASSESSMENT_MANAGE,
+      Permission.EXAMINATION_CELL_TIMETABLE_READ,
+      Permission.EXAMINATION_CELL_TIMETABLE_MANAGE,
+      Permission.EXAMINATION_CELL_TIMETABLE_APPROVE,
+      Permission.EXAMINATION_CELL_TIMETABLE_PUBLISH,
+      Permission.EXAMINATION_CELL_ELIGIBILITY_READ,
+      Permission.EXAMINATION_CELL_ELIGIBILITY_MANAGE,
+      Permission.EXAMINATION_CELL_REGISTRATION_READ,
+      Permission.EXAMINATION_CELL_REGISTRATION_MANAGE,
+      Permission.EXAMINATION_CELL_HALL_TICKET_READ,
+      Permission.EXAMINATION_CELL_HALL_TICKET_MANAGE,
+      Permission.EXAMINATION_CELL_HALL_TICKET_PUBLISH,
+      Permission.EXAMINATION_CELL_SEATING_READ,
+      Permission.EXAMINATION_CELL_SEATING_MANAGE,
+      Permission.EXAMINATION_CELL_SEATING_PUBLISH,
+      Permission.EXAMINATION_CELL_MARKS_READ,
+      Permission.EXAMINATION_CELL_MARKS_ENTER,
+      Permission.EXAMINATION_CELL_MARKS_MANAGE,
+      Permission.EXAMINATION_CELL_MARKS_MODERATE,
+      Permission.EXAMINATION_CELL_GRADING_READ,
+      Permission.EXAMINATION_CELL_GRADING_MANAGE,
+      Permission.EXAMINATION_CELL_RESULT_REVIEW,
+      Permission.EXAMINATION_CELL_RESULT_APPROVE,
+      Permission.EXAMINATION_CELL_PUBLICATION_READ,
+      Permission.EXAMINATION_CELL_PUBLICATION_MANAGE,
+      Permission.EXAMINATION_CELL_PUBLICATION_PUBLISH,
+      Permission.EXAMINATION_CELL_DOCUMENT_READ,
+      Permission.EXAMINATION_CELL_DOCUMENT_GENERATE,
+      Permission.EXAMINATION_CELL_REVALUATION_READ,
+      Permission.EXAMINATION_CELL_REVALUATION_MANAGE,
+      Permission.EXAMINATION_CELL_SUPPLEMENTARY_READ,
+      Permission.EXAMINATION_CELL_SUPPLEMENTARY_MANAGE,
+      Permission.EXAMINATION_CELL_INCIDENT_READ,
+      Permission.EXAMINATION_CELL_INCIDENT_MANAGE,
+      Permission.EXAMINATION_CELL_INCIDENT_INVESTIGATE,
+      Permission.EXAMINATION_CELL_NOTIFICATION_READ,
+      Permission.EXAMINATION_CELL_NOTIFICATION_MANAGE,
+      Permission.EXAMINATION_CELL_NOTIFICATION_PUBLISH,
+      Permission.EXAMINATION_CELL_REPORT_READ,
+      Permission.EXAMINATION_CELL_REPORT_EXPORT,
+      Permission.EXAMINATION_CELL_INTEGRATION_READ,
+      Permission.EXAMINATION_CELL_INTEGRATION_MANAGE,
+      Permission.EXAMINATION_CELL_AUDIT_READ,
+      Permission.EXAMINATION_CELL_SECURITY_READ,
+      Permission.EXAMINATION_CELL_SECURITY_MANAGE,
+    }
+  ),
   Role.HOSTEL_ADMIN: frozenset({Permission.TENANT_READ}),
   Role.LIBRARIAN: frozenset(
     {
@@ -551,6 +718,11 @@ ROLE_PERMISSIONS: dict[Role, frozenset[Permission]] = {
       Permission.LIBRARY_NOTIFICATION_RUN,
       Permission.LIBRARY_REPORT_READ,
       Permission.LIBRARY_REPORT_EXPORT,
+      Permission.LIBRARY_SETTINGS_READ,
+      Permission.LIBRARY_SETTINGS_MANAGE,
+      Permission.LIBRARY_AUDIT_READ,
+      Permission.LIBRARY_AUDIT_EXPORT,
+      Permission.LIBRARY_INVENTORY_DISCREPANCY_MANAGE,
     }
   ),
   Role.ACCOUNTS_STAFF: frozenset({Permission.TENANT_READ, Permission.TENANT_AUDIT_READ}),

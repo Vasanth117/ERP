@@ -18,3 +18,4 @@ class LibraryReportType(StrEnum):
     DIGITAL_USAGE = "digital_usage"
     BRANCH_PERFORMANCE = "branch_performance"
     POPULAR_BOOKS = "popular_books"
+    INVENTORY_AUDIT = "inventory_audit"

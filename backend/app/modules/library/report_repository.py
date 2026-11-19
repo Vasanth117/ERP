@@ -24,6 +24,8 @@ from app.modules.library.library_models import (
     LibraryFine,
     LibraryReservation,
 )
+from app.modules.library.audit_enums import StockAdjustmentRequestStatus, StockDiscrepancyStatus
+from app.modules.library.audit_models import LibraryStockAdjustmentRequest, LibraryStockDiscrepancy
 from app.modules.library.report_filters import LibraryReportContext, circulation_match, copy_match
 from app.modules.library.report_enums import LibraryReportType
 
@@ -48,6 +50,7 @@ class LibraryReportRepository:
             LibraryReportType.DIGITAL_USAGE.value: self._digital_usage,
             LibraryReportType.BRANCH_PERFORMANCE.value: self._branch_performance,
             LibraryReportType.POPULAR_BOOKS.value: self._popular_books,
+            LibraryReportType.INVENTORY_AUDIT.value: self._inventory_audit,
         }
         fn = builders.get(report_type)
         if fn is None:
@@ -354,3 +357,45 @@ class LibraryReportRepository:
             key = row["_id"]
             rows.append({"book_id": key["book_id"], "title": key["title"], "issue_count": row["issues"]})
         return rows, {"top_titles": len(rows)}
+
+    async def _inventory_audit(self, ctx: LibraryReportContext) -> tuple[list[dict], dict]:
+        disc_match: dict = {"tenant_id": ctx.tenant_id}
+        adj_match: dict = {"tenant_id": ctx.tenant_id, "status": StockAdjustmentRequestStatus.PENDING.value}
+        if ctx.branch_code:
+            disc_match["branch_code"] = ctx.branch_code.upper()
+            adj_match["branch_code"] = ctx.branch_code.upper()
+        discrepancies = await LibraryStockDiscrepancy.find(disc_match).sort("-created_at").limit(500).to_list()
+        pending = await LibraryStockAdjustmentRequest.find(adj_match).sort("-created_at").limit(200).to_list()
+        rows: list[dict] = []
+        for d in discrepancies:
+            rows.append(
+                {
+                    "record_type": "discrepancy",
+                    "id": d.discrepancy_id,
+                    "verification_id": d.verification_id,
+                    "branch_code": d.branch_code,
+                    "copy_id": d.copy_id,
+                    "kind": d.kind.value,
+                    "status": d.status.value,
+                    "created_at": d.created_at.isoformat(),
+                }
+            )
+        for r in pending:
+            rows.append(
+                {
+                    "record_type": "adjustment_request",
+                    "id": r.request_id,
+                    "branch_code": r.branch_code,
+                    "copy_id": r.copy_id,
+                    "adjustment_type": r.adjustment_type.value,
+                    "status": r.status.value,
+                    "created_at": r.created_at.isoformat(),
+                }
+            )
+        open_count = sum(1 for d in discrepancies if d.status == StockDiscrepancyStatus.OPEN)
+        totals = {
+            "discrepancy_count": len(discrepancies),
+            "open_discrepancies": open_count,
+            "pending_adjustments": len(pending),
+        }
+        return rows, totals

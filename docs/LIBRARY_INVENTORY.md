@@ -16,6 +16,7 @@ Physical copies are authoritative in **`library_copies`** with admin metadata in
 | POST | `/adjustments` | Inventory adjustment workflow |
 | GET | `/duplicates` | Duplicate barcode/accession aggregation |
 | GET | `/missing` | Copies with `lost` status |
+| GET | `/verifications` | List stock verification sessions |
 | POST | `/verifications` | Start stock verification |
 | POST | `/verifications/{id}/scan` | Scan barcode or copy_id |
 | POST | `/verifications/{id}/complete` | Finalize missing/unexpected counts |

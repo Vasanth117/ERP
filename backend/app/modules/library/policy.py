@@ -43,6 +43,13 @@ def _has_library_portal_access(scope: AccessScope) -> bool:
         or Permission.LIBRARY_REPORT_READ in scope.effective_permissions
         or Permission.LIBRARY_REPORT_EXPORT in scope.effective_permissions
         or Permission.LIBRARY_REPORT_FINANCE in scope.effective_permissions
+        or Permission.LIBRARY_SETTINGS_READ in scope.effective_permissions
+        or Permission.LIBRARY_SETTINGS_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_SETTINGS_APPROVE in scope.effective_permissions
+        or Permission.LIBRARY_AUDIT_READ in scope.effective_permissions
+        or Permission.LIBRARY_AUDIT_EXPORT in scope.effective_permissions
+        or Permission.LIBRARY_INVENTORY_DISCREPANCY_MANAGE in scope.effective_permissions
+        or Permission.LIBRARY_INVENTORY_APPROVE in scope.effective_permissions
         or Permission.LIBRARY_ADMIN_MANAGE in scope.effective_permissions
     )
 

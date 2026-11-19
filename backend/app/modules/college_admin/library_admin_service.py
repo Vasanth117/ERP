@@ -159,31 +159,9 @@ async def add_book_copy(scope: AccessScope, payload: BookCopyCreate) -> dict:
 
 
 async def upsert_borrowing_policy(scope: AccessScope, payload: BorrowingPolicyUpsert) -> dict:
-    authorize(scope, Permission.LIBRARY_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    branch = payload.branch_code.upper() if payload.branch_code else None
-    await _assert_branch(tenant_id, branch)
-    doc = await LibraryBorrowingPolicy.find_one(Eq(LibraryBorrowingPolicy.tenant_id, tenant_id), Eq(LibraryBorrowingPolicy.branch_code, branch))
-    if doc:
-        doc.max_books = payload.max_books
-        doc.loan_days = payload.loan_days
-        doc.renewal_limit = payload.renewal_limit
-        doc.fine_per_day = payload.fine_per_day
-        doc.version += 1
-        doc.updated_by = scope.user_id
-        doc.updated_at = utcnow()
-        await doc.save()
-    else:
-        await LibraryBorrowingPolicy(
-            tenant_id=tenant_id,
-            branch_code=branch,
-            max_books=payload.max_books,
-            loan_days=payload.loan_days,
-            renewal_limit=payload.renewal_limit,
-            fine_per_day=payload.fine_per_day,
-            updated_by=scope.user_id,
-        ).insert()
-    return {"branch_code": branch}
+    from app.modules.library.settings_service import college_admin_upsert_borrowing_policy
+
+    return await college_admin_upsert_borrowing_policy(scope, payload)
 
 
 async def set_membership(scope: AccessScope, member_user_id: str, *, branch_code: str | None, eligible: bool) -> dict:

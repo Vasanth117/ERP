@@ -26,6 +26,8 @@ from app.modules.library.circulation_schemas import CirculationHistoryEntry, Cir
 from app.modules.library.library_enums import LibraryCirculationStatus, LibraryCopyCondition, LibraryCopyStatus
 from app.modules.library.library_models import LibraryCatalogItem, LibraryCirculation, LibraryCopy
 from app.modules.library.member_service import assert_member_can_borrow
+from app.modules.library.policy_evaluation import resolve_borrowing_policy, snapshot_from_loan
+from app.modules.library.settings_enums import LibraryResourceType
 
 
 def _norm_branch(code: str | None) -> str | None:
@@ -192,14 +194,20 @@ async def issue_loan(scope: AccessScope, payload: IssueLoanRequest) -> Circulati
     branch = _resolve_branch(payload.branch_code, copy.branch_code)
     await require_circulation_manage(scope, branch_code=branch)
     await _assert_branch_exists(tenant_id, branch)
+    snap = await resolve_borrowing_policy(
+        tenant_id,
+        branch_code=branch,
+        member_category=membership.member_category,
+        resource_type=LibraryResourceType.PHYSICAL.value,
+    )
     policy = await _policy_for_branch(tenant_id, branch)
-    limit = _loan_limit(policy, membership.borrowing_limit)
+    limit = min(snap.max_books, membership.borrowing_limit)
     active = await _active_loan_count(tenant_id, member_uid)
     if active >= limit:
         raise AppError(code="CONFLICT", message="Member has reached borrowing limit", status_code=409)
     await _claim_copy_atomic(tenant_id, copy.copy_id, scope.user_id)
     item = await LibraryCatalogItem.find_one(Eq(LibraryCatalogItem.tenant_id, tenant_id), Eq(LibraryCatalogItem.book_id, copy.book_id))
-    loan_days = _loan_days(policy)
+    loan_days = snap.loan_days
     now = utcnow()
     due = (now + timedelta(days=loan_days)).date()
     circulation_id = f"circ_{uuid4().hex}"
@@ -215,6 +223,9 @@ async def issue_loan(scope: AccessScope, payload: IssueLoanRequest) -> Circulati
         issued_at=now,
         due_at=due,
         status=LibraryCirculationStatus.ACTIVE,
+        applied_policy_id=snap.policy_id,
+        applied_policy_version=snap.version,
+        applied_policy_snapshot=snap.as_dict(),
         updated_by=scope.user_id,
     )
     try:
@@ -365,10 +376,16 @@ async def renew_loan(scope: AccessScope, circulation_id: str) -> CirculationRead
     if circ.status == LibraryCirculationStatus.RETURNED:
         raise AppError(code="CONFLICT", message="Cannot renew returned loan", status_code=409)
     await assert_member_can_borrow(tenant_id, circ.student_user_id)
-    policy = await _policy_for_branch(tenant_id, circ.branch_code)
-    if circ.renewal_count >= _renewal_limit(policy):
+    snap = snapshot_from_loan(circ)
+    if snap is None:
+        policy = await _policy_for_branch(tenant_id, circ.branch_code)
+        renewal_cap = _renewal_limit(policy)
+        loan_days = _loan_days(policy)
+    else:
+        renewal_cap = snap.renewal_limit
+        loan_days = snap.loan_days
+    if circ.renewal_count >= renewal_cap:
         raise AppError(code="CONFLICT", message="Renewal limit reached", status_code=409)
-    loan_days = _loan_days(policy)
     base = max(circ.due_at, date.today())
     circ.due_at = base + timedelta(days=loan_days)
     circ.renewal_count += 1

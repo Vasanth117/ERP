@@ -117,6 +117,14 @@ LIBRARY_REPORT_CATALOG: list[LibraryReportCatalogItem] = [
         supported_formats=["json", "csv"],
         requires_finance_permission=False,
     ),
+    LibraryReportCatalogItem(
+        report_type="inventory_audit",
+        name="Inventory audit and discrepancies",
+        description="Open stock discrepancies and pending adjustment requests by branch.",
+        category="inventory",
+        supported_formats=["json", "csv"],
+        requires_finance_permission=False,
+    ),
 ]
 
 

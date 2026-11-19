@@ -30,6 +30,7 @@ from app.modules.library.inventory_service import (
     apply_adjustment,
     complete_stock_verification,
     get_copy,
+    list_stock_verifications,
     register_copy,
     scan_stock_verification,
     start_stock_verification,
@@ -188,6 +189,9 @@ async def test_stock_verification(db_ready) -> None:
     done = await complete_stock_verification(scope, session.verification_id)
     assert done.missing_count == 1
     assert done.status.value == "completed"
+    listed = await list_stock_verifications(scope, Pagination(limit=10, offset=0), branch_code=branch_a)
+    assert listed.total >= 1
+    assert any(v.verification_id == session.verification_id for v in listed.items)
 
 
 @pytest.mark.anyio

@@ -6,6 +6,8 @@ from app.common.roles import Role
 
 def test_college_admin_can_manage_users() -> None:
     perms = permissions_for_role(Role.COLLEGE_ADMIN)
+    assert Permission.LIBRARY_INVENTORY_APPROVE in perms
+    assert Permission.LIBRARY_AUDIT_EXPORT in perms
     assert Permission.TENANT_USER_MANAGE in perms
     assert Permission.PLATFORM_TENANT_MANAGE not in perms
     assert Permission.COLLEGE_DASHBOARD_READ in perms
@@ -32,6 +34,11 @@ def test_librarian_dashboard_permissions() -> None:
     assert Permission.LIBRARY_NOTIFICATION_RUN in perms
     assert Permission.LIBRARY_REPORT_READ in perms
     assert Permission.LIBRARY_REPORT_EXPORT in perms
+    assert Permission.LIBRARY_SETTINGS_READ in perms
+    assert Permission.LIBRARY_SETTINGS_MANAGE in perms
+    assert Permission.LIBRARY_AUDIT_READ in perms
+    assert Permission.LIBRARY_AUDIT_EXPORT in perms
+    assert Permission.LIBRARY_INVENTORY_APPROVE not in perms
 
 
 def test_student_has_minimal_permissions() -> None:

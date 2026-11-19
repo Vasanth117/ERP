@@ -39,6 +39,7 @@ from app.modules.library.fine_schemas import (
 from app.modules.library.library_enums import LibraryCirculationStatus, LibraryFineStatus
 from app.modules.library.library_models import LibraryCirculation, LibraryCopy, LibraryFine
 from app.modules.library.policy import require_library_tenant_scope
+from app.modules.library.policy_evaluation import snapshot_from_loan
 
 
 def _norm_branch(code: str | None) -> str | None:
@@ -178,13 +179,22 @@ async def assess_overdue_for_circulation(
     if circ is None:
         return None
     as_of = returned_at or (circ.returned_at.date() if circ.returned_at else date.today())
-    policy = await _policy(tenant_id, circ.branch_code)
+    snap = snapshot_from_loan(circ)
+    if snap:
+        fine_per_day = snap.fine_per_day
+        grace_days = snap.grace_days
+        max_days = snap.max_overdue_days
+    else:
+        policy = await _policy(tenant_id, circ.branch_code)
+        fine_per_day = policy.fine_per_day
+        grace_days = policy.grace_days
+        max_days = policy.max_overdue_days
     _, amount = overdue_fine_amount(
         due_at=circ.due_at,
-        fine_per_day=policy.fine_per_day,
-        grace_days=policy.grace_days,
+        fine_per_day=fine_per_day,
+        grace_days=grace_days,
         as_of=as_of,
-        max_days=policy.max_overdue_days,
+        max_days=max_days,
     )
     if amount <= 0:
         return None
@@ -246,7 +256,13 @@ async def process_return_fines(
         await assess_overdue_for_circulation(tenant_id, circulation_id, actor_id=actor_id, returned_at=returned_at)
     if disposition == ReturnDisposition.GOOD:
         return
-    policy = await _policy(tenant_id, circ.branch_code)
+    snap = snapshot_from_loan(circ)
+    if snap:
+        policy = await _policy(tenant_id, circ.branch_code)
+        policy.lost_book_charge = snap.lost_book_charge
+        policy.damaged_book_charge = snap.damaged_book_charge
+    else:
+        policy = await _policy(tenant_id, circ.branch_code)
     if disposition == ReturnDisposition.LOST:
         amount = policy.lost_book_charge
         fine_type = LibraryFineType.LOST

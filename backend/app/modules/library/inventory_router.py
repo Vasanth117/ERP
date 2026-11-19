@@ -24,6 +24,7 @@ from app.modules.library.inventory_schemas import (
     StockVerificationRead,
     StockVerificationScan,
 )
+from app.modules.library.inventory_enums import StockVerificationStatus
 from app.modules.library.inventory_service import (
     apply_adjustment,
     complete_stock_verification,
@@ -32,6 +33,7 @@ from app.modules.library.inventory_service import (
     get_copy,
     list_copies,
     list_missing_copies,
+    list_stock_verifications,
     register_copy,
     scan_stock_verification,
     start_stock_verification,
@@ -120,6 +122,20 @@ async def missing_copies_route(
     branch_code: Annotated[str | None, Query()] = None,
 ) -> ApiResponse[list[MissingCopySummary]]:
     return success_response(await list_missing_copies(scope, branch_code=branch_code), request_id=get_request_id())
+
+
+@router.get("/verifications", response_model=ApiResponse[Page[StockVerificationRead]])
+async def list_verifications_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(librarian_user)],
+    pagination: Annotated[Pagination, Depends(pagination_params)],
+    branch_code: Annotated[str | None, Query()] = None,
+    status: Annotated[StockVerificationStatus | None, Query()] = None,
+) -> ApiResponse[Page[StockVerificationRead]]:
+    return success_response(
+        await list_stock_verifications(scope, pagination, branch_code=branch_code, status=status),
+        request_id=get_request_id(),
+    )
 
 
 @router.post("/verifications", response_model=ApiResponse[StockVerificationRead], status_code=status.HTTP_201_CREATED)

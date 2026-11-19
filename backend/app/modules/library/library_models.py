@@ -152,6 +152,9 @@ class LibraryCirculation(Document):
     status: LibraryCirculationStatus = LibraryCirculationStatus.ACTIVE
     renewal_count: int = Field(default=0, ge=0)
     return_disposition: str | None = Field(default=None, max_length=32)
+    applied_policy_id: str | None = None
+    applied_policy_version: int | None = None
+    applied_policy_snapshot: dict = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
     updated_by: PydanticObjectId | None = None

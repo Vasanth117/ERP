@@ -360,6 +360,105 @@ def document_models() -> list[type]:
         SupplementaryExaminationSeason,
     )
     from app.modules.examinations.exam_review_models import ExaminationReviewFeePayment, ExaminationReviewWindow
+    from app.modules.examinations.exam_cell_models import (
+        ExamActivityLog,
+        ExamSession,
+        ExamSessionAcademicScope,
+        ExamSessionStatusHistory,
+    )
+    from app.modules.examinations.exam_cell_assessment_models import (
+        ExamAssessmentComponent,
+        ExamAssessmentConfig,
+        ExamAssessmentPolicyVersion,
+    )
+    from app.modules.examinations.exam_cell_timetable_models import (
+        ExamScheduleApproval,
+        ExamTimetable,
+        ExamTimetableEntry,
+        ExamTimetableRevision,
+    )
+    from app.modules.examinations.exam_cell_registration_models import (
+        ExamEligibilityRecord,
+        ExamEligibilityRuleResult,
+        ExamRegistration,
+        ExamRegistrationHistory,
+        ExamRegistrationSubject,
+    )
+    from app.modules.examinations.exam_cell_hall_ticket_models import (
+        ExamHallTicket,
+        ExamHallTicketHistory,
+        ExamHallTicketSubject,
+    )
+    from app.modules.examinations.exam_cell_seating_models import (
+        ExamDutyHistory,
+        ExamInvigilatorAssignment,
+        ExamRoom,
+        ExamSeatingAllocation,
+        ExamSeatingPlan,
+        ExamVenue,
+    )
+    from app.modules.examinations.exam_cell_marks_models import (
+        ExamMarksComponent,
+        ExamMarksCorrection,
+        ExamMarksEntry,
+        ExamMarksHistory,
+        ExamMarksSubmission,
+    )
+    from app.modules.examinations.exam_cell_grading_models import (
+        ExamCgpaCalculation,
+        ExamGpaCalculation,
+        ExamGradeBoundary,
+        ExamGradingPolicy,
+        ExamGradingPolicyVersion,
+        ExamSemesterResult,
+        ExamStudentSubjectResult,
+    )
+    from app.modules.examinations.exam_cell_result_models import (
+        ExamResultApprovalWorkflow,
+        ExamResultReviewHistory,
+        ExamResultReviewRecord,
+    )
+    from app.modules.examinations.exam_cell_publication_models import (
+        ExamAcademicStatement,
+        ExamDocumentVerificationRecord,
+        ExamPublicationBatch,
+        ExamPublicationHistory,
+        ExamResultDocument,
+        ExamResultPublication,
+        ExamStudentResultVisibility,
+        ExamTranscript,
+    )
+    from app.modules.examinations.exam_cell_revaluation_models import (
+        ExamRevaluationApplication,
+        ExamRevaluationApproval,
+        ExamRevaluationEvaluation,
+        ExamRevaluationHistory,
+        ExamSupplementaryAttempt,
+        ExamSupplementaryRegistration,
+    )
+    from app.modules.examinations.exam_cell_incident_models import (
+        ExamDisciplinaryDecision,
+        ExamIncidentEvidence,
+        ExamIncidentHistory,
+        ExamIncidentRecord,
+        ExamInvestigationRecord,
+        ExamMalpracticeCase,
+    )
+    from app.modules.examinations.exam_cell_notification_models import (
+        ExamAnnouncementRecord,
+        ExamNotificationDeliveryLog,
+        ExamNotificationEventRecord,
+        ExamNotificationTemplate,
+    )
+    from app.modules.examinations.exam_cell_report_models import ExamReportJob
+    from app.modules.examinations.exam_cell_security_models import (
+        ExamAccessReviewRecord,
+        ExamAuditLog,
+        ExamIntegrationConfig,
+        ExamIntegrationFailure,
+        ExamIntegrationSyncLog,
+        ExamSecurityEvent,
+    )
     from app.modules.faculty.support_models import (
         AcademicPerformanceSnapshot,
         FacultyAcademicReport,
@@ -477,6 +576,8 @@ def document_models() -> list[type]:
         LibraryNotificationPreference,
     )
     from app.modules.library.report_models import LibraryReportJob
+    from app.modules.library.audit_models import LibraryAuditEvent, LibraryStockAdjustmentRequest, LibraryStockDiscrepancy
+    from app.modules.library.settings_models import LibraryBorrowingRule, LibraryPolicyHistory
     from app.modules.library.fine_models import LibraryDamageReport, LibraryFineApproval, LibraryFineHistory, LibraryFinePolicy
     from app.modules.library.reservation_models import (
         LibraryReservationHistory,
@@ -991,6 +1092,77 @@ def document_models() -> list[type]:
         ArrearEligibilityRecord,
         ExaminationReviewWindow,
         ExaminationReviewFeePayment,
+        ExamSession,
+        ExamSessionAcademicScope,
+        ExamSessionStatusHistory,
+        ExamActivityLog,
+        ExamAssessmentConfig,
+        ExamAssessmentComponent,
+        ExamAssessmentPolicyVersion,
+        ExamTimetable,
+        ExamTimetableEntry,
+        ExamTimetableRevision,
+        ExamScheduleApproval,
+        ExamEligibilityRecord,
+        ExamEligibilityRuleResult,
+        ExamRegistration,
+        ExamRegistrationSubject,
+        ExamRegistrationHistory,
+        ExamHallTicket,
+        ExamHallTicketSubject,
+        ExamHallTicketHistory,
+        ExamVenue,
+        ExamRoom,
+        ExamSeatingPlan,
+        ExamSeatingAllocation,
+        ExamInvigilatorAssignment,
+        ExamDutyHistory,
+        ExamMarksSubmission,
+        ExamMarksEntry,
+        ExamMarksComponent,
+        ExamMarksCorrection,
+        ExamMarksHistory,
+        ExamGradingPolicy,
+        ExamGradeBoundary,
+        ExamGradingPolicyVersion,
+        ExamStudentSubjectResult,
+        ExamSemesterResult,
+        ExamGpaCalculation,
+        ExamCgpaCalculation,
+        ExamResultReviewRecord,
+        ExamResultApprovalWorkflow,
+        ExamResultReviewHistory,
+        ExamResultPublication,
+        ExamPublicationBatch,
+        ExamPublicationHistory,
+        ExamStudentResultVisibility,
+        ExamTranscript,
+        ExamAcademicStatement,
+        ExamResultDocument,
+        ExamDocumentVerificationRecord,
+        ExamRevaluationApplication,
+        ExamRevaluationEvaluation,
+        ExamRevaluationApproval,
+        ExamRevaluationHistory,
+        ExamSupplementaryRegistration,
+        ExamSupplementaryAttempt,
+        ExamIncidentRecord,
+        ExamMalpracticeCase,
+        ExamIncidentEvidence,
+        ExamInvestigationRecord,
+        ExamDisciplinaryDecision,
+        ExamIncidentHistory,
+        ExamNotificationTemplate,
+        ExamNotificationEventRecord,
+        ExamNotificationDeliveryLog,
+        ExamAnnouncementRecord,
+        ExamReportJob,
+        ExamIntegrationConfig,
+        ExamIntegrationSyncLog,
+        ExamIntegrationFailure,
+        ExamSecurityEvent,
+        ExamAuditLog,
+        ExamAccessReviewRecord,
         StudentArrearReference,
         StudentExamAttemptHistory,
         StudentSupplementaryRegistration,
@@ -1055,6 +1227,11 @@ def document_models() -> list[type]:
         LibraryNotificationPreference,
         LibraryAnnouncement,
         LibraryReportJob,
+        LibraryBorrowingRule,
+        LibraryPolicyHistory,
+        LibraryAuditEvent,
+        LibraryStockDiscrepancy,
+        LibraryStockAdjustmentRequest,
         HostelApplication,
         HostelRoomAllocation,
         HostelNotice,

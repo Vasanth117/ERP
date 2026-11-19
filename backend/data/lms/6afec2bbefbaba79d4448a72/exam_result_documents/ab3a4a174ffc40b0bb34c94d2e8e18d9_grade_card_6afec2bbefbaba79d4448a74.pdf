@@ -1,0 +1,29 @@
+%PDF-1.4
+1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj
+2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj
+3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources<< /Font<< /F1 5 0 R >> >> >>endobj
+4 0 obj<< /Length 312 >>stream
+BT /F1 11 Tf 50 750 Td
+(-16 0 Td) (Semester Grade Card) Tj
+-16 0 Td (Institution: Institution) Tj
+-16 0 Td (Student roll: ROLL044a5236) Tj
+-16 0 Td (Publication: erp_7a460f9674 v1) Tj
+-16 0 Td (Policy: egp_99deda6f45 v2) Tj
+-16 0 Td (GPA: 9.0  CGPA: 9.0) Tj
+-16 0 Td (CSE101: A \(9.0 pts\) credits 3.0/3.0) Tj
+ET
+endstream
+endobj
+5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000056 00000 n 
+0000000111 00000 n 
+0000000233 00000 n 
+0000000594 00000 n 
+trailer<< /Size 6 /Root 1 0 R >>
+startxref
+662
+%%EOF

@@ -399,6 +399,25 @@ async def apply_adjustment(scope: AccessScope, payload: InventoryAdjustmentReque
         metadata={"adjustment_id": adjustment_id, "type": payload.adjustment_type.value},
         actor_id=scope.user_id,
     )
+    from app.modules.library.audit_enums import LibraryAuditDomain
+    from app.modules.library.audit_recorder import record_library_audit
+
+    await record_library_audit(
+        tenant_id,
+        actor_id=scope.user_id,
+        domain=LibraryAuditDomain.INVENTORY,
+        action="library_inventory.adjust",
+        resource_type="copy",
+        resource_id=copy.copy_id,
+        branch_code=copy.branch_code,
+        before_state={
+            "status": prev_status.value,
+            "condition": prev_condition.value,
+            "version": payload.expected_version,
+        },
+        after_state={"status": copy.status.value, "condition": copy.condition.value, "version": copy.version},
+        metadata={"adjustment_id": adjustment_id},
+    )
     await append_institution_audit(
         tenant_id,
         actor_id=scope.user_id,
@@ -439,6 +458,30 @@ async def list_missing_copies(scope: AccessScope, *, branch_code: str | None = N
         MissingCopySummary(copy_id=r.copy_id, book_id=r.book_id, branch_code=r.branch_code, status=r.status)
         for r in rows
     ]
+
+
+async def list_stock_verifications(
+    scope: AccessScope,
+    pagination: Pagination,
+    *,
+    branch_code: str | None = None,
+    status: StockVerificationStatus | None = None,
+) -> Page[StockVerificationRead]:
+    tenant_id = await require_inventory_read(scope)
+    filters: dict[str, Any] = {"tenant_id": tenant_id}
+    if branch_code:
+        filters["branch_code"] = _norm_branch(branch_code)
+    if status is not None:
+        filters["status"] = status.value
+    query = LibraryStockVerification.find(filters).sort("-created_at")
+    total = await query.count()
+    rows = await query.skip(pagination.offset).limit(pagination.limit).to_list()
+    return Page(
+        items=[_verification_read(r) for r in rows],
+        total=total,
+        limit=pagination.limit,
+        offset=pagination.offset,
+    )
 
 
 async def start_stock_verification(scope: AccessScope, payload: StockVerificationCreate) -> StockVerificationRead:
@@ -573,6 +616,9 @@ async def complete_stock_verification(scope: AccessScope, verification_id: str) 
         metadata={"verification_id": verification_id, "missing_copy_ids": missing},
         actor_id=scope.user_id,
     )
+    from app.modules.library.inventory_control_service import create_discrepancies_from_verification
+
+    await create_discrepancies_from_verification(scope, verification_id)
     return _verification_read(session)
 
 

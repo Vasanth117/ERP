@@ -1,8 +1,28 @@
 {
-  "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/Untitled?node-id=0-1",
+  "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=0-1",
   "fileKey": "Hy7qeZdVNmzD6PN0ZkgBfK",
-  "fileName": "Untitled",
+  "fileName": "ERP",
   "defaultNodeId": "0:1",
+  "mcp": {
+    "server": "figma",
+    "endpoint": "https://mcp.figma.com/mcp",
+    "configuredIn": ".cursor/mcp.json",
+    "pageCatalog": "design/figma-pages.json",
+    "syncScript": "python scripts/build_figma_pages_catalog.py"
+  },
+  "entryPagesByRole": {
+    "platform": { "id": "46:4654", "name": "02 – Platform Dashboard" },
+    "collegeAdmin": { "id": "64:2", "name": "CA 01 – College Admin Dashboard" },
+    "departmentAdmin": { "id": "83:15082", "name": "DA 01 – Dashboard & Profile" },
+    "facultyPortal": { "id": "90:15354", "name": "FP 01 – Dashboard & Workspace" },
+    "studentPortal": { "id": "164:2", "name": "ST 01 – Student Dashboard & Profile" },
+    "parentPortal": { "id": "97:2", "name": "PP 01 – Parent Dashboard" },
+    "library": { "id": "107:2", "name": "LP 01 – Library Dashboard & Overview" },
+    "examination": { "id": "118:2", "name": "EX 01 – Examination Cell Dashboard" },
+    "hr": { "id": "126:2", "name": "HR 01 – HR Dashboard & Employee Overview" },
+    "finance": { "id": "150:2", "name": "FN 01 – Finance Dashboard & Financial Overview" },
+    "hostel": { "id": "205:358396", "name": "HA 01 – Hostel Dashboard" }
+  },
   "linkedBackend": {
     "apiBaseUrlDev": "http://localhost:8000/api/v1",
     "corsOrigin": "http://localhost:3000",

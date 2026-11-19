@@ -51,6 +51,8 @@ from app.modules.library.acquisition_router import router as acquisition_router
 from app.modules.library.digital_router import router as digital_router
 from app.modules.library.notification_router import router as notification_router
 from app.modules.library.report_router import router as report_router
+from app.modules.library.settings_router import router as settings_router
+from app.modules.library.audit_router import router as audit_router
 from app.modules.library.facility_router import router as facility_router
 from app.modules.library.library_enums import LibraryCopyStatus, LibraryDashboardDateRange
 
@@ -66,6 +68,8 @@ router.include_router(acquisition_router)
 router.include_router(digital_router)
 router.include_router(notification_router)
 router.include_router(report_router)
+router.include_router(settings_router)
+router.include_router(audit_router)
 
 
 @router.get("/me/dashboard", response_model=ApiResponse[LibraryDashboardOverview])

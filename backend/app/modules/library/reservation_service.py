@@ -47,24 +47,32 @@ def _reservation_id(custom: str | None) -> str:
     return f"rsv_{uuid4().hex[:12]}"
 
 
-async def _policy(tenant_id: PydanticObjectId, branch_code: str | None) -> LibraryReservationPolicy:
+async def _policy(tenant_id: PydanticObjectId, branch_code: str | None, *, member_category: str | None = None) -> LibraryReservationPolicy:
+    from app.modules.library.policy_evaluation import resolve_borrowing_policy
+    from app.modules.library.settings_enums import LibraryResourceType
+
     branch = _norm_branch(branch_code)
+    snap = await resolve_borrowing_policy(
+        tenant_id,
+        branch_code=branch,
+        member_category=member_category,
+        resource_type=LibraryResourceType.PHYSICAL.value,
+    )
     doc = await LibraryReservationPolicy.find_one(
         Eq(LibraryReservationPolicy.tenant_id, tenant_id),
         Eq(LibraryReservationPolicy.branch_code, branch),
     )
-    if doc:
-        return doc
-    doc = await LibraryReservationPolicy.find_one(
-        Eq(LibraryReservationPolicy.tenant_id, tenant_id),
-        Eq(LibraryReservationPolicy.branch_code, None),
-    )
-    if doc:
-        return doc
-    return LibraryReservationPolicy(
-        tenant_id=tenant_id,
-        branch_code=branch,
-    )
+    if doc is None:
+        doc = await LibraryReservationPolicy.find_one(
+            Eq(LibraryReservationPolicy.tenant_id, tenant_id),
+            Eq(LibraryReservationPolicy.branch_code, None),
+        )
+    if doc is None:
+        doc = LibraryReservationPolicy(tenant_id=tenant_id, branch_code=branch)
+    doc.max_active_per_member = snap.max_reservations_per_member
+    doc.hold_hours = snap.hold_hours
+    doc.reserve_only_when_unavailable = snap.reserve_only_when_unavailable
+    return doc
 
 
 async def _history(
@@ -338,7 +346,11 @@ async def create_reservation_core(
     )
     if require_membership and membership is None:
         raise AppError(code="FORBIDDEN", message="Library membership required", status_code=403)
-    policy = await _policy(tenant_id, branch)
+    policy = await _policy(
+        tenant_id,
+        branch,
+        member_category=membership.member_category if membership else None,
+    )
     active = await LibraryReservation.find(
         {
             "tenant_id": tenant_id,
