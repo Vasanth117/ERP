@@ -3,7 +3,7 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 
 from app.api.deps import get_access_scope, pagination_params
 from app.common.access import AccessScope
@@ -22,6 +22,41 @@ from app.modules.college_admin.dashboard_service import (
 from app.modules.college_admin.deps import college_admin_user, institution_settings_rate_limit
 from app.modules.college_admin.enums import DashboardDateRange
 from app.modules.college_admin.institution_overview_service import get_institutional_overview
+from app.modules.college_admin.institution_information_page_service import (
+    get_institution_information_page,
+    publish_institution_information,
+    save_institution_profile_draft,
+)
+from app.modules.college_admin.institution_branding_page_service import (
+    get_institution_branding_page,
+    publish_institution_branding,
+    save_institution_branding_draft,
+    upload_branding_asset,
+)
+from app.modules.college_admin.institution_academic_year_page_service import (
+    copy_academic_year_from_previous,
+    create_blank_academic_year,
+    get_academic_year_configuration_page,
+    save_academic_year_configuration,
+)
+from app.modules.college_admin.institution_policies_page_service import get_institution_policies_page
+from app.modules.college_admin.institution_calendar_page_service import (
+    get_institution_calendar_settings_page,
+    import_institution_holidays_from_previous,
+    save_institution_calendar_settings_page,
+)
+from app.modules.college_admin.institution_configuration_history_page_service import (
+    get_institution_configuration_history_page,
+)
+from app.modules.college_admin.institution_academic_settings_page_service import (
+    get_academic_institution_settings_page,
+    reset_academic_institution_settings_page,
+    save_academic_institution_settings_page,
+)
+from app.modules.college_admin.campus_contact_page_service import get_campus_contact_page, save_campus_contact_page
+from app.modules.college_admin.campus_detail_page_service import get_campus_detail_page
+from app.modules.college_admin.campus_management_dashboard_service import get_campus_management_dashboard
+from app.modules.college_admin.institution_profile_page_service import get_institution_profile_page
 from app.modules.college_admin.academic_performance_overview_service import get_academic_performance_overview
 from app.modules.college_admin.attendance_overview_service import get_attendance_overview
 from app.modules.college_admin.examination_overview_service import get_examination_overview
@@ -45,13 +80,51 @@ from app.modules.college_admin.institution_service import (
 )
 from app.modules.college_admin.schemas import (
     ActivitySummary,
+    CampusContactPageRead,
+    CampusContactPageSave,
     CampusCreate,
+    CampusDetailPageRead,
+    CampusManagementDashboardRead,
     CampusRead,
     CampusUpdate,
     CollegeDashboardOverview,
     CollegeDashboardStatsRead,
     InstitutionConfigurationHistoryItem,
+    InstitutionPoliciesPageRead,
     InstitutionalOverviewRead,
+    AcademicInstitutionSettingsPageRead,
+    AcademicInstitutionSettingsSave,
+    AcademicYearConfigurationPageRead,
+    AcademicYearConfigurationSave,
+    InstitutionCalendarSettingsPageRead,
+    InstitutionCalendarSettingsSave,
+    ConfigurationHistoryPageRead,
+    UserDashboardPageRead,
+    UserAllUsersListPageRead,
+    UserDetailsPageRead,
+    CreateNewUserPageRead,
+    CreateNewUserDraftUpdate,
+    CreateNewUserValidatePayload,
+    CreateNewUserValidateResponse,
+    CreateNewUserSubmitPayload,
+    CreateNewUserSubmitResponse,
+    EditUserInformationPageRead,
+    EditUserInformationSavePayload,
+    BulkUserInvitationPageRead,
+    BulkUserInvitationUploadPayload,
+    BulkUserInvitationStepPayload,
+    BulkUserInvitationSendResponse,
+    RoleManagementDashboardPageRead,
+    CreateEditRolePageRead,
+    CreateEditRoleSavePayload,
+    PermissionManagementPageRead,
+    PermissionManagementSavePayload,
+    RoleAssignmentPageRead,
+    RoleAssignmentSubmitPayload,
+    RoleAssignmentSubmitResponse,
+    AccountStatusPageRead,
+    AccountStatusSuspendPayload,
+    AccountStatusSuspendResponse,
     AcademicPerformanceOverviewRead,
     AttendanceOverviewRead,
     ExaminationOverviewRead,
@@ -63,6 +136,12 @@ from app.modules.college_admin.schemas import (
     FacultyStatisticsOverviewRead,
     StudentStatisticsOverviewRead,
     InstitutionProfileRead,
+    InstitutionBrandingAssetRead,
+    InstitutionBrandingDraftUpdate,
+    InstitutionBrandingPageRead,
+    InstitutionInformationPageRead,
+    InstitutionProfileDraftUpdate,
+    InstitutionProfilePageRead,
     InstitutionProfileUpdate,
     InstitutionSettingsRead,
     OperationalSummariesRead,
@@ -406,6 +485,92 @@ async def institution_profile_route(
     return success_response(data, request_id=get_request_id())
 
 
+@router.get("/institution/profile/page", response_model=ApiResponse[InstitutionProfilePageRead])
+async def institution_profile_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[InstitutionProfilePageRead]:
+    data = await get_institution_profile_page(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/institution/information/page", response_model=ApiResponse[InstitutionInformationPageRead])
+async def institution_information_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[InstitutionInformationPageRead]:
+    data = await get_institution_information_page(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put("/institution/information/draft", response_model=ApiResponse[InstitutionInformationPageRead])
+async def institution_information_draft_route(
+    payload: InstitutionProfileDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionInformationPageRead]:
+    data = await save_institution_profile_draft(scope, payload.values)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/institution/information/save", response_model=ApiResponse[InstitutionInformationPageRead])
+async def institution_information_save_route(
+    payload: InstitutionProfileDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionInformationPageRead]:
+    data = await publish_institution_information(scope, payload.values)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/institution/branding/page", response_model=ApiResponse[InstitutionBrandingPageRead])
+async def institution_branding_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[InstitutionBrandingPageRead]:
+    data = await get_institution_branding_page(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put("/institution/branding/draft", response_model=ApiResponse[InstitutionBrandingPageRead])
+async def institution_branding_draft_route(
+    payload: InstitutionBrandingDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionBrandingPageRead]:
+    data = await save_institution_branding_draft(scope, payload.values)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/institution/branding/publish", response_model=ApiResponse[InstitutionBrandingPageRead])
+async def institution_branding_publish_route(
+    payload: InstitutionBrandingDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionBrandingPageRead]:
+    data = await publish_institution_branding(scope, payload.values)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/branding/assets/{asset_key}",
+    response_model=ApiResponse[InstitutionBrandingAssetRead],
+)
+async def institution_branding_asset_upload_route(
+    asset_key: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+    file: Annotated[UploadFile, File()],
+) -> ApiResponse[InstitutionBrandingAssetRead]:
+    data = await upload_branding_asset(scope, asset_key, file)
+    return success_response(data, request_id=get_request_id())
+
+
 @router.patch("/institution/profile", response_model=ApiResponse[InstitutionProfileRead])
 async def institution_profile_update_route(
     payload: InstitutionProfileUpdate,
@@ -414,6 +579,18 @@ async def institution_profile_update_route(
     __: Annotated[None, Depends(institution_settings_rate_limit)],
 ) -> ApiResponse[InstitutionProfileRead]:
     data = await update_institution_profile(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/campuses/dashboard",
+    response_model=ApiResponse[CampusManagementDashboardRead],
+)
+async def institution_campuses_dashboard_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CampusManagementDashboardRead]:
+    data = await get_campus_management_dashboard(scope)
     return success_response(data, request_id=get_request_id())
 
 
@@ -437,6 +614,47 @@ async def institution_campus_create_route(
     return success_response(data, request_id=get_request_id())
 
 
+@router.get(
+    "/institution/campuses/{campus_id}/page",
+    response_model=ApiResponse[CampusDetailPageRead],
+)
+async def institution_campus_detail_page_route(
+    campus_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CampusDetailPageRead]:
+    data = await get_campus_detail_page(scope, to_object_id(campus_id, "campus id"))
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/campuses/{campus_id}/contact/page",
+    response_model=ApiResponse[CampusContactPageRead],
+)
+async def institution_campus_contact_page_route(
+    campus_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CampusContactPageRead]:
+    data = await get_campus_contact_page(scope, to_object_id(campus_id, "campus id"))
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put(
+    "/institution/campuses/{campus_id}/contact/page",
+    response_model=ApiResponse[CampusContactPageRead],
+)
+async def institution_campus_contact_save_route(
+    campus_id: str,
+    payload: CampusContactPageSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[CampusContactPageRead]:
+    data = await save_campus_contact_page(scope, to_object_id(campus_id, "campus id"), payload)
+    return success_response(data, request_id=get_request_id())
+
+
 @router.get("/institution/campuses/{campus_id}", response_model=ApiResponse[CampusRead])
 async def institution_campus_detail_route(
     campus_id: str,
@@ -455,6 +673,176 @@ async def institution_campus_update_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[CampusRead]:
     data = await update_campus(scope, to_object_id(campus_id, "campus id"), payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/academic-year/page",
+    response_model=ApiResponse[AcademicYearConfigurationPageRead],
+)
+async def institution_academic_year_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    selected_year_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[AcademicYearConfigurationPageRead]:
+    data = await get_academic_year_configuration_page(scope, selected_year_id=selected_year_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put(
+    "/institution/academic-year/{year_id}/configuration",
+    response_model=ApiResponse[AcademicYearConfigurationPageRead],
+)
+async def institution_academic_year_save_route(
+    year_id: str,
+    payload: AcademicYearConfigurationSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[AcademicYearConfigurationPageRead]:
+    data = await save_academic_year_configuration(
+        scope,
+        to_object_id(year_id, "year_id"),
+        payload,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/academic-year/copy-previous",
+    response_model=ApiResponse[AcademicYearConfigurationPageRead],
+)
+async def institution_academic_year_copy_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[AcademicYearConfigurationPageRead]:
+    data = await copy_academic_year_from_previous(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/academic-year/new",
+    response_model=ApiResponse[AcademicYearConfigurationPageRead],
+)
+async def institution_academic_year_new_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[AcademicYearConfigurationPageRead]:
+    data = await create_blank_academic_year(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/calendar/page",
+    response_model=ApiResponse[InstitutionCalendarSettingsPageRead],
+)
+async def institution_calendar_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    academic_year_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[InstitutionCalendarSettingsPageRead]:
+    data = await get_institution_calendar_settings_page(
+        scope,
+        page=page,
+        academic_year_id=academic_year_id,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put(
+    "/institution/calendar/page",
+    response_model=ApiResponse[InstitutionCalendarSettingsPageRead],
+)
+async def institution_calendar_save_route(
+    payload: InstitutionCalendarSettingsSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionCalendarSettingsPageRead]:
+    data = await save_institution_calendar_settings_page(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/calendar/import-holidays",
+    response_model=ApiResponse[InstitutionCalendarSettingsPageRead],
+)
+async def institution_calendar_import_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionCalendarSettingsPageRead]:
+    data = await import_institution_holidays_from_previous(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/policies/page",
+    response_model=ApiResponse[InstitutionPoliciesPageRead],
+)
+async def institution_policies_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    search: Annotated[str | None, Query()] = None,
+    category: Annotated[str | None, Query()] = None,
+    audience: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 6,
+    selected_policy_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[InstitutionPoliciesPageRead]:
+    data = await get_institution_policies_page(
+        scope,
+        search=search,
+        category=category or None,
+        audience=audience or None,
+        status=status or None,
+        page=page,
+        page_size=page_size,
+        selected_policy_id=selected_policy_id,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/academic-settings/page",
+    response_model=ApiResponse[AcademicInstitutionSettingsPageRead],
+)
+async def institution_academic_settings_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AcademicInstitutionSettingsPageRead]:
+    data = await get_academic_institution_settings_page(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put(
+    "/institution/academic-settings/page",
+    response_model=ApiResponse[AcademicInstitutionSettingsPageRead],
+)
+async def institution_academic_settings_save_route(
+    payload: AcademicInstitutionSettingsSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[AcademicInstitutionSettingsPageRead]:
+    data = await save_academic_institution_settings_page(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/academic-settings/reset",
+    response_model=ApiResponse[AcademicInstitutionSettingsPageRead],
+)
+async def institution_academic_settings_reset_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[AcademicInstitutionSettingsPageRead]:
+    data = await reset_academic_institution_settings_page(scope)
     return success_response(data, request_id=get_request_id())
 
 
@@ -481,6 +869,32 @@ async def institution_settings_update_route(
     branding = payload.branding
     settings_payload = InstitutionSettingsUpdate(**payload.model_dump(exclude={"branding"}, exclude_none=True))
     data = await update_institution_settings(scope, settings_payload, branding=branding)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/configuration-history/page",
+    response_model=ApiResponse[ConfigurationHistoryPageRead],
+)
+async def institution_configuration_history_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    date_range: Annotated[str, Query()] = "last_90_days",
+    setting_area: Annotated[str | None, Query()] = None,
+    actor_id: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
+    selected_change_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[ConfigurationHistoryPageRead]:
+    data = await get_institution_configuration_history_page(
+        scope,
+        page=page,
+        date_range=date_range,
+        setting_area=setting_area,
+        actor_id=actor_id,
+        search=search,
+        selected_change_id=selected_change_id,
+    )
     return success_response(data, request_id=get_request_id())
 
 
@@ -536,6 +950,47 @@ from app.modules.college_admin.role_management_service import (
     list_permissions,
     update_institution_role,
 )
+from app.modules.college_admin.user_management_dashboard_page_service import (
+    get_user_management_dashboard_page,
+)
+from app.modules.college_admin.user_all_users_list_page_service import get_all_users_list_page
+from app.modules.college_admin.user_details_page_service import get_user_details_page_by_id
+from app.modules.college_admin.edit_user_information_page_service import (
+    get_edit_user_information_page_by_id,
+    save_edit_user_information,
+)
+from app.modules.college_admin.role_management_dashboard_page_service import get_role_management_dashboard_page
+from app.modules.college_admin.create_edit_role_page_service import (
+    get_create_edit_role_page_by_id,
+    save_create_edit_role,
+)
+from app.modules.college_admin.permission_management_page_service import (
+    get_permission_management_page,
+    get_permission_management_page_export,
+    save_permission_management_matrix,
+)
+from app.modules.college_admin.role_assignment_page_service import (
+    get_role_assignment_page,
+    submit_role_assignment,
+)
+from app.modules.college_admin.account_status_page_service import (
+    export_account_status_csv,
+    get_account_status_page,
+    submit_account_suspension,
+)
+from app.modules.college_admin.bulk_user_invitation_page_service import (
+    bulk_invitation_template_csv,
+    get_bulk_user_invitation_page,
+    send_bulk_user_invitations,
+    update_bulk_user_invitation_settings,
+    upload_bulk_user_invitation,
+)
+from app.modules.college_admin.create_new_user_page_service import (
+    get_create_new_user_page,
+    save_create_new_user_draft,
+    submit_create_new_user,
+    validate_create_new_user,
+)
 from app.modules.college_admin.user_management_service import (
     accept_institution_invitation,
     accept_password_reset,
@@ -585,6 +1040,225 @@ async def accept_invitation_route(payload: InvitationAccept) -> ApiResponse[Inst
 @router.post("/users/password-reset/accept", response_model=ApiResponse[dict])
 async def accept_password_reset_route(payload: InvitationAccept) -> ApiResponse[dict]:
     data = await accept_password_reset(payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/all-users-list/page", response_model=ApiResponse[UserAllUsersListPageRead])
+async def all_users_list_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    search: Annotated[str | None, Query()] = None,
+    role_filter: Annotated[str | None, Query()] = None,
+    department_id: Annotated[str | None, Query()] = None,
+    status_filter: Annotated[str | None, Query()] = None,
+) -> ApiResponse[UserAllUsersListPageRead]:
+    data = await get_all_users_list_page(
+        scope,
+        page=page,
+        search=search,
+        role_filter=role_filter or None,
+        department_id=department_id,
+        status_filter=status_filter or None,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/management-dashboard/page", response_model=ApiResponse[UserDashboardPageRead])
+async def user_management_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    date_range: Annotated[str, Query()] = "last_30_days",
+    role_filter: Annotated[str | None, Query()] = None,
+    department_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[UserDashboardPageRead]:
+    data = await get_user_management_dashboard_page(
+        scope,
+        date_range=date_range,
+        role_filter=role_filter or None,
+        department_id=department_id,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/bulk-user-invitation/template")
+async def bulk_user_invitation_template_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    from fastapi.responses import PlainTextResponse
+
+    _ = scope
+    return PlainTextResponse(
+        bulk_invitation_template_csv(),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="bulk_invite_template.csv"'},
+    )
+
+
+@router.get("/users/account-status/page", response_model=ApiResponse[AccountStatusPageRead])
+async def account_status_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    tab: Annotated[str, Query()] = "suspended",
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[AccountStatusPageRead]:
+    data = await get_account_status_page(scope, tab=tab, page=page)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/users/account-status/suspend", response_model=ApiResponse[AccountStatusSuspendResponse])
+async def account_status_suspend_route(
+    payload: AccountStatusSuspendPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AccountStatusSuspendResponse]:
+    data = await submit_account_suspension(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/account-status/export")
+async def account_status_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    tab: Annotated[str, Query()] = "suspended",
+):
+    from fastapi.responses import PlainTextResponse
+
+    csv_text = await export_account_status_csv(scope, tab=tab)
+    return PlainTextResponse(
+        csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="account_status_{tab}.csv"'},
+    )
+
+
+@router.get("/users/role-assignment/page", response_model=ApiResponse[RoleAssignmentPageRead])
+async def role_assignment_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    user_id: Annotated[str | None, Query()] = None,
+    role_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[RoleAssignmentPageRead]:
+    data = await get_role_assignment_page(scope, user_id_raw=user_id, role_id_raw=role_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/users/role-assignment/submit", response_model=ApiResponse[RoleAssignmentSubmitResponse])
+async def role_assignment_submit_route(
+    payload: RoleAssignmentSubmitPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[RoleAssignmentSubmitResponse]:
+    data = await submit_role_assignment(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/bulk-user-invitation/page", response_model=ApiResponse[BulkUserInvitationPageRead])
+async def bulk_user_invitation_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[BulkUserInvitationPageRead]:
+    data = await get_bulk_user_invitation_page(scope, page=page)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/users/bulk-user-invitation/upload", response_model=ApiResponse[BulkUserInvitationPageRead])
+async def bulk_user_invitation_upload_route(
+    payload: BulkUserInvitationUploadPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[BulkUserInvitationPageRead]:
+    data = await upload_bulk_user_invitation(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put("/users/bulk-user-invitation/settings", response_model=ApiResponse[BulkUserInvitationPageRead])
+async def bulk_user_invitation_settings_route(
+    payload: BulkUserInvitationStepPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[BulkUserInvitationPageRead]:
+    data = await update_bulk_user_invitation_settings(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/users/bulk-user-invitation/send", response_model=ApiResponse[BulkUserInvitationSendResponse])
+async def bulk_user_invitation_send_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[BulkUserInvitationSendResponse]:
+    data = await send_bulk_user_invitations(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/create-new-user/page", response_model=ApiResponse[CreateNewUserPageRead])
+async def create_new_user_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreateNewUserPageRead]:
+    data = await get_create_new_user_page(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put("/users/create-new-user/draft", response_model=ApiResponse[CreateNewUserPageRead])
+async def create_new_user_draft_route(
+    payload: CreateNewUserDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreateNewUserPageRead]:
+    data = await save_create_new_user_draft(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/users/create-new-user/validate", response_model=ApiResponse[CreateNewUserValidateResponse])
+async def create_new_user_validate_route(
+    payload: CreateNewUserValidatePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreateNewUserValidateResponse]:
+    data = await validate_create_new_user(scope, payload.values)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/users/create-new-user/submit", response_model=ApiResponse[CreateNewUserSubmitResponse])
+async def create_new_user_submit_route(
+    payload: CreateNewUserSubmitPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreateNewUserSubmitResponse]:
+    data = await submit_create_new_user(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/edit-user-information/page", response_model=ApiResponse[EditUserInformationPageRead])
+async def edit_user_information_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    user_id: Annotated[str, Query(description="Institution user id")],
+) -> ApiResponse[EditUserInformationPageRead]:
+    data = await get_edit_user_information_page_by_id(scope, user_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put("/users/edit-user-information/save", response_model=ApiResponse[EditUserInformationPageRead])
+async def edit_user_information_save_route(
+    payload: EditUserInformationSavePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[EditUserInformationPageRead]:
+    data = await save_edit_user_information(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/user-details/page", response_model=ApiResponse[UserDetailsPageRead])
+async def user_details_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    user_id: Annotated[str, Query(description="Institution user id")],
+) -> ApiResponse[UserDetailsPageRead]:
+    data = await get_user_details_page_by_id(scope, user_id)
     return success_response(data, request_id=get_request_id())
 
 
@@ -710,6 +1384,73 @@ async def user_access_history_route(
 ) -> ApiResponse[list[AccessHistoryRead]]:
     data = await get_user_access_history(scope, to_object_id(user_id, "user id"))
     return success_response(data, request_id=get_request_id())
+
+
+@router.get("/roles/management-dashboard/page", response_model=ApiResponse[RoleManagementDashboardPageRead])
+async def role_management_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[RoleManagementDashboardPageRead]:
+    data = await get_role_management_dashboard_page(scope, page=page)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/roles/create-edit/page", response_model=ApiResponse[CreateEditRolePageRead])
+async def create_edit_role_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    role_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[CreateEditRolePageRead]:
+    data = await get_create_edit_role_page_by_id(scope, role_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/roles/create-edit/save", response_model=ApiResponse[CreateEditRolePageRead])
+async def create_edit_role_save_route(
+    payload: CreateEditRoleSavePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreateEditRolePageRead]:
+    data = await save_create_edit_role(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/permissions/management-matrix/page", response_model=ApiResponse[PermissionManagementPageRead])
+async def permission_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[PermissionManagementPageRead]:
+    data = await get_permission_management_page(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/permissions/management-matrix/save",
+    response_model=ApiResponse[PermissionManagementPageRead],
+)
+async def permission_management_save_route(
+    payload: PermissionManagementSavePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[PermissionManagementPageRead]:
+    data = await save_permission_management_matrix(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/permissions/management-matrix/export")
+async def permission_management_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    from fastapi.responses import PlainTextResponse
+
+    csv_text = await get_permission_management_page_export(scope)
+    return PlainTextResponse(
+        csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="permission_matrix.csv"'},
+    )
 
 
 @router.get("/roles", response_model=ApiResponse[list[InstitutionRoleRead]])

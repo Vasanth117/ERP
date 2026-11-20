@@ -36,6 +36,8 @@ class Settings(BaseSettings):
   payroll_integration_enabled: bool = False
   default_retention_days: int = 90
   subscription_trial_days: int = 14
+  demo_seed_secret: str = Field(default="", repr=False)
+  demo_mutation_guard_enabled: bool = True
 
   model_config = SettingsConfigDict(
     env_file=".env",

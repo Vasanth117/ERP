@@ -32,6 +32,9 @@ class AcademicYear(Document):
     start_date: date | None = None
     end_date: date | None = None
     is_current: bool = False
+    summer_term_start: date | None = None
+    summer_term_end: date | None = None
+    year_end_closing: date | None = None
     status: ConfigPublicationStatus = ConfigPublicationStatus.DRAFT
     version: int = 1
     created_at: datetime = Field(default_factory=utcnow)

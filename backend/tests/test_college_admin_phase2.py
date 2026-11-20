@@ -32,6 +32,24 @@ from app.modules.college_admin.organization_service import (
 )
 from app.modules.college_admin.rbac_policy import actor_may_assign_role
 from app.modules.college_admin.role_management_service import create_institution_role, list_permissions
+from app.modules.college_admin.user_management_dashboard_page_service import (
+    get_user_management_dashboard_page,
+)
+from app.modules.college_admin.user_all_users_list_page_service import get_all_users_list_page
+from app.modules.college_admin.user_details_page_service import get_user_details_page
+from app.modules.college_admin.create_new_user_page_service import get_create_new_user_page
+from app.modules.college_admin.edit_user_information_page_service import get_edit_user_information_page
+from app.modules.college_admin.bulk_user_invitation_page_service import get_bulk_user_invitation_page
+from app.modules.college_admin.role_management_dashboard_page_service import get_role_management_dashboard_page
+from app.modules.college_admin.create_edit_role_page_service import (
+    get_create_edit_role_page_by_id,
+    save_create_edit_role,
+)
+from app.modules.college_admin.permission_management_page_service import (
+    get_permission_management_page,
+)
+from app.modules.college_admin.role_assignment_page_service import get_role_assignment_page
+from app.modules.college_admin.schemas import CreateEditRoleFormValues, CreateEditRoleSavePayload
 from app.modules.college_admin.user_management_service import (
     accept_institution_invitation,
     create_institution_user,
@@ -96,6 +114,72 @@ async def test_create_user_and_duplicate(db_ready) -> None:
         ),
     )
     assert created.role == Role.FACULTY
+
+    dash = await get_user_management_dashboard_page(scope)
+    assert dash.page_title == "User Management Dashboard"
+    assert len(dash.kpis) == 4
+    assert dash.kpis[0].value == "2"
+
+    users_list = await get_all_users_list_page(scope)
+    assert users_list.page_title == "All Users List"
+    assert users_list.pagination.total >= 2
+
+    details = await get_user_details_page(scope, to_object_id(created.user_id, "user id"))
+    assert details.page_title == "User Details"
+    assert details.profile_name == "Faculty Member"
+    assert details.user_id == created.user_id
+    assert len(details.account_fields) >= 4
+
+    create_page = await get_create_new_user_page(scope)
+    assert create_page.page_title == "Create New User"
+    assert len(create_page.steps) == 3
+    assert len(create_page.department_options) >= 2
+
+    edit_page = await get_edit_user_information_page(scope, to_object_id(created.user_id, "user id"))
+    assert edit_page.page_title == "Edit User Information"
+    assert edit_page.form.full_name == "Faculty Member"
+
+    bulk_page = await get_bulk_user_invitation_page(scope)
+    assert bulk_page.page_title == "Bulk User Invitation"
+    assert len(bulk_page.steps) == 4
+
+    roles_dash = await get_role_management_dashboard_page(scope)
+    assert roles_dash.page_title == "Role Management Dashboard"
+    assert len(roles_dash.kpis) == 4
+
+    create_role_page = await get_create_edit_role_page_by_id(scope, None)
+    assert create_role_page.page_title == "Create / Edit Role"
+    assert create_role_page.is_create is True
+    assert len(create_role_page.permission_groups) >= 3
+
+    saved_role_page = await save_create_edit_role(
+        scope,
+        CreateEditRoleSavePayload(
+            role_id=None,
+            form=CreateEditRoleFormValues(
+                name="Examination Cell",
+                role_code=f"EXAM_{suffix[:6].upper()}",
+                base_role=Role.EXAMINATION_CELL.value,
+                scope="whole_college",
+                description="Plans examinations and results.",
+                require_mfa=True,
+                restrict_campus_network=True,
+                time_bound_access=False,
+            ),
+            permission_toggles=[],
+        ),
+    )
+    assert saved_role_page.role_id
+    assert saved_role_page.form.name == "Examination Cell"
+
+    perm_page = await get_permission_management_page(scope)
+    assert perm_page.page_title == "Permission Management"
+    assert len(perm_page.columns) == 8
+    assert len(perm_page.groups) >= 5
+
+    assign_page = await get_role_assignment_page(scope)
+    assert assign_page.page_title == "Role Assignment"
+    assert len(assign_page.recent_table_headers) == 5
     with pytest.raises(AppError) as exc:
         await create_institution_user(
             scope,

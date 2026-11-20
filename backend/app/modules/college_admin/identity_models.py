@@ -64,6 +64,11 @@ class InstitutionUser(Document):
     account_status: InstitutionAccountStatus = InstitutionAccountStatus.ACTIVE
     suspension_reason: str | None = Field(default=None, max_length=500)
     suspended_at: datetime | None = None
+    suspension_reason_code: str | None = Field(default=None, max_length=64)
+    suspension_effective_from: datetime | None = None
+    suspension_review_at: datetime | None = None
+    suspension_review_status: str | None = Field(default=None, max_length=32)
+    suspension_notes: str | None = Field(default=None, max_length=2000)
     faculty_profile_linked: bool = False
     student_profile_linked: bool = False
     employee_profile_linked: bool = False
@@ -92,6 +97,7 @@ class InstitutionRole(Document):
     base_role: Role
     granted_permissions: list[str] = Field(default_factory=list)
     denied_permissions: list[str] = Field(default_factory=list)
+    role_settings: dict = Field(default_factory=dict)
     is_system: bool = False
     is_active: bool = True
     version: int = 1
@@ -138,6 +144,13 @@ class InstitutionRoleAssignment(Document):
     assigned_by: PydanticObjectId | None = None
     assigned_at: datetime = Field(default_factory=utcnow)
     revoked_at: datetime | None = None
+    assignment_status: str = Field(default="active", max_length=16)
+    scope_key: str | None = Field(default=None, max_length=64)
+    scope_label: str | None = Field(default=None, max_length=200)
+    department_id: PydanticObjectId | None = None
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+    reason: str | None = Field(default=None, max_length=500)
 
     class Settings:
         name = "institution_role_assignments"
@@ -196,6 +209,52 @@ class InstitutionAccessHistory(Document):
                 name="access_history_by_user",
             ),
             IndexModel([("tenant_id", ASCENDING), ("created_at", DESCENDING)], name="access_history_by_tenant"),
+        ]
+
+
+class InstitutionBulkUserInvitationDraft(Document):
+    """Spreadsheet bulk-invite wizard state per college admin actor."""
+
+    tenant_id: PydanticObjectId
+    actor_id: PydanticObjectId
+    step_key: str = Field(default="upload", max_length=32)
+    file_name: str | None = None
+    file_size_bytes: int | None = None
+    row_count: int = 0
+    rows: list = Field(default_factory=list)
+    validated_rows: list = Field(default_factory=list)
+    skip_rows_with_errors: bool = True
+    require_mfa_first_login: bool = True
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_bulk_user_invitation_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("actor_id", ASCENDING)],
+                unique=True,
+                name="unique_bulk_invite_draft_per_actor",
+            ),
+        ]
+
+
+class InstitutionUserCreateDraft(Document):
+    """Per-admin wizard draft for Create New User (CA 03 — create & invite)."""
+
+    tenant_id: PydanticObjectId
+    actor_id: PydanticObjectId
+    step_key: str = Field(default="personal", max_length=32)
+    values: dict = Field(default_factory=dict)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_user_create_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("actor_id", ASCENDING)],
+                unique=True,
+                name="unique_user_create_draft_per_actor",
+            ),
         ]
 
 

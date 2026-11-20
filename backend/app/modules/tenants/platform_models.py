@@ -22,9 +22,12 @@ class InstitutionAddress(BaseModel):
     line1: str = ""
     line2: str | None = None
     city: str = ""
+    district: str | None = None
     state: str = ""
     country: str = ""
     postal_code: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
 
 
 class AcademicSettings(BaseModel):

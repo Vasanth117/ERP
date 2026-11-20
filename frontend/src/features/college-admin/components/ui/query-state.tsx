@@ -1,29 +1,36 @@
 "use client";
 
+import type { UseQueryResult } from "@tanstack/react-query";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 
 type QueryStateProps = {
-  isLoading: boolean;
-  isError: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
   error?: Error | null;
   isEmpty?: boolean;
   emptyMessage?: string;
   onRetry?: () => void;
+  query?: Pick<UseQueryResult, "isLoading" | "isError" | "error" | "refetch">;
   children: ReactNode;
 };
 
 export function QueryState({
-  isLoading,
-  isError,
-  error,
+  isLoading: isLoadingProp,
+  isError: isErrorProp,
+  error: errorProp,
   isEmpty,
   emptyMessage = "No records found.",
-  onRetry,
+  onRetry: onRetryProp,
+  query,
   children,
 }: QueryStateProps) {
+  const isLoading = isLoadingProp ?? query?.isLoading ?? false;
+  const isError = isErrorProp ?? query?.isError ?? false;
+  const error = errorProp ?? (query?.error as Error | null | undefined);
+  const onRetry = onRetryProp ?? (query ? () => void query.refetch() : undefined);
   if (isLoading) {
     return (
       <StatusPanel

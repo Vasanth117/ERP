@@ -2,6 +2,8 @@ export type CollegeAdminTab = {
   label: string;
   href: string;
   figmaFrame: string;
+  /** Extra path prefixes that should keep this tab highlighted (e.g. detail routes). */
+  activePrefixes?: string[];
 };
 
 /** Figma CA 01 — dashboard module tabs */
@@ -117,6 +119,59 @@ export const institutionTabs: CollegeAdminTab[] = [
   },
 ];
 
+/** Figma CA 03 — users & permissions (section nav only; not every screen). */
+export const usersTabs: CollegeAdminTab[] = [
+  {
+    label: "Users",
+    href: "/college-admin/users/user-management-dashboard",
+    figmaFrame: "69:124928",
+    activePrefixes: [
+      "/college-admin/users/all-users-list",
+      "/college-admin/users/user-management-dashboard",
+      "/college-admin/users/user-details",
+      "/college-admin/users/edit-user-information",
+    ],
+  },
+  {
+    label: "Create & invite",
+    href: "/college-admin/users/create-new-user",
+    figmaFrame: "69:125683",
+    activePrefixes: [
+      "/college-admin/users/create-new-user",
+      "/college-admin/users/bulk-user-invitation",
+    ],
+  },
+  {
+    label: "Roles",
+    href: "/college-admin/users/role-management-dashboard",
+    figmaFrame: "69:126349",
+    activePrefixes: [
+      "/college-admin/users/role-management-dashboard",
+      "/college-admin/users/create-edit-role",
+      "/college-admin/users/role-assignment",
+    ],
+  },
+  {
+    label: "Permissions",
+    href: "/college-admin/users/permission-management",
+    figmaFrame: "69:126902",
+  },
+  {
+    label: "Account status",
+    href: "/college-admin/users/user-account-activation-suspension",
+    figmaFrame: "69:127501",
+  },
+  {
+    label: "Activity",
+    href: "/college-admin/users/login-account-activity",
+    figmaFrame: "69:127724",
+    activePrefixes: [
+      "/college-admin/users/login-account-activity",
+      "/college-admin/users/user-access-history",
+    ],
+  },
+];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -127,7 +182,7 @@ export function resolveSectionTabs(
     return { section: "Institution", tabs: institutionTabs };
   }
   if (pathname.startsWith("/college-admin/users")) {
-    return null;
+    return { section: "Users & Permissions", tabs: usersTabs };
   }
   if (pathname.startsWith("/college-admin/organization")) {
     return null;

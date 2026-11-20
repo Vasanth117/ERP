@@ -1,6 +1,6 @@
 """College admin MongoDB collections."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from beanie import Document, PydanticObjectId
@@ -18,16 +18,27 @@ class InstitutionProfile(Document):
     tenant_id: PydanticObjectId
     legal_name: str
     display_name: str
+    short_name: str | None = Field(default=None, max_length=32)
     institution_code: str | None = None
     secondary_codes: list[str] = Field(default_factory=list)
     institution_email: str | None = None
     contact_phone: str | None = None
+    contact_fax: str | None = Field(default=None, max_length=32)
     official_website: str | None = Field(default=None, max_length=500)
+    description: str | None = Field(default=None, max_length=2000)
     address: InstitutionAddress = Field(default_factory=InstitutionAddress)
     institution_type: str | None = None
     affiliation_name: str | None = Field(default=None, max_length=200)
     affiliation_type: str | None = Field(default=None, max_length=64)
     affiliation_id: str | None = Field(default=None, max_length=64)
+    aishe_code: str | None = Field(default=None, max_length=64)
+    ownership_name: str | None = Field(default=None, max_length=200)
+    year_established: int | None = Field(default=None, ge=1800, le=2100)
+    medium_of_instruction: str | None = Field(default=None, max_length=64)
+    accreditation_display: str | None = Field(default=None, max_length=200)
+    autonomous_status_valid_until: date | None = None
+    ugc_recognition: str | None = Field(default=None, max_length=64)
+    draft_values: dict[str, Any] = Field(default_factory=dict)
     primary_campus_id: PydanticObjectId | None = None
     version: int = 1
     updated_at: datetime = Field(default_factory=utcnow)
@@ -58,6 +69,10 @@ class InstitutionCampus(Document):
     contact_phone: str | None = Field(default=None, max_length=32)
     timezone: str | None = Field(default=None, max_length=64)
     locale: str | None = Field(default=None, max_length=16)
+    area_acres: float | None = Field(default=None, ge=0)
+    built_up_sq_m: float | None = Field(default=None, ge=0)
+    buildings_count: int | None = Field(default=None, ge=0)
+    parking_slots: int | None = Field(default=None, ge=0)
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
     updated_by: PydanticObjectId | None = None
@@ -96,6 +111,8 @@ class InstitutionBranding(Document):
     primary_color: str = "#1E40AF"
     secondary_color: str = "#64748B"
     theme: dict[str, str] = Field(default_factory=dict)
+    draft_values: dict[str, Any] = Field(default_factory=dict)
+    published_at: datetime | None = None
     version: int = 1
     updated_at: datetime = Field(default_factory=utcnow)
     updated_by: PydanticObjectId | None = None
@@ -104,6 +121,50 @@ class InstitutionBranding(Document):
         name = "institution_branding"
         indexes = [
             IndexModel([("tenant_id", ASCENDING)], unique=True, name="unique_institution_branding_per_tenant"),
+        ]
+
+
+class InstitutionBrandingAsset(Document):
+    tenant_id: PydanticObjectId
+    asset_key: str = Field(max_length=64)
+    label: str
+    detail_hint: str | None = None
+    file_id: str | None = None
+    file_name: str | None = None
+    mime_type: str | None = None
+    uploaded_at: datetime | None = None
+    updated_at: datetime = Field(default_factory=utcnow)
+    updated_by: PydanticObjectId | None = None
+
+    class Settings:
+        name = "institution_branding_assets"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("asset_key", ASCENDING)],
+                unique=True,
+                name="unique_branding_asset_per_tenant",
+            ),
+        ]
+
+
+class InstitutionDocumentBrandTemplate(Document):
+    tenant_id: PydanticObjectId
+    template_key: str = Field(max_length=64)
+    title: str
+    used_for: str
+    status: str = "draft"
+    file_id: str | None = None
+    updated_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_document_brand_templates"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("template_key", ASCENDING)],
+                unique=True,
+                name="unique_doc_brand_template_per_tenant",
+            ),
         ]
 
 

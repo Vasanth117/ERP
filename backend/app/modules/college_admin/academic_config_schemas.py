@@ -28,6 +28,9 @@ class AcademicYearUpdate(BaseModel):
     start_date: date | None = None
     end_date: date | None = None
     is_current: bool | None = None
+    summer_term_start: date | None = None
+    summer_term_end: date | None = None
+    year_end_closing: date | None = None
 
 
 class AcademicYearRead(BaseModel):
@@ -37,6 +40,9 @@ class AcademicYearRead(BaseModel):
     start_date: date | None
     end_date: date | None
     is_current: bool
+    summer_term_start: date | None = None
+    summer_term_end: date | None = None
+    year_end_closing: date | None = None
     status: ConfigPublicationStatus
     version: int
 
@@ -49,6 +55,9 @@ class AcademicYearRead(BaseModel):
             start_date=doc.start_date,
             end_date=doc.end_date,
             is_current=doc.is_current,
+            summer_term_start=doc.summer_term_start,
+            summer_term_end=doc.summer_term_end,
+            year_end_closing=doc.year_end_closing,
             status=doc.status,
             version=doc.version,
         )

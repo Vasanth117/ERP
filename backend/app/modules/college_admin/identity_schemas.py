@@ -115,6 +115,7 @@ class InstitutionRoleCreate(BaseModel):
     base_role: Role
     granted_permissions: list[str] = Field(default_factory=list)
     denied_permissions: list[str] = Field(default_factory=list)
+    role_settings: dict = Field(default_factory=dict)
 
 
 class InstitutionRoleUpdate(BaseModel):
@@ -122,6 +123,7 @@ class InstitutionRoleUpdate(BaseModel):
     description: str | None = Field(default=None, max_length=500)
     granted_permissions: list[str] | None = None
     denied_permissions: list[str] | None = None
+    role_settings: dict | None = None
     is_active: bool | None = None
 
 
@@ -133,6 +135,7 @@ class InstitutionRoleRead(BaseModel):
     base_role: Role
     granted_permissions: list[str]
     denied_permissions: list[str]
+    role_settings: dict
     is_system: bool
     is_active: bool
     version: int
@@ -147,6 +150,7 @@ class InstitutionRoleRead(BaseModel):
             base_role=doc.base_role,
             granted_permissions=doc.granted_permissions,
             denied_permissions=doc.denied_permissions,
+            role_settings=doc.role_settings or {},
             is_system=doc.is_system,
             is_active=doc.is_active,
             version=doc.version,

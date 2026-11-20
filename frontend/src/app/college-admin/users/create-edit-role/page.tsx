@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { CreateEditRoleDashboard } from "@/features/college-admin/components/users/create-edit-role-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="create-edit-role"
-      figmaNodeId="69:126595"
-      title='Create / Edit Role'
-    />
-  );
+  return <CreateEditRoleDashboard />;
 }
