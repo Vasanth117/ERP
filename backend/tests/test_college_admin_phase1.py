@@ -15,6 +15,8 @@ from app.modules.academics.models import AcademicYearContext
 from app.modules.auth.models import User
 from app.modules.college_admin.dashboard_service import get_dashboard_overview, get_institutional_statistics
 from app.modules.college_admin.enums import DashboardDateRange
+from app.modules.college_admin.institution_overview_service import get_institutional_overview
+from app.modules.college_admin.student_statistics_overview_service import get_student_statistics_overview
 from app.modules.college_admin.institution_service import (
     create_campus,
     get_institution_profile,
@@ -113,6 +115,16 @@ async def test_dashboard_aggregation(db_ready) -> None:
 
     stats = await get_institutional_statistics(scope)
     assert stats.statistics.faculty_count == 0
+
+    overview_data = await get_institutional_overview(scope)
+    assert overview_data.profile.tenant_id == str(tenant.id)
+    assert overview_data.statistics.total_students == 1
+    assert len(overview_data.programme_mix) >= 1
+    assert overview_data.compliance_items
+
+    student_stats = await get_student_statistics_overview(scope)
+    assert student_stats.kpis.total_enrolled >= 1
+    assert student_stats.programme_year_matrix
 
 
 @pytest.mark.anyio

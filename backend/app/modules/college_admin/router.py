@@ -21,6 +21,8 @@ from app.modules.college_admin.dashboard_service import (
 )
 from app.modules.college_admin.deps import college_admin_user, institution_settings_rate_limit
 from app.modules.college_admin.enums import DashboardDateRange
+from app.modules.college_admin.institution_overview_service import get_institutional_overview
+from app.modules.college_admin.student_statistics_overview_service import get_student_statistics_overview
 from app.modules.college_admin.institution_service import (
     create_campus,
     get_campus,
@@ -40,6 +42,8 @@ from app.modules.college_admin.schemas import (
     CollegeDashboardOverview,
     CollegeDashboardStatsRead,
     InstitutionConfigurationHistoryItem,
+    InstitutionalOverviewRead,
+    StudentStatisticsOverviewRead,
     InstitutionProfileRead,
     InstitutionProfileUpdate,
     InstitutionSettingsRead,
@@ -163,6 +167,36 @@ async def dashboard_activities_route(
         anchor_date=anchor_date,
         date_range=date_range,
         pagination=pagination,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/institution/overview", response_model=ApiResponse[InstitutionalOverviewRead])
+async def institution_overview_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[InstitutionalOverviewRead]:
+    data = await get_institutional_overview(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/dashboard/student-statistics", response_model=ApiResponse[StudentStatisticsOverviewRead])
+async def student_statistics_overview_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    academic_year_label: Annotated[str | None, Query()] = None,
+    programme_code: Annotated[str | None, Query()] = None,
+    study_year: Annotated[int | None, Query(ge=1, le=6)] = None,
+    department_id: Annotated[str | None, Query()] = None,
+    campus_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[StudentStatisticsOverviewRead]:
+    data = await get_student_statistics_overview(
+        scope,
+        academic_year_label=academic_year_label,
+        programme_code=programme_code,
+        study_year=study_year,
+        department_id=department_id,
+        campus_id=campus_id,
     )
     return success_response(data, request_id=get_request_id())
 

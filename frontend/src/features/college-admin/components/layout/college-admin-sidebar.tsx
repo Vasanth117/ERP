@@ -18,8 +18,8 @@ import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "college-admin-sidebar-collapsed";
-const WIDTH_EXPANDED = 280;
-const WIDTH_COLLAPSED = 76;
+const WIDTH_EXPANDED = 252;
+const WIDTH_COLLAPSED = 72;
 
 function navActive(pathname: string, href: string): boolean {
   if (href === "/college-admin/dashboard") {
@@ -146,32 +146,31 @@ export function CollegeAdminSidebar() {
 
       <div
         className={cn(
-          "border-b border-[#e8ecf2]",
-          collapsed ? "flex justify-center px-2 py-4" : "px-5 py-5",
+          "overflow-hidden border-b border-[#e8ecf2]",
+          collapsed ? "flex justify-center px-2 py-4" : "px-4 py-5",
         )}
       >
         <Link
           href="/college-admin/dashboard"
           className={cn(
-            "flex min-w-0 items-center",
+            "flex max-w-full items-center",
             collapsed ? "justify-center" : "gap-2.5",
           )}
           title={collapsed ? "benchend" : undefined}
         >
           <CollegeAdminSidebarIcon
             name="backend-logo"
-            size={collapsed ? 28 : 32}
+            size={collapsed ? 26 : 28}
+            className="shrink-0"
           />
-          {!collapsed ? (
-            <BenchlogoNameIcon className="h-[22px] w-auto min-w-0 max-w-[calc(100%-2.5rem)] shrink" />
-          ) : null}
+          {!collapsed ? <BenchlogoNameIcon /> : null}
         </Link>
       </div>
 
       <nav
         className={cn(
           "flex flex-1 flex-col gap-0.5 overflow-y-auto py-3",
-          collapsed ? "items-center px-1.5" : "px-3",
+          collapsed ? "items-center px-1.5" : "px-2.5",
         )}
       >
         {collapsed
@@ -231,7 +230,7 @@ export function CollegeAdminSidebar() {
                     )}
                   </button>
                   {open ? (
-                    <ul className="flex flex-col gap-0.5 pb-0.5 pl-[34px] pr-0.5">
+                    <ul className="flex flex-col gap-0.5 pb-0.5 pl-[30px] pr-0.5">
                       {group.items.map((item) => {
                         const active = navActive(pathname, item.href);
                         return (

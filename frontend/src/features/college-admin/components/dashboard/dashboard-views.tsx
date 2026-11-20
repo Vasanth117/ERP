@@ -9,6 +9,8 @@ import {
 } from "@/features/college-admin/components/ui/query-state";
 import { PageHeading } from "@/features/college-admin/components/layout/page-heading";
 import { CollegeOverviewDashboard } from "@/features/college-admin/components/dashboard/college-overview-dashboard";
+import { InstitutionalOverviewDashboard } from "@/features/college-admin/components/dashboard/institutional-overview-dashboard";
+import { StudentStatisticsDashboard } from "@/features/college-admin/components/dashboard/student-statistics-dashboard";
 import {
   useDashboardOverview,
   useDashboardStatistics,
@@ -121,27 +123,11 @@ function OperationsGrid({
 }
 
 export function InstitutionalOverviewDashboardView() {
-  const q = useDashboardStatistics();
-  return (
-    <DashboardStatsShell
-      frame="65:185"
-      title="Institutional overview"
-      query={q}
-      emphasis="departments"
-    />
-  );
+  return <InstitutionalOverviewDashboard />;
 }
 
 export function StudentStatisticsView() {
-  const q = useDashboardStatistics();
-  return (
-    <DashboardStatsShell
-      frame="65:618"
-      title="Student statistics"
-      query={q}
-      emphasis="students"
-    />
-  );
+  return <StudentStatisticsDashboard />;
 }
 
 export function FacultyStatisticsView() {

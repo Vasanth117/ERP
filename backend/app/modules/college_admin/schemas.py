@@ -296,6 +296,117 @@ class InstitutionConfigurationHistoryItem(BaseModel):
         )
 
 
+class CampusOverviewRow(BaseModel):
+    campus_id: str
+    campus_code: str
+    name: str
+    is_main: bool
+    is_active: bool
+    location_label: str
+    student_count: int = 0
+    department_count: int = 0
+
+
+class ProgrammeLevelMixItem(BaseModel):
+    level: str
+    label: str
+    student_count: int = 0
+    programme_count: int = 0
+
+
+class ComplianceStatusItem(BaseModel):
+    title: str
+    status_code: str
+    detail: str | None = None
+
+
+class KeyContactItem(BaseModel):
+    name: str
+    role_label: str
+    email: str | None = None
+    phone: str | None = None
+
+
+class InstitutionalOverviewRead(BaseModel):
+    profile: InstitutionProfileRead
+    academic_term: AcademicTermSummary
+    statistics: HeadcountStatistics
+    accreditation_summary: str | None = None
+    accreditation_detail: str | None = None
+    campuses: list[CampusOverviewRow] = Field(default_factory=list)
+    programme_mix: list[ProgrammeLevelMixItem] = Field(default_factory=list)
+    compliance_items: list[ComplianceStatusItem] = Field(default_factory=list)
+    key_contacts: list[KeyContactItem] = Field(default_factory=list)
+    generated_at: datetime
+
+
+class StudentStatisticsFilters(BaseModel):
+    academic_year_label: str | None = None
+    programme_code: str | None = None
+    study_year: int | None = Field(default=None, ge=1, le=6)
+    department_id: str | None = None
+    campus_id: str | None = None
+
+
+class StudentStatisticsKpiRead(BaseModel):
+    total_enrolled: int = 0
+    total_enrolled_change_pct: float | None = None
+    total_enrolled_change_reference_year: str | None = None
+    new_admissions: int = 0
+    new_admissions_intake_sanctioned: int | None = None
+    new_admissions_intake_fill_pct: float | None = None
+    hostel_residents: int = 0
+    hostel_residents_pct_of_enrolled: float | None = None
+    discontinued: int = 0
+    discontinued_pct_of_enrolled: float | None = None
+    discontinued_this_semester: int | None = None
+
+
+class DepartmentEnrolmentItem(BaseModel):
+    department_id: str | None = None
+    department_code: str
+    department_name: str
+    student_count: int = 0
+
+
+class ProgrammeYearMatrixRow(BaseModel):
+    group_key: str
+    label: str
+    year_1: int = 0
+    year_2: int = 0
+    year_3: int = 0
+    year_4: int = 0
+    total: int = 0
+
+
+class DistributionItem(BaseModel):
+    key: str
+    label: str
+    count: int = 0
+    share_pct: float | None = None
+
+
+class StudentStatusOverviewItem(BaseModel):
+    status_key: str
+    label: str
+    description: str
+    count: int = 0
+
+
+class StudentStatisticsOverviewRead(BaseModel):
+    filters: StudentStatisticsFilters
+    academic_term: AcademicTermSummary
+    kpis: StudentStatisticsKpiRead
+    enrolment_by_department: list[DepartmentEnrolmentItem] = Field(default_factory=list)
+    programme_year_matrix: list[ProgrammeYearMatrixRow] = Field(default_factory=list)
+    programme_matrix_student_total: int = 0
+    programme_matrix_group_count: int = 0
+    gender_distribution: list[DistributionItem] = Field(default_factory=list)
+    admission_category: list[DistributionItem] = Field(default_factory=list)
+    student_status: list[StudentStatusOverviewItem] = Field(default_factory=list)
+    generated_at: datetime
+
+
 class InstitutionActivityRead(BaseModel):
     activity_kind: str
     summary: str

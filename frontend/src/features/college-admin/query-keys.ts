@@ -22,6 +22,10 @@ export const collegeAdminQueryKeys = {
       range ?? "week",
     ] as const,
   profile: () => [...collegeAdminQueryKeys.all, "institution-profile"] as const,
+  institutionalOverview: () =>
+    [...collegeAdminQueryKeys.all, "institutional-overview"] as const,
+  studentStatistics: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-statistics", params ?? {}] as const,
   campuses: (activeOnly?: boolean) =>
     [...collegeAdminQueryKeys.all, "campuses", activeOnly ?? false] as const,
   campus: (id: string) => [...collegeAdminQueryKeys.all, "campus", id] as const,

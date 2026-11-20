@@ -3,28 +3,41 @@ import type { SVGProps } from "react";
 import { cn } from "@/lib/utils";
 
 /** Wordmark: “benchend”. Source: `benchlogo_name.svg`. */
-export function BenchlogoNameIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+const VIEWBOX_W = 118;
+const VIEWBOX_H = 20;
+const DEFAULT_WIDTH = 154;
+const DEFAULT_HEIGHT = 27;
+
+export function BenchlogoNameIcon({
+  className,
+  width = DEFAULT_WIDTH,
+  height = DEFAULT_HEIGHT,
+  ...props
+}: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="207.703 124 384.583 84"
+      viewBox={`0 0 ${VIEWBOX_W} ${VIEWBOX_H}`}
+      width={width}
+      height={height}
       fill="none"
       role="img"
-      className={cn("h-auto w-auto shrink-0", className)}
+      className={cn("block max-w-full shrink-0", className)}
       aria-label="benchend"
+      preserveAspectRatio="xMinYMid meet"
       {...props}
     >
       <text
         fill="#1B2430"
         fontFamily="'Space Grotesk', Inter, system-ui, sans-serif"
-        fontSize="84"
+        fontSize="17"
         fontWeight="700"
-        letterSpacing="-3"
-        dominantBaseline="text-after-edge"
+        letterSpacing="-0.55"
+        dominantBaseline="alphabetic"
+        x="0"
+        y="16.5"
       >
-        <tspan x="207.703" y="219.133">
-          benchend
-        </tspan>
+        benchend
       </text>
     </svg>
   );

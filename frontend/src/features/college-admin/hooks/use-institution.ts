@@ -8,6 +8,7 @@ import {
   fetchCampus,
   fetchCampuses,
   fetchConfigurationHistory,
+  fetchInstitutionalOverview,
   fetchInstitutionProfile,
   fetchInstitutionSettings,
   updateCampus,
@@ -26,6 +27,13 @@ export function useInstitutionProfile() {
   return useQuery({
     queryKey: collegeAdminQueryKeys.profile(),
     queryFn: fetchInstitutionProfile,
+  });
+}
+
+export function useInstitutionalOverview() {
+  return useQuery({
+    queryKey: collegeAdminQueryKeys.institutionalOverview(),
+    queryFn: fetchInstitutionalOverview,
   });
 }
 
