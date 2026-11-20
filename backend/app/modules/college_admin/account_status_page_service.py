@@ -20,7 +20,7 @@ from app.common.time import as_utc_aware, utcnow
 from app.core.exceptions import AppError
 from app.modules.audit.service import record_audit
 from app.modules.auth.models import User
-from app.modules.auth.session import revoke_all_for_user
+from app.modules.auth.token_service import revoke_all_for_user
 from app.modules.college_admin.identity_models import (
     AccessHistoryEvent,
     InstitutionAccountStatus,
@@ -136,15 +136,6 @@ async def _department_name(tenant_id: PydanticObjectId, department_id: PydanticO
         return "—"
     dept = await Department.get(department_id)
     return dept.name if dept else "—"
-
-
-async def _institution_map(tenant_id: PydanticObjectId, user_ids: list[PydanticObjectId]) -> dict[PydanticObjectId, InstitutionUser]:
-    if not user_ids:
-        return {}
-    rows = await InstitutionUser.find(
-        Eq(InstitutionUser.tenant_id, tenant_id),
-    ).to_list()
-    return {row.user_id: row for row in rows if row.user_id in set(user_ids)}
 
 
 async def _tab_count(tenant_id: PydanticObjectId, status: InstitutionAccountStatus) -> int:
@@ -265,6 +256,7 @@ async def get_account_status_page(
     *,
     tab: str = "suspended",
     page: int = 1,
+    user_id_raw: str | None = None,
 ) -> AccountStatusPageRead:
     authorize(scope, Permission.INSTITUTION_USER_READ)
     tenant_id = require_college_tenant_scope(scope)
@@ -292,6 +284,9 @@ async def get_account_status_page(
 
     rows, total = await _table_rows(tenant_id, tab, page=page)
     generated = utcnow()
+    suspend_form = _default_suspend_form()
+    if user_id_raw and user_id_raw.strip():
+        suspend_form.user_id = str(to_object_id(user_id_raw, "user id"))
 
     table_footer = {
         "suspended": f"{total:,} suspended accounts" if tab == "suspended" else "",
@@ -314,7 +309,7 @@ async def get_account_status_page(
         suspend_field_meta=_SUSPEND_FIELD_META,
         reason_options=[InstitutionFieldOption(value=c, label=l) for c, l in _REASON_OPTIONS],
         user_options=await _user_options_for_suspend(tenant_id),
-        suspend_form=_default_suspend_form(),
+        suspend_form=suspend_form,
         what_happens_title="What happens",
         what_happens_cards=[
             AccountStatusInfoCard(

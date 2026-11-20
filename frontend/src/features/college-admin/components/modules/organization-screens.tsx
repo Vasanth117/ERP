@@ -17,6 +17,15 @@ import {
   fetchOrganizationUnits,
   updateDepartment,
 } from "@/features/college-admin/api/organization";
+import { AllDepartmentsListDashboard } from "@/features/college-admin/components/organization/all-departments-list-dashboard";
+import { CreateEditDepartmentDashboard } from "@/features/college-admin/components/organization/create-edit-department-dashboard";
+import { DepartmentDetailsDashboard } from "@/features/college-admin/components/organization/department-details-dashboard";
+import { DepartmentHeadAssignmentDashboard } from "@/features/college-admin/components/organization/department-head-assignment-dashboard";
+import { OrganizationalHierarchyDashboard } from "@/features/college-admin/components/organization/organizational-hierarchy-dashboard";
+import { ProgrammeCourseMappingDashboard } from "@/features/college-admin/components/organization/programme-course-mapping-dashboard";
+import { DepartmentFacultyAllocationDashboard } from "@/features/college-admin/components/organization/department-faculty-allocation-dashboard";
+import { DepartmentStatusHistoryDashboard } from "@/features/college-admin/components/organization/department-status-history-dashboard";
+import { DepartmentManagementDashboard } from "@/features/college-admin/components/organization/department-management-dashboard";
 import {
   QueryState,
   StatCard,
@@ -26,37 +35,28 @@ import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 export function OrganizationScreen({ slug }: { slug: string }) {
   switch (slug) {
     case "department-management-dashboard":
-      return <OrgDashboard />;
+      return <DepartmentManagementDashboard />;
     case "all-departments":
-      return <DepartmentsList />;
+      return <AllDepartmentsListDashboard />;
     case "create-department":
-      return <CreateDepartmentForm />;
+      return <CreateEditDepartmentDashboard />;
     case "department-details":
-      return <DepartmentDetailsPicker />;
+      return <DepartmentDetailsDashboard />;
     case "department-edit":
-      return <DepartmentEditPicker />;
+      return <CreateEditDepartmentDashboard />;
+    case "department-head-assignment":
+      return <DepartmentHeadAssignmentDashboard />;
+    case "programme-course-mapping":
+      return <ProgrammeCourseMappingDashboard />;
+    case "department-faculty-allocation":
+      return <DepartmentFacultyAllocationDashboard />;
+    case "department-status-history":
+      return <DepartmentStatusHistoryDashboard />;
     case "organizational-hierarchy":
-      return <OrgUnitsList />;
+      return <OrganizationalHierarchyDashboard />;
     default:
       return <DepartmentsList />;
   }
-}
-
-function OrgDashboard() {
-  const d = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "departments"],
-    queryFn: fetchDepartments,
-  });
-  const u = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "org-units"],
-    queryFn: fetchOrganizationUnits,
-  });
-  return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      <StatCard label="Departments" value={d.data?.length ?? 0} />
-      <StatCard label="Organization units" value={u.data?.length ?? 0} />
-    </div>
-  );
 }
 
 function DepartmentsList() {

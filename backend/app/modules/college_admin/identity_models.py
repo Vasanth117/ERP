@@ -32,9 +32,15 @@ class OrganizationUnitType(str, Enum):
 
 
 class DepartmentStatus(str, Enum):
+    DRAFT = "draft"
     ACTIVE = "active"
     INACTIVE = "inactive"
     ARCHIVED = "archived"
+
+
+class DepartmentKind(str, Enum):
+    ACADEMIC = "academic"
+    ADMINISTRATIVE = "administrative"
 
 
 class AccessHistoryEvent(str, Enum):
@@ -287,6 +293,14 @@ class InstitutionDepartment(Document):
     department_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+    department_kind: DepartmentKind = DepartmentKind.ACADEMIC
+    establishment_year: int | None = Field(default=None, ge=1800, le=2100)
+    building_floor_label: str | None = Field(default=None, max_length=200)
+    contact_email: str | None = Field(default=None, max_length=320)
+    approved_intake_ug: int | None = Field(default=None, ge=0)
+    aicte_approval_reference: str | None = Field(default=None, max_length=120)
+    cost_centre_code: str | None = Field(default=None, max_length=64)
+    settings_template_department_id: PydanticObjectId | None = None
     central_department_id: PydanticObjectId | None = None
     organization_unit_id: PydanticObjectId | None = None
     parent_department_id: PydanticObjectId | None = None
@@ -338,6 +352,9 @@ class DepartmentHeadAssignment(Document):
     user_id: PydanticObjectId
     effective_from: date
     effective_to: date | None = None
+    appointment_type: str = Field(default="regular", max_length=32)
+    order_reference: str | None = Field(default=None, max_length=120)
+    approval_status: str = Field(default="approved", max_length=32)
     assigned_by: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
 

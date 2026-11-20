@@ -34,6 +34,12 @@ import type {
   RoleAssignmentPage,
   RoleAssignmentSubmitResult,
 } from "@/features/college-admin/types/role-assignment";
+import type {
+  AccountStatusPage,
+  AccountStatusSuspendFormValues,
+  AccountStatusSuspendResult,
+} from "@/features/college-admin/types/account-status";
+import type { LoginAccountActivityPage } from "@/features/college-admin/types/login-account-activity";
 
 export type InstitutionUser = {
   user_id: string;
@@ -126,6 +132,90 @@ export async function savePermissionManagementMatrix(payload: {
     method: "POST",
     body: payload,
   });
+}
+
+export async function fetchLoginAccountActivityPage(params: {
+  date_range?: string;
+  role_filter?: string;
+  location_filter?: string;
+}): Promise<LoginAccountActivityPage> {
+  const qs = new URLSearchParams();
+  if (params.date_range) qs.set("date_range", params.date_range);
+  if (params.role_filter) qs.set("role_filter", params.role_filter);
+  if (params.location_filter) qs.set("location_filter", params.location_filter);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return apiRequest<LoginAccountActivityPage>(`/college-admin/users/login-account-activity/page${suffix}`);
+}
+
+export async function downloadLoginAccountActivityExport(params: {
+  date_range?: string;
+  role_filter?: string;
+  location_filter?: string;
+}): Promise<void> {
+  const qs = new URLSearchParams();
+  if (params.date_range) qs.set("date_range", params.date_range);
+  if (params.role_filter) qs.set("role_filter", params.role_filter);
+  if (params.location_filter) qs.set("location_filter", params.location_filter);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  const headers = new Headers();
+  const token = getAccessToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const tenantId = getTenantOverrideId();
+  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  const response = await fetch(`${apiBaseUrl()}/college-admin/users/login-account-activity/export${suffix}`, {
+    headers,
+  });
+  if (!response.ok) throw new Error("Could not export login activity");
+  const text = await response.text();
+  const blob = new Blob([text], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "login_account_activity.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function fetchAccountStatusPage(
+  tab: string,
+  page: number,
+  userId: string | null,
+): Promise<AccountStatusPage> {
+  const qs = new URLSearchParams();
+  qs.set("tab", tab);
+  qs.set("page", String(page));
+  if (userId) qs.set("user_id", userId);
+  return apiRequest<AccountStatusPage>(`/college-admin/users/account-status/page?${qs.toString()}`);
+}
+
+export async function submitAccountSuspension(
+  form: AccountStatusSuspendFormValues,
+): Promise<AccountStatusSuspendResult> {
+  return apiRequest<AccountStatusSuspendResult>("/college-admin/users/account-status/suspend", {
+    method: "POST",
+    body: { form },
+  });
+}
+
+export async function downloadAccountStatusExport(tab: string): Promise<void> {
+  const headers = new Headers();
+  const token = getAccessToken();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const tenantId = getTenantOverrideId();
+  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  const response = await fetch(
+    `${apiBaseUrl()}/college-admin/users/account-status/export?tab=${encodeURIComponent(tab)}`,
+    { headers },
+  );
+  if (!response.ok) throw new Error("Could not export account status");
+  const text = await response.text();
+  const blob = new Blob([text], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `account_status_${tab}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export async function fetchRoleAssignmentPage(

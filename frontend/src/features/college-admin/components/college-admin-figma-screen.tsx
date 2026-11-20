@@ -47,7 +47,9 @@ export function CollegeAdminFigmaScreen({
   return (
     <div data-figma-frame={figmaNodeId}>
       <PageHeading title={title} figmaFrame={figmaNodeId} />
-      {moduleKey !== "users" ? <ModuleScreenTabs moduleKey={moduleKey} /> : null}
+      {moduleKey !== "users" && moduleKey !== "organization" ? (
+        <ModuleScreenTabs moduleKey={moduleKey} />
+      ) : null}
       <ScreenBody
         moduleKey={moduleKey}
         slug={slug}

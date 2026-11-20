@@ -39,6 +39,15 @@ export async function updateInstitutionProfile(
   payload: InstitutionProfileUpdate,
 ): Promise<InstitutionProfile> {
   return apiRequest<InstitutionProfile>("/college-admin/institution/profile", {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function fetchInstitutionProfilePage(): Promise<InstitutionProfilePage> {
+  return apiRequest<InstitutionProfilePage>("/college-admin/institution/profile/page");
+}
+
 export async function fetchInstitutionInformationPage(): Promise<InstitutionInformationPage> {
   return apiRequest<InstitutionInformationPage>("/college-admin/institution/information/page");
 }
@@ -92,11 +101,6 @@ export async function uploadBrandingAsset(
   return apiRequest(`/college-admin/institution/branding/assets/${encodeURIComponent(assetKey)}`, {
     method: "POST",
     rawBody: formData,
-  });
-}
-
-    method: "PATCH",
-    body: payload,
   });
 }
 
@@ -290,5 +294,30 @@ export async function fetchConfigurationHistory(): Promise<
 > {
   return apiRequest<ConfigurationHistoryItem[]>(
     "/college-admin/institution/configuration-history",
+  );
+}
+
+export type ConfigurationHistoryPageQuery = {
+  page?: number;
+  date_range?: string;
+  setting_area?: string;
+  actor_id?: string;
+  search?: string;
+  selected_change_id?: string;
+};
+
+export async function fetchConfigurationHistoryPage(
+  params: ConfigurationHistoryPageQuery = {},
+): Promise<ConfigurationHistoryPage> {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  if (params.date_range) qs.set("date_range", params.date_range);
+  if (params.setting_area) qs.set("setting_area", params.setting_area);
+  if (params.actor_id) qs.set("actor_id", params.actor_id);
+  if (params.search) qs.set("search", params.search);
+  if (params.selected_change_id) qs.set("selected_change_id", params.selected_change_id);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return apiRequest<ConfigurationHistoryPage>(
+    `/college-admin/institution/configuration-history/page${suffix}`,
   );
 }

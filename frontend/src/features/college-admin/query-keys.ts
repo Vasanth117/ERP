@@ -1,5 +1,12 @@
+const collegeAdminRoot = ["college-admin"] as const;
+
+export const createNewUserPageQueryKey = [
+  ...collegeAdminRoot,
+  "create-new-user-page",
+] as const;
+
 export const collegeAdminQueryKeys = {
-  all: ["college-admin"] as const,
+  all: collegeAdminRoot,
   dashboard: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "dashboard", params ?? {}] as const,
   dashboardStats: (params?: Record<string, string | undefined>) =>
@@ -77,7 +84,7 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "all-users-list-page", params ?? {}] as const,
   userDetailsPage: (userId: string) =>
     [...collegeAdminQueryKeys.all, "user-details-page", userId] as const,
-  createNewUserPage: () => [...collegeAdminQueryKeys.all, "create-new-user-page"] as const,
+  createNewUserPage: () => createNewUserPageQueryKey,
   editUserInformationPage: (userId: string) =>
     [...collegeAdminQueryKeys.all, "edit-user-information-page", userId] as const,
   bulkUserInvitationPage: (page?: number) =>
@@ -95,4 +102,32 @@ export const collegeAdminQueryKeys = {
       userId ?? "none",
       roleId ?? "none",
     ] as const,
+  accountStatusPage: (tab: string, page: number, userId: string | null) =>
+    [
+      ...collegeAdminQueryKeys.all,
+      "account-status-page",
+      tab,
+      page,
+      userId ?? "none",
+    ] as const,
+  loginAccountActivityPage: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "login-account-activity-page", params ?? {}] as const,
+  departmentManagementDashboard: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "department-management-dashboard", params ?? {}] as const,
+  allDepartmentsListPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "all-departments-list-page", params ?? {}] as const,
+  createEditDepartmentPage: (departmentId: string | null) =>
+    [...collegeAdminQueryKeys.all, "create-edit-department-page", departmentId ?? "new"] as const,
+  departmentDetailsPage: (departmentId: string | null) =>
+    [...collegeAdminQueryKeys.all, "department-details-page", departmentId ?? "none"] as const,
+  departmentHeadAssignmentPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "department-head-assignment-page", params ?? {}] as const,
+  organizationalHierarchyPage: (selectedNodeId?: string) =>
+    [...collegeAdminQueryKeys.all, "organizational-hierarchy-page", selectedNodeId ?? "default"] as const,
+  programmeCourseMappingPage: (departmentId?: string) =>
+    [...collegeAdminQueryKeys.all, "programme-course-mapping-page", departmentId ?? "default"] as const,
+  departmentFacultyAllocationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "department-faculty-allocation-page", params ?? {}] as const,
+  departmentStatusHistoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "department-status-history-page", params ?? {}] as const,
 };

@@ -64,6 +64,26 @@ from app.modules.college_admin.finance_overview_service import get_finance_overv
 from app.modules.college_admin.pending_approvals_overview_service import get_pending_approvals_overview
 from app.modules.college_admin.recent_activities_overview_service import get_recent_activities_overview
 from app.modules.college_admin.alerts_overview_service import get_alerts_overview, mark_dashboard_alerts_read
+from app.modules.college_admin.all_departments_list_page_service import get_all_departments_list_page
+from app.modules.college_admin.create_edit_department_page_service import (
+    get_create_edit_department_page_by_id,
+    save_create_edit_department,
+)
+from app.modules.college_admin.department_details_page_service import get_department_details_page_by_id
+from app.modules.college_admin.department_head_assignment_page_service import (
+    get_department_head_assignment_page,
+    save_department_head_assignment,
+)
+from app.modules.college_admin.organizational_hierarchy_page_service import get_organizational_hierarchy_page
+from app.modules.college_admin.programme_course_mapping_page_service import get_programme_course_mapping_page
+from app.modules.college_admin.department_faculty_allocation_page_service import (
+    get_department_faculty_allocation_page,
+    save_department_faculty_allocation,
+)
+from app.modules.college_admin.department_status_history_page_service import get_department_status_history_page
+from app.modules.college_admin.department_management_dashboard_page_service import (
+    get_department_management_dashboard_page,
+)
 from app.modules.college_admin.department_performance_overview_service import get_department_performance_overview
 from app.modules.college_admin.faculty_statistics_overview_service import get_faculty_statistics_overview
 from app.modules.college_admin.student_statistics_overview_service import get_student_statistics_overview
@@ -125,6 +145,7 @@ from app.modules.college_admin.schemas import (
     AccountStatusPageRead,
     AccountStatusSuspendPayload,
     AccountStatusSuspendResponse,
+    LoginAccountActivityPageRead,
     AcademicPerformanceOverviewRead,
     AttendanceOverviewRead,
     ExaminationOverviewRead,
@@ -132,6 +153,20 @@ from app.modules.college_admin.schemas import (
     PendingApprovalOverviewRead,
     RecentActivitiesOverviewRead,
     AlertsOverviewRead,
+    AllDepartmentsListPageRead,
+    CreateEditDepartmentPageRead,
+    CreateEditDepartmentSavePayload,
+    DepartmentDetailsPageRead,
+    DepartmentHeadAssignmentPageRead,
+    DepartmentHeadAssignmentSavePayload,
+    DepartmentHeadAssignmentSaveResult,
+    OrganizationalHierarchyPageRead,
+    ProgrammeCourseMappingPageRead,
+    DepartmentFacultyAllocationPageRead,
+    DepartmentFacultyAllocationSavePayload,
+    DepartmentFacultyAllocationSaveResult,
+    DepartmentStatusHistoryPageRead,
+    DepartmentManagementDashboardPageRead,
     DepartmentPerformanceOverviewRead,
     FacultyStatisticsOverviewRead,
     StudentStatisticsOverviewRead,
@@ -978,6 +1013,10 @@ from app.modules.college_admin.account_status_page_service import (
     get_account_status_page,
     submit_account_suspension,
 )
+from app.modules.college_admin.login_account_activity_page_service import (
+    export_login_account_activity_csv,
+    get_login_account_activity_page,
+)
 from app.modules.college_admin.bulk_user_invitation_page_service import (
     bulk_invitation_template_csv,
     get_bulk_user_invitation_page,
@@ -1096,14 +1135,55 @@ async def bulk_user_invitation_template_route(
     )
 
 
+@router.get("/users/login-account-activity/page", response_model=ApiResponse[LoginAccountActivityPageRead])
+async def login_account_activity_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    date_range: Annotated[str, Query()] = "last_7_days",
+    role_filter: Annotated[str, Query()] = "",
+    location_filter: Annotated[str, Query()] = "",
+) -> ApiResponse[LoginAccountActivityPageRead]:
+    data = await get_login_account_activity_page(
+        scope,
+        date_range=date_range,
+        role_filter=role_filter,
+        location_filter=location_filter,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get("/users/login-account-activity/export")
+async def login_account_activity_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    date_range: Annotated[str, Query()] = "last_7_days",
+    role_filter: Annotated[str, Query()] = "",
+    location_filter: Annotated[str, Query()] = "",
+):
+    from fastapi.responses import PlainTextResponse
+
+    csv_text = await export_login_account_activity_csv(
+        scope,
+        date_range=date_range,
+        role_filter=role_filter,
+        location_filter=location_filter,
+    )
+    return PlainTextResponse(
+        csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="login_account_activity.csv"'},
+    )
+
+
 @router.get("/users/account-status/page", response_model=ApiResponse[AccountStatusPageRead])
 async def account_status_page_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(college_admin_user)],
     tab: Annotated[str, Query()] = "suspended",
     page: Annotated[int, Query(ge=1)] = 1,
+    user_id: Annotated[str | None, Query()] = None,
 ) -> ApiResponse[AccountStatusPageRead]:
-    data = await get_account_status_page(scope, tab=tab, page=page)
+    data = await get_account_status_page(scope, tab=tab, page=page, user_id_raw=user_id)
     return success_response(data, request_id=get_request_id())
 
 
@@ -1528,6 +1608,207 @@ async def list_departments_route(
     pagination: Annotated[Pagination, Depends(pagination_params)],
 ) -> ApiResponse[Page[InstitutionDepartmentRead]]:
     data = await list_institution_departments(scope, pagination)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/details/page",
+    response_model=ApiResponse[DepartmentDetailsPageRead],
+)
+async def department_details_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    department_id: Annotated[str, Query()],
+) -> ApiResponse[DepartmentDetailsPageRead]:
+    data = await get_department_details_page_by_id(scope, department_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/create-edit/page",
+    response_model=ApiResponse[CreateEditDepartmentPageRead],
+)
+async def create_edit_department_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    department_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[CreateEditDepartmentPageRead]:
+    data = await get_create_edit_department_page_by_id(scope, department_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/departments/create-edit/save",
+    response_model=ApiResponse[CreateEditDepartmentPageRead],
+)
+async def create_edit_department_save_route(
+    payload: CreateEditDepartmentSavePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreateEditDepartmentPageRead]:
+    data = await save_create_edit_department(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/all-departments/page",
+    response_model=ApiResponse[AllDepartmentsListPageRead],
+)
+async def all_departments_list_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    search: Annotated[str | None, Query()] = None,
+    school_id: Annotated[str | None, Query()] = None,
+    type_filter: Annotated[str | None, Query()] = None,
+    status_filter: Annotated[str | None, Query()] = None,
+) -> ApiResponse[AllDepartmentsListPageRead]:
+    data = await get_all_departments_list_page(
+        scope,
+        page=page,
+        search=search,
+        school_id=school_id,
+        type_filter=type_filter,
+        status_filter=status_filter,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/faculty-allocation/page",
+    response_model=ApiResponse[DepartmentFacultyAllocationPageRead],
+)
+async def department_faculty_allocation_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    semester_label: Annotated[str | None, Query()] = None,
+    department_id: Annotated[str | None, Query()] = None,
+    designation_filter: Annotated[str | None, Query()] = None,
+) -> ApiResponse[DepartmentFacultyAllocationPageRead]:
+    data = await get_department_faculty_allocation_page(
+        scope,
+        page=page,
+        semester_label=semester_label,
+        department_id=department_id,
+        designation_filter=designation_filter,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/departments/faculty-allocation/save",
+    response_model=ApiResponse[DepartmentFacultyAllocationSaveResult],
+)
+async def department_faculty_allocation_save_route(
+    payload: DepartmentFacultyAllocationSavePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[DepartmentFacultyAllocationSaveResult]:
+    data = await save_department_faculty_allocation(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/status-history/page",
+    response_model=ApiResponse[DepartmentStatusHistoryPageRead],
+)
+async def department_status_history_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    since_year: Annotated[str | None, Query()] = None,
+    department_id: Annotated[str | None, Query()] = None,
+    change_type_filter: Annotated[str | None, Query()] = None,
+    selected_department_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[DepartmentStatusHistoryPageRead]:
+    data = await get_department_status_history_page(
+        scope,
+        page=page,
+        since_year=since_year,
+        department_id=department_id,
+        change_type_filter=change_type_filter,
+        selected_department_id=selected_department_id,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/programme-course-mapping/page",
+    response_model=ApiResponse[ProgrammeCourseMappingPageRead],
+)
+async def programme_course_mapping_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    department_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[ProgrammeCourseMappingPageRead]:
+    data = await get_programme_course_mapping_page(scope, department_id=department_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/organization/hierarchy/page",
+    response_model=ApiResponse[OrganizationalHierarchyPageRead],
+)
+async def organizational_hierarchy_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    selected_node_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[OrganizationalHierarchyPageRead]:
+    data = await get_organizational_hierarchy_page(scope, selected_node_id=selected_node_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/head-assignment/page",
+    response_model=ApiResponse[DepartmentHeadAssignmentPageRead],
+)
+async def department_head_assignment_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    selected_department_id: Annotated[str | None, Query()] = None,
+    faculty_user_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[DepartmentHeadAssignmentPageRead]:
+    data = await get_department_head_assignment_page(
+        scope,
+        page=page,
+        selected_department_id=selected_department_id,
+        faculty_user_id=faculty_user_id,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/departments/head-assignment/submit",
+    response_model=ApiResponse[DepartmentHeadAssignmentSaveResult],
+)
+async def department_head_assignment_submit_route(
+    payload: DepartmentHeadAssignmentSavePayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[DepartmentHeadAssignmentSaveResult]:
+    data = await save_department_head_assignment(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/management-dashboard/page",
+    response_model=ApiResponse[DepartmentManagementDashboardPageRead],
+)
+async def department_management_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    academic_year_label: Annotated[str | None, Query()] = None,
+    campus_id: Annotated[str | None, Query()] = None,
+    school_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[DepartmentManagementDashboardPageRead]:
+    data = await get_department_management_dashboard_page(
+        scope,
+        academic_year_label=academic_year_label,
+        campus_id=campus_id,
+        school_id=school_id,
+    )
     return success_response(data, request_id=get_request_id())
 
 

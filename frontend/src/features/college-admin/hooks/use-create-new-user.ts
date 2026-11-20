@@ -8,11 +8,14 @@ import {
   submitCreateNewUser,
   validateCreateNewUser,
 } from "@/features/college-admin/api/users";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
+import {
+  collegeAdminQueryKeys,
+  createNewUserPageQueryKey,
+} from "@/features/college-admin/query-keys";
 
 export function useCreateNewUserPage() {
   return useQuery({
-    queryKey: collegeAdminQueryKeys.createNewUserPage(),
+    queryKey: createNewUserPageQueryKey,
     queryFn: fetchCreateNewUserPage,
   });
 }
@@ -22,7 +25,7 @@ export function useSaveCreateNewUserDraft() {
   return useMutation({
     mutationFn: saveCreateNewUserDraft,
     onSuccess: (data) => {
-      qc.setQueryData(collegeAdminQueryKeys.createNewUserPage(), data);
+      qc.setQueryData(createNewUserPageQueryKey, data);
     },
   });
 }

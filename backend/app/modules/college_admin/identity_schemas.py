@@ -1,11 +1,12 @@
 """College admin phase 2 API schemas."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, EmailStr, Field
 
 from app.common.roles import Role
 from app.modules.college_admin.identity_models import (
+    DepartmentKind,
     DepartmentStatus,
     InstitutionAccountStatus,
     InstitutionDepartment,
@@ -210,16 +211,34 @@ class InstitutionDepartmentCreate(BaseModel):
     department_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+    department_kind: DepartmentKind = DepartmentKind.ACADEMIC
+    establishment_year: int | None = Field(default=None, ge=1800, le=2100)
+    building_floor_label: str | None = None
+    contact_email: str | None = Field(default=None, max_length=320)
+    approved_intake_ug: int | None = Field(default=None, ge=0)
+    aicte_approval_reference: str | None = None
+    cost_centre_code: str | None = None
+    settings_template_department_id: str | None = None
+    head_user_id: str | None = None
     organization_unit_id: str | None = None
     parent_department_id: str | None = None
     campus_ids: list[str] = Field(default_factory=list)
     programme_codes: list[str] = Field(default_factory=list)
     reporting_to_department_id: str | None = None
+    status: DepartmentStatus | None = None
 
 
 class InstitutionDepartmentUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+    department_kind: DepartmentKind | None = None
+    establishment_year: int | None = Field(default=None, ge=1800, le=2100)
+    building_floor_label: str | None = None
+    contact_email: str | None = Field(default=None, max_length=320)
+    approved_intake_ug: int | None = Field(default=None, ge=0)
+    aicte_approval_reference: str | None = None
+    cost_centre_code: str | None = None
+    settings_template_department_id: str | None = None
     organization_unit_id: str | None = None
     parent_department_id: str | None = None
     campus_ids: list[str] | None = None
@@ -233,6 +252,14 @@ class InstitutionDepartmentRead(BaseModel):
     department_code: str
     name: str
     description: str | None = None
+    department_kind: DepartmentKind
+    establishment_year: int | None = None
+    building_floor_label: str | None = None
+    contact_email: str | None = None
+    approved_intake_ug: int | None = None
+    aicte_approval_reference: str | None = None
+    cost_centre_code: str | None = None
+    settings_template_department_id: str | None = None
     central_department_id: str | None
     organization_unit_id: str | None
     parent_department_id: str | None
@@ -250,6 +277,16 @@ class InstitutionDepartmentRead(BaseModel):
             department_code=doc.department_code,
             name=doc.name,
             description=doc.description,
+            department_kind=doc.department_kind,
+            establishment_year=doc.establishment_year,
+            building_floor_label=doc.building_floor_label,
+            contact_email=doc.contact_email,
+            approved_intake_ug=doc.approved_intake_ug,
+            aicte_approval_reference=doc.aicte_approval_reference,
+            cost_centre_code=doc.cost_centre_code,
+            settings_template_department_id=(
+                str(doc.settings_template_department_id) if doc.settings_template_department_id else None
+            ),
             central_department_id=str(doc.central_department_id) if doc.central_department_id else None,
             organization_unit_id=str(doc.organization_unit_id) if doc.organization_unit_id else None,
             parent_department_id=str(doc.parent_department_id) if doc.parent_department_id else None,
@@ -265,6 +302,10 @@ class InstitutionDepartmentRead(BaseModel):
 class DepartmentHeadAssign(BaseModel):
     user_id: str
     effective_from: datetime | None = None
+    effective_to: date | None = None
+    appointment_type: str = "regular"
+    order_reference: str | None = Field(default=None, max_length=120)
+    send_for_principal_approval: bool = False
 
 
 class DepartmentTransfer(BaseModel):

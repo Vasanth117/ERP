@@ -1488,6 +1488,70 @@ class AccountStatusSuspendResponse(BaseModel):
     message: str
 
 
+class LoginAccountActivityDailyBar(BaseModel):
+    day_key: str
+    day_label: str
+    login_count: int
+
+
+class LoginAccountActivityMethodBar(BaseModel):
+    method_key: str
+    method_label: str
+    percent: int
+
+
+class LoginAccountActivityRecentRow(BaseModel):
+    user_name: str
+    method_label: str
+    device_label: str
+    location_label: str
+    result_code: str
+    result_label: str
+    result_tone: str
+
+
+class LoginAccountActivityLockedCard(BaseModel):
+    user_id: str
+    user_name: str
+    subtitle: str
+    status_code: str
+    status_label: str
+    status_tone: str
+    unlock_href: str
+
+
+class LoginAccountActivityPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    date_range_options: list[UserDashboardFilterOption]
+    role_filter_options: list[UserDashboardFilterOption]
+    location_filter_options: list[UserDashboardFilterOption]
+    selected_date_range: str
+    selected_role_filter: str
+    selected_location_filter: str
+    scope_badge_label: str
+    updated_label: str
+    kpis: list[UserDashboardKpi]
+    logins_per_day_title: str
+    daily_bars: list[LoginAccountActivityDailyBar]
+    daily_bars_max: int
+    login_methods_title: str
+    method_bars: list[LoginAccountActivityMethodBar]
+    recent_section_title: str
+    recent_live_label: str
+    view_all_label: str
+    view_all_href: str
+    recent_table_headers: list[str]
+    recent_rows: list[LoginAccountActivityRecentRow]
+    locked_section_title: str
+    unlock_label: str
+    locked_accounts: list[LoginAccountActivityLockedCard]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
 class UserDetailsPageRead(BaseModel):
     page_title: str
     page_subtitle: str
@@ -2042,6 +2106,604 @@ class DepartmentPassRateBarItem(BaseModel):
     department_name: str
     pass_rate_pct: float | None = None
     status_key: str
+
+
+class DepartmentEnrollmentBarItem(BaseModel):
+    department_id: str
+    department_code: str
+    student_count: int = 0
+    faculty_count: int = 0
+
+
+class DepartmentAttentionTableRow(BaseModel):
+    department_id: str
+    department_name: str
+    issue: str
+    owner_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class DepartmentSchoolBarItem(BaseModel):
+    school_id: str
+    school_name: str
+    department_count: int = 0
+    share_percent: int = 0
+
+
+class DepartmentQuickActionItem(BaseModel):
+    key: str
+    title: str
+    subtitle: str
+    action_label: str
+    href: str
+    icon_slug: str = "circle"
+
+
+class AllDepartmentsTableRow(BaseModel):
+    department_id: str
+    department_name: str
+    department_code: str
+    head_label: str
+    programme_count: int = 0
+    student_count: int = 0
+    faculty_count: int = 0
+    status_code: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CreateEditDepartmentFormValues(BaseModel):
+    name: str = ""
+    department_code: str = ""
+    department_kind: str = "academic"
+    organization_unit_id: str = ""
+    campus_id: str = ""
+    establishment_year: int | None = None
+    building_floor_label: str = ""
+    contact_email: str = ""
+    vision_mission: str = ""
+    head_user_id: str = ""
+    approved_intake_ug: int | None = None
+    aicte_approval_reference: str = ""
+    cost_centre_code: str = ""
+    settings_template_department_id: str = ""
+
+
+class CreateEditDepartmentTemplateOption(BaseModel):
+    template_key: str
+    title: str
+    subtitle: str
+    action_label: str
+    department_id: str
+
+
+class CreateEditDepartmentChecklistStep(BaseModel):
+    key: str
+    label: str
+    hint: str
+    state: str
+
+
+class CreateEditDepartmentPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_href: str
+    cancel_label: str
+    save_label: str
+    save_draft_label: str
+    create_label: str
+    details_section_title: str
+    setup_section_title: str
+    copy_settings_title: str
+    checklist_title: str
+    details_field_meta: list[InstitutionFieldMeta]
+    setup_field_meta: list[InstitutionFieldMeta]
+    department_kind_options: list[InstitutionFieldOption]
+    school_options: list[InstitutionFieldOption]
+    campus_options: list[InstitutionFieldOption]
+    building_options: list[InstitutionFieldOption]
+    cost_centre_options: list[InstitutionFieldOption]
+    head_options: list[InstitutionFieldOption]
+    template_options: list[CreateEditDepartmentTemplateOption]
+    checklist_steps: list[CreateEditDepartmentChecklistStep]
+    form: CreateEditDepartmentFormValues
+    department_id: str | None
+    is_create: bool
+    can_save: bool
+    footer_note: str
+    footer_disclaimer: str
+    generated_at: datetime
+
+
+class CreateEditDepartmentSavePayload(BaseModel):
+    department_id: str | None = None
+    mode: str = "create"
+    form: CreateEditDepartmentFormValues
+
+
+class DepartmentDetailsProfileBadge(BaseModel):
+    key: str
+    label: str
+    tone: str
+
+
+class DepartmentDetailsProgrammeRow(BaseModel):
+    programme_id: str
+    programme_name: str
+    level_label: str
+    intake: int | None = None
+    student_count: int = 0
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class DepartmentDetailsFacultyRow(BaseModel):
+    user_id: str
+    name: str
+    designation: str
+    workload_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class DepartmentDetailsResourceItem(BaseModel):
+    key: str
+    title: str
+    value: str
+
+
+class DepartmentDetailsActivityItem(BaseModel):
+    activity_id: str
+    title: str
+    occurred_label: str
+    tone: str
+
+
+class DepartmentDetailsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    view_report_label: str
+    view_report_href: str
+    edit_department_label: str
+    edit_department_href: str
+    department_id: str
+    department_name: str
+    department_code: str
+    metadata_line: str
+    head_label: str
+    email_label: str
+    phone_label: str
+    profile_badges: list[DepartmentDetailsProfileBadge]
+    kpis: list[UserDashboardKpi]
+    programmes_section_title: str
+    programme_mapping_href: str
+    programme_mapping_label: str
+    programmes: list[DepartmentDetailsProgrammeRow]
+    programmes_total: int
+    programmes_footer_label: str
+    programmes_view_all_href: str
+    faculty_section_title: str
+    faculty_allocation_href: str
+    faculty_allocation_label: str
+    faculty: list[DepartmentDetailsFacultyRow]
+    faculty_total: int
+    faculty_footer_label: str
+    faculty_view_all_href: str
+    resources_section_title: str
+    resources: list[DepartmentDetailsResourceItem]
+    activity_section_title: str
+    activities: list[DepartmentDetailsActivityItem]
+    table_programme_headers: list[str]
+    table_faculty_headers: list[str]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AllDepartmentsListPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    create_department_label: str
+    create_department_href: str
+    search_placeholder: str
+    school_filter_label: str
+    type_filter_label: str
+    status_filter_label: str
+    school_options: list[UserListFilterOption]
+    type_options: list[UserListFilterOption]
+    status_options: list[UserListFilterOption]
+    departments_section_title: str
+    departments_count_label: str
+    table_headers: list[str]
+    departments: list[AllDepartmentsTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class DepartmentHeadAssignmentTableRow(BaseModel):
+    department_id: str
+    department_label: str
+    head_name: str
+    since_label: str
+    term_ends_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+    is_selected: bool = False
+
+
+class DepartmentHeadEligibilityRow(BaseModel):
+    key: str
+    label: str
+    detail: str
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class DepartmentHeadAssignmentFormValues(BaseModel):
+    faculty_user_id: str = ""
+    appointment_type: str = "regular"
+    effective_from: str = ""
+    term_end: str = ""
+    order_reference: str = ""
+
+
+class DepartmentHeadAssignmentPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    rotation_policy_label: str
+    rotation_policy_href: str
+    assign_head_label: str
+    current_heads_section_title: str
+    table_headers: list[str]
+    table_rows: list[DepartmentHeadAssignmentTableRow]
+    departments_count_label: str
+    pagination: PoliciesPagination
+    assign_panel_title: str
+    assign_panel_subtitle: str
+    faculty_field_label: str
+    faculty_options: list[InstitutionFieldOption]
+    appointment_type_field_label: str
+    appointment_type_options: list[InstitutionFieldOption]
+    effective_from_field_label: str
+    term_end_field_label: str
+    order_reference_field_label: str
+    eligibility_section_title: str
+    eligibility_rows: list[DepartmentHeadEligibilityRow]
+    form: DepartmentHeadAssignmentFormValues
+    selected_department_id: str | None
+    cancel_label: str
+    submit_label: str
+    footer_note: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    can_submit: bool
+    generated_at: datetime
+
+
+class DepartmentHeadAssignmentSavePayload(BaseModel):
+    department_id: str
+    form: DepartmentHeadAssignmentFormValues
+
+
+class DepartmentHeadAssignmentSaveResult(BaseModel):
+    message: str
+    approval_status: str
+    page: DepartmentHeadAssignmentPageRead
+
+
+class OrganizationalHierarchyNodeRead(BaseModel):
+    node_id: str
+    node_type: str
+    title: str
+    subtitle: str = ""
+    depth: int = 0
+    icon_slug: str = "users"
+    badge_label: str | None = None
+    badge_tone: str | None = None
+    status_label: str | None = None
+    status_tone: str | None = None
+    default_expanded: bool = False
+    children: list["OrganizationalHierarchyNodeRead"] = Field(default_factory=list)
+
+
+class OrganizationalHierarchySelectedUnitRead(BaseModel):
+    node_id: str
+    unit_label: str
+    reports_to_label: str
+    head_label: str
+    members_label: str
+
+
+class OrganizationalHierarchySummaryItem(BaseModel):
+    key: str
+    label: str
+    value: str
+
+
+class OrganizationalHierarchyPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    edit_structure_label: str
+    edit_structure_href: str
+    structure_section_title: str
+    structure_section_hint: str
+    tree: list[OrganizationalHierarchyNodeRead]
+    selected_unit: OrganizationalHierarchySelectedUnitRead | None
+    summary_section_title: str
+    summary_items: list[OrganizationalHierarchySummaryItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ProgrammeCourseMappingDepartmentTab(BaseModel):
+    department_id: str
+    tab_label: str
+    is_selected: bool = False
+
+
+class ProgrammeOwnedRow(BaseModel):
+    programme_id: str
+    programme_name: str
+    level_label: str
+    duration_label: str
+    intake_label: str
+    regulation_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class ServiceCourseRow(BaseModel):
+    course_id: str
+    course_label: str
+    taught_to_label: str
+    semester_label: str
+    student_count: int
+
+
+class UnmappedCourseItem(BaseModel):
+    course_id: str
+    course_label: str
+    detail: str
+    action_code: str
+    action_label: str
+    action_tone: str
+
+
+class CourseLoadBarItem(BaseModel):
+    key: str
+    label: str
+    value: int
+    max_value: int
+
+
+class ProgrammeCourseMappingPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    map_programme_label: str
+    map_programme_href: str
+    department_tabs: list[ProgrammeCourseMappingDepartmentTab]
+    more_departments: list[ProgrammeCourseMappingDepartmentTab]
+    selected_department_id: str
+    selected_department_name: str
+    programmes_section_title: str
+    programmes_table_headers: list[str]
+    programmes: list[ProgrammeOwnedRow]
+    programmes_count_label: str
+    academic_configuration_label: str
+    academic_configuration_href: str
+    service_courses_section_title: str
+    service_table_headers: list[str]
+    service_courses: list[ServiceCourseRow]
+    service_courses_count_label: str
+    service_view_all_label: str
+    service_view_all_href: str
+    unmapped_section_title: str
+    unmapped_items: list[UnmappedCourseItem]
+    course_load_section_title: str
+    course_load_bars: list[CourseLoadBarItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class DepartmentFacultyCapacityRow(BaseModel):
+    department_id: str
+    department_label: str
+    sanctioned: int
+    in_position: int
+    vacant: int
+    workload_pct: int | None
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class DepartmentFacultyVacancyItem(BaseModel):
+    department_id: str
+    department_label: str
+    detail: str
+    count: int
+    badge_tone: str
+
+
+class DepartmentFacultyDesignationBar(BaseModel):
+    key: str
+    label: str
+    value: int
+    max_value: int
+
+
+class DepartmentFacultyAllocationFormValues(BaseModel):
+    faculty_user_id: str = ""
+    allocate_to_department_id: str = ""
+    allocation_type: str = "shared_50"
+    effective_from: str = ""
+
+
+class DepartmentFacultyAllocationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    allocate_faculty_label: str
+    allocate_faculty_href: str
+    semester_filter_label: str
+    department_filter_label: str
+    designation_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    semester_options: list[InstitutionFieldOption]
+    department_options: list[InstitutionFieldOption]
+    designation_options: list[InstitutionFieldOption]
+    selected_semester: str
+    selected_department_id: str
+    selected_designation: str
+    capacity_section_title: str
+    capacity_table_headers: list[str]
+    capacity_table_footer_note: str
+    capacity_rows: list[DepartmentFacultyCapacityRow]
+    pagination: PoliciesPagination
+    move_share_section_title: str
+    faculty_field_label: str
+    faculty_options: list[InstitutionFieldOption]
+    allocate_to_field_label: str
+    department_allocate_options: list[InstitutionFieldOption]
+    allocation_type_field_label: str
+    allocation_type_options: list[InstitutionFieldOption]
+    effective_from_field_label: str
+    form: DepartmentFacultyAllocationFormValues
+    move_footer_note: str
+    cancel_label: str
+    save_label: str
+    vacancies_section_title: str
+    hr_recruitment_label: str
+    hr_recruitment_href: str
+    vacancy_items: list[DepartmentFacultyVacancyItem]
+    designation_mix_section_title: str
+    designation_bars: list[DepartmentFacultyDesignationBar]
+    can_save: bool
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class DepartmentFacultyAllocationSavePayload(BaseModel):
+    form: DepartmentFacultyAllocationFormValues
+
+
+class DepartmentFacultyAllocationSaveResult(BaseModel):
+    message: str
+    page: DepartmentFacultyAllocationPageRead
+
+
+class DepartmentStatusHistoryEventRow(BaseModel):
+    event_id: str
+    department_id: str
+    event_label: str
+    department_label: str
+    by_label: str
+    date_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class DepartmentStatusHistoryStatusSummaryItem(BaseModel):
+    key: str
+    title: str
+    subtitle: str
+    count: int
+    badge_tone: str
+    detail_count: int | None = None
+
+
+class DepartmentStatusHistoryTimelineItem(BaseModel):
+    event_id: str
+    title: str
+    date_label: str
+    tone: str
+    nested_status_label: str | None = None
+
+
+class DepartmentStatusHistoryPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    since_year_filter_label: str
+    department_filter_label: str
+    change_type_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    since_year_options: list[InstitutionFieldOption]
+    department_options: list[InstitutionFieldOption]
+    change_type_options: list[InstitutionFieldOption]
+    selected_since_year: str
+    selected_department_id: str
+    selected_change_type: str
+    table_headers: list[str]
+    events: list[DepartmentStatusHistoryEventRow]
+    pagination: PoliciesPagination
+    showing_label: str
+    status_summary_title: str
+    status_summary_items: list[DepartmentStatusHistoryStatusSummaryItem]
+    timeline_section_title: str
+    selected_timeline_department_id: str
+    timeline_items: list[DepartmentStatusHistoryTimelineItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class DepartmentManagementDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    create_department_label: str
+    create_department_href: str
+    academic_year_filter_label: str
+    campus_filter_label: str
+    school_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    academic_year_options: list[UserDashboardFilterOption]
+    campus_options: list[UserDashboardFilterOption]
+    school_options: list[UserDashboardFilterOption]
+    selected_academic_year: str
+    selected_campus_id: str
+    selected_school_id: str
+    kpis: list[UserDashboardKpi]
+    enrollment_chart_title: str
+    enrollment_bars: list[DepartmentEnrollmentBarItem]
+    attention_section_title: str
+    attention_table_headers: list[str]
+    attention_rows: list[DepartmentAttentionTableRow]
+    attention_footer_label: str
+    attention_view_all_href: str
+    attention_view_all_label: str
+    schools_section_title: str
+    school_bars: list[DepartmentSchoolBarItem]
+    quick_actions_title: str
+    quick_actions: list[DepartmentQuickActionItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
 
 
 class DepartmentAttentionItem(BaseModel):

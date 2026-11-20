@@ -88,7 +88,10 @@ const SLUG_API: Record<string, string> = {
   "all-users-list": "/college-admin/users?limit=50&offset=0",
   // CA 04 organization
   "all-departments": "/college-admin/departments?limit=200&offset=0",
-  "organizational-hierarchy": "/college-admin/organization/units",
+  "organizational-hierarchy": "/college-admin/organization/hierarchy/page",
+  "programme-course-mapping": "/college-admin/departments/programme-course-mapping/page",
+  "department-faculty-allocation": "/college-admin/departments/faculty-allocation/page",
+  "department-status-history": "/college-admin/departments/status-history/page",
   // CA 05 academics
   "all-programmes": "/college-admin/academic-config/programmes",
   "course-catalogue": "/college-admin/academic-config/courses",

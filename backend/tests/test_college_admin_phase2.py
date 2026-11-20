@@ -41,6 +41,19 @@ from app.modules.college_admin.create_new_user_page_service import get_create_ne
 from app.modules.college_admin.edit_user_information_page_service import get_edit_user_information_page
 from app.modules.college_admin.bulk_user_invitation_page_service import get_bulk_user_invitation_page
 from app.modules.college_admin.role_management_dashboard_page_service import get_role_management_dashboard_page
+from app.modules.college_admin.all_departments_list_page_service import get_all_departments_list_page
+from app.modules.college_admin.create_edit_department_page_service import get_create_edit_department_page_by_id
+from app.modules.college_admin.schemas import CreateEditDepartmentFormValues, CreateEditDepartmentSavePayload
+from app.modules.college_admin.create_edit_department_page_service import save_create_edit_department
+from app.modules.college_admin.department_details_page_service import get_department_details_page_by_id
+from app.modules.college_admin.department_management_dashboard_page_service import (
+    get_department_management_dashboard_page,
+)
+from app.modules.college_admin.department_head_assignment_page_service import get_department_head_assignment_page
+from app.modules.college_admin.organizational_hierarchy_page_service import get_organizational_hierarchy_page
+from app.modules.college_admin.programme_course_mapping_page_service import get_programme_course_mapping_page
+from app.modules.college_admin.department_faculty_allocation_page_service import get_department_faculty_allocation_page
+from app.modules.college_admin.department_status_history_page_service import get_department_status_history_page
 from app.modules.college_admin.create_edit_role_page_service import (
     get_create_edit_role_page_by_id,
     save_create_edit_role,
@@ -49,6 +62,8 @@ from app.modules.college_admin.permission_management_page_service import (
     get_permission_management_page,
 )
 from app.modules.college_admin.role_assignment_page_service import get_role_assignment_page
+from app.modules.college_admin.account_status_page_service import get_account_status_page
+from app.modules.college_admin.login_account_activity_page_service import get_login_account_activity_page
 from app.modules.college_admin.schemas import CreateEditRoleFormValues, CreateEditRoleSavePayload
 from app.modules.college_admin.user_management_service import (
     accept_institution_invitation,
@@ -180,6 +195,14 @@ async def test_create_user_and_duplicate(db_ready) -> None:
     assign_page = await get_role_assignment_page(scope)
     assert assign_page.page_title == "Role Assignment"
     assert len(assign_page.recent_table_headers) == 5
+
+    status_page = await get_account_status_page(scope)
+    assert status_page.page_title == "User Account Activation / Suspension"
+    assert len(status_page.tabs) == 3
+
+    activity_page = await get_login_account_activity_page(scope)
+    assert activity_page.page_title == "Login & Account Activity"
+    assert len(activity_page.kpis) == 4
     with pytest.raises(AppError) as exc:
         await create_institution_user(
             scope,
@@ -282,6 +305,60 @@ async def test_department_hierarchy_cycle_prevention(db_ready) -> None:
             InstitutionDepartmentUpdate(parent_department_id=child.department_id),
         )
     assert cycle_exc.value.status_code == 422
+
+    dept_dash = await get_department_management_dashboard_page(scope)
+    assert dept_dash.page_title == "Department Management Dashboard"
+    assert len(dept_dash.kpis) == 4
+    assert dept_dash.kpis[0].key == "departments"
+    assert int(dept_dash.kpis[0].value.replace(",", "")) >= 2
+
+    all_depts = await get_all_departments_list_page(scope)
+    assert all_depts.page_title == "All Departments"
+    assert "Department" in all_depts.table_headers
+    assert all_depts.pagination.total >= 2
+
+    create_dept_page = await get_create_edit_department_page_by_id(scope, None)
+    assert create_dept_page.page_title == "Create Department"
+    assert len(create_dept_page.checklist_steps) == 4
+
+    saved = await save_create_edit_department(
+        scope,
+        CreateEditDepartmentSavePayload(
+            mode="draft",
+            form=CreateEditDepartmentFormValues(
+                name="Robotics & Automation",
+                department_code=f"RA_{suffix[:4]}",
+            ),
+        ),
+    )
+    assert saved.department_id
+
+    details = await get_department_details_page_by_id(scope, saved.department_id)
+    assert details.page_title == "Department Details"
+    assert len(details.kpis) == 4
+
+    heads_page = await get_department_head_assignment_page(scope)
+    assert heads_page.page_title == "Department Head Assignment"
+    assert "Department" in heads_page.table_headers
+    assert heads_page.pagination.total >= 2
+
+    hierarchy_page = await get_organizational_hierarchy_page(scope)
+    assert hierarchy_page.page_title == "Organizational Hierarchy"
+    assert hierarchy_page.tree
+    assert len(hierarchy_page.summary_items) == 4
+
+    prog_map = await get_programme_course_mapping_page(scope)
+    assert prog_map.page_title == "Programme & Course Mapping"
+    assert prog_map.selected_department_id
+
+    faculty_alloc = await get_department_faculty_allocation_page(scope)
+    assert faculty_alloc.page_title == "Department Faculty Allocation"
+    assert faculty_alloc.capacity_section_title == "Capacity vs requirement"
+
+    status_history = await get_department_status_history_page(scope)
+    assert status_history.page_title == "Department Status & History"
+    assert status_history.table_headers[0] == "Event"
+    assert len(status_history.status_summary_items) == 3
 
 
 @pytest.mark.anyio

@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { CreateEditDepartmentDashboard } from "@/features/college-admin/components/organization/create-edit-department-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="organization"
-      slug="create-department"
-      figmaNodeId="69:133115"
-      title='Create Department'
-    />
-  );
+  return <CreateEditDepartmentDashboard />;
 }

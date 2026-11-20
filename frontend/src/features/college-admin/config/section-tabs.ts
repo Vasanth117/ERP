@@ -172,6 +172,58 @@ export const usersTabs: CollegeAdminTab[] = [
   },
 ];
 
+/** Figma CA 04 — organization & departments (section nav; detail routes use activePrefixes). */
+export const organizationTabs: CollegeAdminTab[] = [
+  {
+    label: "Departments",
+    href: "/college-admin/organization/department-management-dashboard",
+    figmaFrame: "69:132597",
+    activePrefixes: [
+      "/college-admin/organization/department-management-dashboard",
+      "/college-admin/organization/all-departments",
+    ],
+  },
+  {
+    label: "Create & edit",
+    href: "/college-admin/organization/create-department",
+    figmaFrame: "69:133115",
+    activePrefixes: [
+      "/college-admin/organization/create-department",
+      "/college-admin/organization/department-edit",
+      "/college-admin/organization/department-details",
+    ],
+  },
+  {
+    label: "Heads",
+    href: "/college-admin/organization/department-head-assignment",
+    figmaFrame: "69:133798",
+  },
+  {
+    label: "Hierarchy",
+    href: "/college-admin/organization/organizational-hierarchy",
+    figmaFrame: "69:134048",
+  },
+  {
+    label: "Programmes",
+    href: "/college-admin/organization/programme-course-mapping",
+    figmaFrame: "69:134275",
+  },
+  {
+    label: "Faculty & resources",
+    href: "/college-admin/organization/department-faculty-allocation",
+    figmaFrame: "69:134506",
+    activePrefixes: [
+      "/college-admin/organization/department-faculty-allocation",
+      "/college-admin/organization/department-resource-management",
+    ],
+  },
+  {
+    label: "History",
+    href: "/college-admin/organization/department-status-history",
+    figmaFrame: "69:135016",
+  },
+];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -185,7 +237,7 @@ export function resolveSectionTabs(
     return { section: "Users & Permissions", tabs: usersTabs };
   }
   if (pathname.startsWith("/college-admin/organization")) {
-    return null;
+    return { section: "Organization", tabs: organizationTabs };
   }
   return null;
 }
