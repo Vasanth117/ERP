@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { CreateNewUserDashboard } from "@/features/college-admin/components/users/create-new-user-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="create-new-user"
-      figmaNodeId="69:125683"
-      title='Create New User'
-    />
-  );
+  return <CreateNewUserDashboard />;
 }

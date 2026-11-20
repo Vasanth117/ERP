@@ -32,9 +32,15 @@ class OrganizationUnitType(str, Enum):
 
 
 class DepartmentStatus(str, Enum):
+    DRAFT = "draft"
     ACTIVE = "active"
     INACTIVE = "inactive"
     ARCHIVED = "archived"
+
+
+class DepartmentKind(str, Enum):
+    ACADEMIC = "academic"
+    ADMINISTRATIVE = "administrative"
 
 
 class AccessHistoryEvent(str, Enum):
@@ -64,6 +70,11 @@ class InstitutionUser(Document):
     account_status: InstitutionAccountStatus = InstitutionAccountStatus.ACTIVE
     suspension_reason: str | None = Field(default=None, max_length=500)
     suspended_at: datetime | None = None
+    suspension_reason_code: str | None = Field(default=None, max_length=64)
+    suspension_effective_from: datetime | None = None
+    suspension_review_at: datetime | None = None
+    suspension_review_status: str | None = Field(default=None, max_length=32)
+    suspension_notes: str | None = Field(default=None, max_length=2000)
     faculty_profile_linked: bool = False
     student_profile_linked: bool = False
     employee_profile_linked: bool = False
@@ -92,6 +103,7 @@ class InstitutionRole(Document):
     base_role: Role
     granted_permissions: list[str] = Field(default_factory=list)
     denied_permissions: list[str] = Field(default_factory=list)
+    role_settings: dict = Field(default_factory=dict)
     is_system: bool = False
     is_active: bool = True
     version: int = 1
@@ -138,6 +150,13 @@ class InstitutionRoleAssignment(Document):
     assigned_by: PydanticObjectId | None = None
     assigned_at: datetime = Field(default_factory=utcnow)
     revoked_at: datetime | None = None
+    assignment_status: str = Field(default="active", max_length=16)
+    scope_key: str | None = Field(default=None, max_length=64)
+    scope_label: str | None = Field(default=None, max_length=200)
+    department_id: PydanticObjectId | None = None
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+    reason: str | None = Field(default=None, max_length=500)
 
     class Settings:
         name = "institution_role_assignments"
@@ -199,6 +218,52 @@ class InstitutionAccessHistory(Document):
         ]
 
 
+class InstitutionBulkUserInvitationDraft(Document):
+    """Spreadsheet bulk-invite wizard state per college admin actor."""
+
+    tenant_id: PydanticObjectId
+    actor_id: PydanticObjectId
+    step_key: str = Field(default="upload", max_length=32)
+    file_name: str | None = None
+    file_size_bytes: int | None = None
+    row_count: int = 0
+    rows: list = Field(default_factory=list)
+    validated_rows: list = Field(default_factory=list)
+    skip_rows_with_errors: bool = True
+    require_mfa_first_login: bool = True
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_bulk_user_invitation_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("actor_id", ASCENDING)],
+                unique=True,
+                name="unique_bulk_invite_draft_per_actor",
+            ),
+        ]
+
+
+class InstitutionUserCreateDraft(Document):
+    """Per-admin wizard draft for Create New User (CA 03 — create & invite)."""
+
+    tenant_id: PydanticObjectId
+    actor_id: PydanticObjectId
+    step_key: str = Field(default="personal", max_length=32)
+    values: dict = Field(default_factory=dict)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_user_create_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("actor_id", ASCENDING)],
+                unique=True,
+                name="unique_user_create_draft_per_actor",
+            ),
+        ]
+
+
 class InstitutionOrganizationUnit(Document):
     tenant_id: PydanticObjectId
     unit_code: str = Field(min_length=2, max_length=32)
@@ -228,6 +293,14 @@ class InstitutionDepartment(Document):
     department_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
     description: str | None = Field(default=None, max_length=2000)
+    department_kind: DepartmentKind = DepartmentKind.ACADEMIC
+    establishment_year: int | None = Field(default=None, ge=1800, le=2100)
+    building_floor_label: str | None = Field(default=None, max_length=200)
+    contact_email: str | None = Field(default=None, max_length=320)
+    approved_intake_ug: int | None = Field(default=None, ge=0)
+    aicte_approval_reference: str | None = Field(default=None, max_length=120)
+    cost_centre_code: str | None = Field(default=None, max_length=64)
+    settings_template_department_id: PydanticObjectId | None = None
     central_department_id: PydanticObjectId | None = None
     organization_unit_id: PydanticObjectId | None = None
     parent_department_id: PydanticObjectId | None = None
@@ -279,6 +352,9 @@ class DepartmentHeadAssignment(Document):
     user_id: PydanticObjectId
     effective_from: date
     effective_to: date | None = None
+    appointment_type: str = Field(default="regular", max_length=32)
+    order_reference: str | None = Field(default=None, max_length=120)
+    approval_status: str = Field(default="approved", max_length=32)
     assigned_by: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
 

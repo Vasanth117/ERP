@@ -1,12 +1,15 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { Suspense } from "react";
+
+import { EditUserInformationDashboard } from "@/features/college-admin/components/users/edit-user-information-dashboard";
 
 export default function Page() {
   return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="edit-user-information"
-      figmaNodeId="69:125909"
-      title='Edit User Information'
-    />
+    <Suspense
+      fallback={
+        <div className="rounded-xl border border-[#e8ecf2] bg-white p-6 text-sm text-[#6b7280]">Loading editor…</div>
+      }
+    >
+      <EditUserInformationDashboard />
+    </Suspense>
   );
 }

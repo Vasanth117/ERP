@@ -18,6 +18,7 @@ from app.core.database import close_mongo, connect_to_mongo, ping_mongo
 from app.core.exceptions import AppError
 from app.core.logging import configure_logging
 from app.core.redis import close_redis, connect_redis, ping_redis
+from app.middleware.demo_mutation_guard import DemoMutationGuardMiddleware
 from app.middleware.rate_limit import LoginRateLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(DemoMutationGuardMiddleware)
     app.add_middleware(LoginRateLimitMiddleware)
     app.add_middleware(
         CORSMiddleware,

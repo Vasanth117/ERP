@@ -316,7 +316,11 @@ async def record_login_activity(
     email: str | None,
     success: bool,
     ip_address: str | None = None,
+    user_agent: str | None = None,
     failure_reason: str | None = None,
+    login_method: str | None = None,
+    device_label: str | None = None,
+    location_label: str | None = None,
 ) -> None:
     await InstitutionLoginActivity(
         tenant_id=tenant_id,
@@ -324,7 +328,11 @@ async def record_login_activity(
         email=email,
         success=success,
         ip_address=ip_address,
+        user_agent=user_agent,
         failure_reason=failure_reason,
+        login_method=login_method,
+        device_label=device_label,
+        location_label=location_label,
     ).insert()
 
 

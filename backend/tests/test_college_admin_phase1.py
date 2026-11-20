@@ -26,6 +26,38 @@ from app.modules.college_admin.alerts_overview_service import get_alerts_overvie
 from app.modules.college_admin.department_performance_overview_service import get_department_performance_overview
 from app.modules.college_admin.faculty_statistics_overview_service import get_faculty_statistics_overview
 from app.modules.college_admin.student_statistics_overview_service import get_student_statistics_overview
+from app.modules.college_admin.institution_branding_page_service import (
+    get_institution_branding_page,
+    publish_institution_branding,
+    save_institution_branding_draft,
+)
+from app.modules.college_admin.institution_information_page_service import (
+    get_institution_information_page,
+    publish_institution_information,
+    save_institution_profile_draft,
+)
+from app.modules.college_admin.institution_academic_year_page_service import (
+    create_blank_academic_year,
+    get_academic_year_configuration_page,
+)
+from app.modules.college_admin.institution_policies_page_service import get_institution_policies_page
+from app.modules.college_admin.institution_academic_settings_page_service import (
+    get_academic_institution_settings_page,
+    reset_academic_institution_settings_page,
+    save_academic_institution_settings_page,
+)
+from app.modules.college_admin.institution_calendar_page_service import (
+    get_institution_calendar_settings_page,
+    save_institution_calendar_settings_page,
+)
+from app.modules.college_admin.institution_configuration_history_page_service import (
+    get_institution_configuration_history_page,
+)
+from app.modules.college_admin.institution_calendar_models import InstitutionHoliday
+from app.modules.college_admin.campus_contact_page_service import get_campus_contact_page, save_campus_contact_page
+from app.modules.college_admin.campus_detail_page_service import get_campus_detail_page
+from app.modules.college_admin.campus_management_dashboard_service import get_campus_management_dashboard
+from app.modules.college_admin.institution_profile_page_service import get_institution_profile_page
 from app.modules.college_admin.institution_service import (
     create_campus,
     get_institution_profile,
@@ -33,7 +65,13 @@ from app.modules.college_admin.institution_service import (
     update_institution_profile,
     update_institution_settings,
 )
-from app.modules.college_admin.schemas import CampusCreate, InstitutionProfileUpdate
+from app.modules.college_admin.schemas import (
+    AcademicInstitutionFormValues,
+    AcademicInstitutionSettingsSave,
+    CampusContactPageSave,
+    CampusCreate,
+    InstitutionProfileUpdate,
+)
 from app.modules.college_admin.settings_registry import InstitutionSettingsUpdate, merge_institution_settings
 from app.modules.students.models import StudentProfile
 from app.modules.tenants.models import Department, Tenant
@@ -190,11 +228,143 @@ async def test_institution_profile_and_campus(db_ready) -> None:
     assert updated.display_name == "Updated College"
     assert updated.institution_code == "INST001"
 
+    page = await get_institution_profile_page(scope)
+    assert page.display_name == "Updated College"
+    assert len(page.about_fields) == 8
+    assert page.profile_completeness
+
+    info = await get_institution_information_page(scope)
+    assert info.form.legal_name
+    assert info.approval_notice.title
+    assert len(info.usage_contexts) == 4
+
+    await save_institution_profile_draft(scope, {"description": "Draft description"})
+    info_draft = await get_institution_information_page(scope)
+    assert info_draft.has_draft
+    assert info_draft.form.description == "Draft description"
+
+    await publish_institution_information(
+        scope,
+        {
+            **info_draft.form.model_dump(mode="json"),
+            "description": "Published description",
+        },
+    )
+    info_saved = await get_institution_information_page(scope)
+    assert info_saved.form.description == "Published description"
+    assert not info_saved.has_draft
+
+    branding = await get_institution_branding_page(scope)
+    assert branding.primary_logo.upload_hint
+    assert len(branding.brand_assets) == 5
+    assert len(branding.document_templates) == 4
+
+    await save_institution_branding_draft(scope, {"primary_color": "#1E4FA8"})
+    branding_draft = await get_institution_branding_page(scope)
+    assert branding_draft.has_draft
+    assert branding_draft.form.primary_color == "#1E4FA8"
+
+    await publish_institution_branding(scope, {"primary_color": "#1E4FA8", "secondary_color": "#F2A93B"})
+    branding_pub = await get_institution_branding_page(scope)
+    assert branding_pub.form.primary_color == "#1E4FA8"
+    assert not branding_pub.has_draft
+
     main = await create_campus(
         scope,
         CampusCreate(campus_code="main", name="Main Campus", is_main=True, address=InstitutionAddress(city="City")),
     )
     assert main.campus_code == "MAIN"
+
+    campus_dashboard = await get_campus_management_dashboard(scope)
+    assert campus_dashboard.page_title
+    assert len(campus_dashboard.kpis) == 4
+    assert any(row.name == "Main Campus" for row in campus_dashboard.campuses)
+
+    from app.common.ids import to_object_id
+
+    campus_oid = to_object_id(main.campus_id, "campus id")
+    detail = await get_campus_detail_page(scope, campus_oid)
+    assert detail.campus_id == main.campus_id
+    assert len(detail.summary_stats) == 6
+
+    contact = await get_campus_contact_page(scope, campus_oid)
+    assert contact.page_title
+    assert len(contact.usage_contexts) == 3
+
+    saved = await save_campus_contact_page(
+        scope,
+        campus_oid,
+        CampusContactPageSave(
+            address=InstitutionAddress(city="City", state="TN", line1="Line 1", postal_code="600001"),
+            official_contacts=[],
+            emergency_contacts=[],
+        ),
+    )
+    assert saved.address.line1 == "Line 1"
+
+    academic = await get_academic_institution_settings_page(scope)
+    assert academic.page_title
+    assert academic.form.academic_pattern
+    assert len(academic.field_groups) == 3
+    assert len(academic.toggle_rules) == 4
+
+    saved_academic = await save_academic_institution_settings_page(
+        scope,
+        AcademicInstitutionSettingsSave(
+            form=academic.form.model_copy(update={"working_days_per_semester": "95"}),
+        ),
+    )
+    assert saved_academic.form.working_days_per_semester == "95"
+
+    reset_academic = await reset_academic_institution_settings_page(scope)
+    assert reset_academic.form.working_days_per_semester == "90"
+
+    policies_page = await get_institution_policies_page(scope)
+    assert policies_page.page_title
+    assert policies_page.pagination.total == 0
+
+    ay_page = await get_academic_year_configuration_page(scope)
+    assert ay_page.page_title
+    assert "0 academic year" in ay_page.academic_year_count_label
+
+    created_ay = await create_blank_academic_year(scope)
+    assert created_ay.selected_year_id
+    assert len(created_ay.academic_years) == 1
+
+    from datetime import date
+
+    from beanie import PydanticObjectId
+
+    calendar_page = await get_institution_calendar_settings_page(scope)
+    assert calendar_page.page_title == "Institutional Calendar Settings"
+    assert len(calendar_page.publishing_toggles) == 4
+
+    await InstitutionHoliday(
+        tenant_id=scope.tenant_id,
+        academic_year_id=PydanticObjectId(created_ay.selected_year_id),
+        holiday_id=f"holiday-{suffix}",
+        title="Republic Day",
+        start_date=date(2027, 1, 26),
+        holiday_type="national",
+        applies_to="all",
+    ).insert()
+
+    calendar_with_rows = await get_institution_calendar_settings_page(scope)
+    assert len(calendar_with_rows.holidays) == 1
+    assert calendar_with_rows.holidays[0].type_label == "National"
+
+    from app.modules.college_admin.schemas import InstitutionCalendarSettingsSave
+
+    saved_calendar = await save_institution_calendar_settings_page(
+        scope,
+        InstitutionCalendarSettingsSave(form=calendar_page.form.model_copy(update={"day_end": "17:00"})),
+    )
+    assert saved_calendar.form.day_end == "17:00"
+
+    history_page = await get_institution_configuration_history_page(scope)
+    assert history_page.page_title == "Campus Configuration History"
+    assert history_page.pagination.total >= 1
+
     duplicate_scope = scope
     with pytest.raises(AppError) as dup_exc:
         await create_campus(duplicate_scope, CampusCreate(campus_code="main", name="Duplicate"))
@@ -203,11 +373,6 @@ async def test_institution_profile_and_campus(db_ready) -> None:
 
 @pytest.mark.anyio
 async def test_settings_validation_and_tenant_isolation(db_ready) -> None:
-    suffix_a = uuid4().hex[:8]
-    suffix_b = uuid4().hex[:8]
-    tenant_a, _, user_a, scope_a = await _seed_admin(suffix_a)
-    tenant_b, _, _user_b, scope_b = await _seed_admin(suffix_b)
-
     settings = await get_institution_settings(scope_a)
     assert settings.tenant_id == str(tenant_a.id)
 

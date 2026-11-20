@@ -89,7 +89,23 @@ def document_models() -> list[type]:
         CollegeDashboardPreferences,
         InstitutionActivityLog,
         InstitutionBranding,
+        InstitutionBrandingAsset,
         InstitutionCampus,
+    )
+    from app.modules.college_admin.campus_ext_models import (
+        InstitutionCampusBuilding,
+        InstitutionCampusEmergencyContact,
+        InstitutionCampusFacilityShowcase,
+        InstitutionCampusOfficialContact,
+    )
+    from app.modules.college_admin.institution_policy_models import (
+        InstitutionPolicy,
+        InstitutionPolicyAcknowledgement,
+        InstitutionPolicyReview,
+    )
+    from app.modules.college_admin.institution_calendar_models import InstitutionHoliday
+    from app.modules.college_admin.models import (
+        InstitutionDocumentBrandTemplate,
         InstitutionConfigurationVersion,
         InstitutionProfile,
         InstitutionSettings,
@@ -107,6 +123,8 @@ def document_models() -> list[type]:
         InstitutionRoleAssignment,
         InstitutionUser,
         InstitutionUserInvitation,
+        InstitutionUserCreateDraft,
+        InstitutionBulkUserInvitationDraft,
     )
     from app.modules.college_admin.academic_config_models import (
         AcademicCalendar,
@@ -1182,9 +1200,19 @@ def document_models() -> list[type]:
         TenantFeatureFlags,
         InstitutionProfile,
         InstitutionCampus,
+        InstitutionCampusBuilding,
+        InstitutionCampusEmergencyContact,
+        InstitutionCampusFacilityShowcase,
+        InstitutionCampusOfficialContact,
+        InstitutionPolicy,
+        InstitutionPolicyAcknowledgement,
+        InstitutionPolicyReview,
+        InstitutionHoliday,
         InstitutionSettings,
         InstitutionBranding,
+        InstitutionBrandingAsset,
         InstitutionConfigurationVersion,
+        InstitutionDocumentBrandTemplate,
         CollegeDashboardPreferences,
         InstitutionActivityLog,
         InstitutionUser,
@@ -1192,6 +1220,8 @@ def document_models() -> list[type]:
         InstitutionPermission,
         InstitutionRoleAssignment,
         InstitutionUserInvitation,
+        InstitutionUserCreateDraft,
+        InstitutionBulkUserInvitationDraft,
         InstitutionAccessHistory,
         InstitutionOrganizationUnit,
         InstitutionDepartment,

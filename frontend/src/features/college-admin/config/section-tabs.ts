@@ -2,6 +2,8 @@ export type CollegeAdminTab = {
   label: string;
   href: string;
   figmaFrame: string;
+  /** Extra path prefixes that should keep this tab highlighted (e.g. detail routes). */
+  activePrefixes?: string[];
 };
 
 /** Figma CA 01 — dashboard module tabs */
@@ -117,6 +119,111 @@ export const institutionTabs: CollegeAdminTab[] = [
   },
 ];
 
+/** Figma CA 03 — users & permissions (section nav only; not every screen). */
+export const usersTabs: CollegeAdminTab[] = [
+  {
+    label: "Users",
+    href: "/college-admin/users/user-management-dashboard",
+    figmaFrame: "69:124928",
+    activePrefixes: [
+      "/college-admin/users/all-users-list",
+      "/college-admin/users/user-management-dashboard",
+      "/college-admin/users/user-details",
+      "/college-admin/users/edit-user-information",
+    ],
+  },
+  {
+    label: "Create & invite",
+    href: "/college-admin/users/create-new-user",
+    figmaFrame: "69:125683",
+    activePrefixes: [
+      "/college-admin/users/create-new-user",
+      "/college-admin/users/bulk-user-invitation",
+    ],
+  },
+  {
+    label: "Roles",
+    href: "/college-admin/users/role-management-dashboard",
+    figmaFrame: "69:126349",
+    activePrefixes: [
+      "/college-admin/users/role-management-dashboard",
+      "/college-admin/users/create-edit-role",
+      "/college-admin/users/role-assignment",
+    ],
+  },
+  {
+    label: "Permissions",
+    href: "/college-admin/users/permission-management",
+    figmaFrame: "69:126902",
+  },
+  {
+    label: "Account status",
+    href: "/college-admin/users/user-account-activation-suspension",
+    figmaFrame: "69:127501",
+  },
+  {
+    label: "Activity",
+    href: "/college-admin/users/login-account-activity",
+    figmaFrame: "69:127724",
+    activePrefixes: [
+      "/college-admin/users/login-account-activity",
+      "/college-admin/users/user-access-history",
+    ],
+  },
+];
+
+/** Figma CA 04 — organization & departments (section nav; detail routes use activePrefixes). */
+export const organizationTabs: CollegeAdminTab[] = [
+  {
+    label: "Departments",
+    href: "/college-admin/organization/department-management-dashboard",
+    figmaFrame: "69:132597",
+    activePrefixes: [
+      "/college-admin/organization/department-management-dashboard",
+      "/college-admin/organization/all-departments",
+    ],
+  },
+  {
+    label: "Create & edit",
+    href: "/college-admin/organization/create-department",
+    figmaFrame: "69:133115",
+    activePrefixes: [
+      "/college-admin/organization/create-department",
+      "/college-admin/organization/department-edit",
+      "/college-admin/organization/department-details",
+    ],
+  },
+  {
+    label: "Heads",
+    href: "/college-admin/organization/department-head-assignment",
+    figmaFrame: "69:133798",
+  },
+  {
+    label: "Hierarchy",
+    href: "/college-admin/organization/organizational-hierarchy",
+    figmaFrame: "69:134048",
+  },
+  {
+    label: "Programmes",
+    href: "/college-admin/organization/programme-course-mapping",
+    figmaFrame: "69:134275",
+  },
+  {
+    label: "Faculty & resources",
+    href: "/college-admin/organization/department-faculty-allocation",
+    figmaFrame: "69:134506",
+    activePrefixes: [
+      "/college-admin/organization/department-faculty-allocation",
+      "/college-admin/organization/department-resource-management",
+    ],
+  },
+  {
+    label: "History",
+    href: "/college-admin/organization/department-status-history",
+    figmaFrame: "69:135016",
+  },
+];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -127,10 +234,10 @@ export function resolveSectionTabs(
     return { section: "Institution", tabs: institutionTabs };
   }
   if (pathname.startsWith("/college-admin/users")) {
-    return null;
+    return { section: "Users & Permissions", tabs: usersTabs };
   }
   if (pathname.startsWith("/college-admin/organization")) {
-    return null;
+    return { section: "Organization", tabs: organizationTabs };
   }
   return null;
 }

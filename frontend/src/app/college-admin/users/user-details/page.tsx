@@ -1,12 +1,15 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { Suspense } from "react";
+
+import { UserDetailsDashboard } from "@/features/college-admin/components/users/user-details-dashboard";
 
 export default function Page() {
   return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="user-details"
-      figmaNodeId="69:125470"
-      title='User Details'
-    />
+    <Suspense
+      fallback={
+        <div className="rounded-xl border border-[#e8ecf2] bg-white p-6 text-sm text-[#6b7280]">Loading user…</div>
+      }
+    >
+      <UserDetailsDashboard />
+    </Suspense>
   );
 }

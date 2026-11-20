@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { AccountStatusDashboard } from "@/features/college-admin/components/users/account-status-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="user-account-activation-suspension"
-      figmaNodeId="69:127501"
-      title='User Account Activation / Suspension'
-    />
-  );
+  return <AccountStatusDashboard />;
 }

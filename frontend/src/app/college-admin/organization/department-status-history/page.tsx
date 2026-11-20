@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { DepartmentStatusHistoryDashboard } from "@/features/college-admin/components/organization/department-status-history-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="organization"
-      slug="department-status-history"
-      figmaNodeId="69:135016"
-      title='Department Status & History'
-    />
-  );
+  return <DepartmentStatusHistoryDashboard />;
 }

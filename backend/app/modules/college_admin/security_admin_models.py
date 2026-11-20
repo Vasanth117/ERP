@@ -73,6 +73,9 @@ class InstitutionLoginActivity(Document):
     ip_address: str | None = None
     user_agent: str | None = None
     failure_reason: str | None = None
+    login_method: str | None = Field(default=None, max_length=32)
+    device_label: str | None = Field(default=None, max_length=120)
+    location_label: str | None = Field(default=None, max_length=120)
     created_at: datetime = Field(default_factory=utcnow)
 
     class Settings:

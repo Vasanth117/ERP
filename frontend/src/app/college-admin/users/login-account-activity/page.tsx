@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { LoginAccountActivityDashboard } from "@/features/college-admin/components/users/login-account-activity-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="login-account-activity"
-      figmaNodeId="69:127724"
-      title='Login & Account Activity'
-    />
-  );
+  return <LoginAccountActivityDashboard />;
 }

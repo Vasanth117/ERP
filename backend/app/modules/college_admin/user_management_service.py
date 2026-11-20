@@ -340,6 +340,11 @@ async def activate_user(scope: AccessScope, user_id: PydanticObjectId) -> Instit
     institution.account_status = InstitutionAccountStatus.ACTIVE
     institution.suspension_reason = None
     institution.suspended_at = None
+    institution.suspension_reason_code = None
+    institution.suspension_effective_from = None
+    institution.suspension_review_at = None
+    institution.suspension_review_status = None
+    institution.suspension_notes = None
     institution.updated_at = utcnow()
     await institution.save()
     await _append_access_history(
