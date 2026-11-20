@@ -3,6 +3,14 @@
   "fileKey": "Hy7qeZdVNmzD6PN0ZkgBfK",
   "fileName": "ERP",
   "defaultNodeId": "0:1",
+  "erpIconLibrary": {
+    "pageId": "354:213",
+    "frameId": "354:214",
+    "name": "ERP Icon Library (Lucide)",
+    "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=354-213",
+    "frontendPath": "frontend/src/components/icons/erp",
+    "exportScript": "scripts/export_figma_erp_icon_library.py"
+  },
   "pageUnderConstruction": {
     "pageId": "342:213",
     "frameId": "342:214",
@@ -14,6 +22,15 @@
     "frameId": "338:279",
     "name": "Select an Entry Point",
     "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=338-279"
+  },
+  "erpIconLibrary": {
+    "pageId": "354:213",
+    "frameId": "354:214",
+    "name": "ERP Icon Library (Lucide)",
+    "iconCount": 1541,
+    "frontendPath": "frontend/src/components/icons/erp",
+    "exportScript": "scripts/export_figma_erp_icon_library.py",
+    "url": "https://www.figma.com/design/Hy7qeZdVNmzD6PN0ZkgBfK/ERP?node-id=354-213"
   },
   "mcp": {
     "server": "figma",

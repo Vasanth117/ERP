@@ -23,9 +23,13 @@ export function PageHeading({
       data-figma-frame={figmaFrame}
     >
       <div>
-        <h1 className="text-2xl font-semibold text-[#172b45]">{title}</h1>
+        <h2 className="text-[18px] font-semibold tracking-[-0.01em] text-[#111827]">
+          {title}
+        </h2>
         {description ? (
-          <p className="mt-1 max-w-2xl text-sm text-[#607086]">{description}</p>
+          <p className="mt-1.5 max-w-2xl text-[14px] leading-relaxed text-[#6b7280]">
+            {description}
+          </p>
         ) : null}
       </div>
       <div className="flex shrink-0 items-center gap-2">

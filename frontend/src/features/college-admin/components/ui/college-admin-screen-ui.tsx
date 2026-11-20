@@ -192,10 +192,27 @@ export function rowsFromApi(data: unknown): Record<string, unknown>[] {
   if (data && typeof data === "object") {
     const obj = data as Record<string, unknown>;
     if (Array.isArray(obj.items)) {
-      return obj.items as Record<string, unknown>[];
+      return obj.items.filter((x) => x && typeof x === "object") as Record<
+        string,
+        unknown
+      >[];
     }
     if (Array.isArray(obj.data)) {
-      return obj.data as Record<string, unknown>[];
+      return obj.data.filter((x) => x && typeof x === "object") as Record<
+        string,
+        unknown
+      >[];
+    }
+    if (Array.isArray(obj.records)) {
+      return obj.records.filter((x) => x && typeof x === "object") as Record<
+        string,
+        unknown
+      >[];
+    }
+    const scalarKeys = ["total", "limit", "offset", "count"];
+    const rowKeys = Object.keys(obj).filter((k) => !scalarKeys.includes(k));
+    if (rowKeys.length > 0 && rowKeys.every((k) => typeof obj[k] !== "object")) {
+      return [obj];
     }
     return [obj];
   }

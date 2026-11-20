@@ -1,0 +1,25 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function SignpostIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M12 13V21"/>
+      <path d="M12 3V6"/>
+      <path d="M18 6C18.5174 6.00025 19.0145 6.20096 19.387 6.56L21.694 8.78C21.7908 8.87328 21.8678 8.98512 21.9203 9.10883C21.9729 9.23254 22 9.36558 22 9.5C22 9.63442 21.9729 9.76746 21.9203 9.89117C21.8678 10.0149 21.7908 10.1267 21.694 10.22L19.387 12.44C19.0145 12.799 18.5174 12.9998 18 13H6C5.48264 12.9998 4.9855 12.799 4.613 12.44L2.307 10.22C2.21022 10.1267 2.13324 10.0149 2.08066 9.89117C2.02808 9.76746 2.00098 9.63442 2.00098 9.5C2.00098 9.36558 2.02808 9.23254 2.08066 9.10883C2.13324 8.98512 2.21022 8.87328 2.307 8.78L4.613 6.56C4.9855 6.20096 5.48264 6.00025 6 6H18Z"/>
+
+    </svg>
+  );
+}

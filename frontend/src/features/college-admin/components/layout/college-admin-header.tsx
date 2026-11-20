@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 import { CollegeAdminIcon } from "@/features/college-admin/components/layout/college-admin-icon";
 import { useInstitutionProfile } from "@/features/college-admin/hooks/use-institution";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -37,23 +35,19 @@ export function CollegeAdminHeader() {
       </div>
 
       <div className="flex items-center gap-1.5 rounded bg-[#eef1f5] px-2 py-1">
-        <Image
-          src="/college-admin/icons/h-a05cf.svg"
-          alt=""
-          width={5}
-          height={5}
-          className="size-[5px]"
+        <CollegeAdminIcon
+          name="h-a05cf"
+          size={6}
+          className="size-1.5 shrink-0 fill-[#607086] text-[#607086]"
         />
         <span className="text-[11px] font-semibold text-[#607086]">{term}</span>
       </div>
 
       <div className="flex items-center gap-1.5 rounded bg-[#ebf2ff] px-2 py-1">
-        <Image
-          src="/college-admin/icons/h-404d1.svg"
-          alt=""
-          width={5}
-          height={5}
-          className="size-[5px]"
+        <CollegeAdminIcon
+          name="h-404d1"
+          size={6}
+          className="size-1.5 shrink-0 fill-[#245dd8] text-[#245dd8]"
         />
         <span className="text-[11px] font-semibold text-[#245dd8]">
           College scope

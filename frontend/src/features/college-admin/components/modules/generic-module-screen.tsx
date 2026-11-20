@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/api/client";
-import { moduleApiMap } from "@/features/college-admin/config/module-api-map";
+import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
 import {
   DataTable,
   DetailGrid,
@@ -42,14 +42,15 @@ function resolveEndpoint(
   slug: string,
   apiPath?: string,
 ): { path: string; label: string } | null {
+  const label = titleFromSlug(slug);
   if (apiPath) {
-    return { path: apiPath, label: titleFromSlug(slug) };
+    return { path: apiPath, label };
   }
-  const endpoints = moduleApiMap[moduleKey] ?? [];
-  if (endpoints.length === 0) return null;
-  const index = slug.endsWith("-dashboard") ? 0 : 0;
-  const endpoint = endpoints[index] ?? endpoints[0];
-  return endpoint ?? null;
+  const resolved = resolveModuleEndpoint(moduleKey, slug);
+  if (resolved.apiPath) {
+    return { path: resolved.apiPath, label };
+  }
+  return null;
 }
 
 function titleFromSlug(slug: string): string {

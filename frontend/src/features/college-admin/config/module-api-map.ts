@@ -48,13 +48,20 @@ export const moduleApiMap: Record<
     { label: "Audit events", path: "/college-admin/security-administration/audit-events" },
   ],
   "data-import": [
-    { label: "Import jobs", path: "/college-admin/data-import/jobs" },
+    { label: "Import templates", path: "/college-admin/data-import/templates" },
+    {
+      label: "Migration history",
+      path: "/college-admin/data-import/migration-history?limit=50&offset=0",
+    },
   ],
   integrations: [
-    { label: "Integrations", path: "/college-admin/integration-administration/providers" },
+    { label: "Integrations", path: "/college-admin/integration-administration/integrations" },
   ],
   helpdesk: [
-    { label: "Support requests", path: "/college-admin/helpdesk/requests" },
+    {
+      label: "Support tickets",
+      path: "/college-admin/helpdesk/tickets?limit=50&offset=0",
+    },
   ],
   "finance-extensions": [
     { label: "Budgets", path: "/college-admin/finance-extensions/budgets" },

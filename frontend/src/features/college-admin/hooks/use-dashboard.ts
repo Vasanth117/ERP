@@ -41,16 +41,20 @@ export function useOperationalSummaries(academicYear?: string) {
   });
 }
 
-export function usePendingApprovals(offset = 0) {
+export function usePendingApprovals(offset = 0, limit = 20) {
   return useQuery({
-    queryKey: collegeAdminQueryKeys.pendingApprovals(offset),
-    queryFn: () => fetchPendingApprovals(offset),
+    queryKey: collegeAdminQueryKeys.pendingApprovals(offset, limit),
+    queryFn: () => fetchPendingApprovals(offset, limit),
   });
 }
 
-export function useRecentActivities(offset = 0) {
+export function useRecentActivities(
+  offset = 0,
+  limit = 20,
+  range?: DashboardQuery["range"],
+) {
   return useQuery({
-    queryKey: collegeAdminQueryKeys.activities(offset),
-    queryFn: () => fetchRecentActivities(offset),
+    queryKey: collegeAdminQueryKeys.activities(offset, limit, range),
+    queryFn: () => fetchRecentActivities(offset, limit, range ?? "week"),
   });
 }

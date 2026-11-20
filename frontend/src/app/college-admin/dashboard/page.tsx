@@ -1,2 +1,5 @@
-import { redirect } from "next/navigation";
-export default function Page() { redirect("/college-admin/dashboard"); }
+import { DashboardOverviewView } from "@/features/college-admin/components/dashboard/dashboard-views";
+
+export default function Page() {
+  return <DashboardOverviewView />;
+}

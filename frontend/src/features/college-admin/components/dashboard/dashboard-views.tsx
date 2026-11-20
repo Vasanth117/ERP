@@ -8,6 +8,7 @@ import {
   StatCard,
 } from "@/features/college-admin/components/ui/query-state";
 import { PageHeading } from "@/features/college-admin/components/layout/page-heading";
+import { CollegeOverviewDashboard } from "@/features/college-admin/components/dashboard/college-overview-dashboard";
 import {
   useDashboardOverview,
   useDashboardStatistics,
@@ -25,75 +26,7 @@ function formatMoney(value: number) {
 }
 
 export function DashboardOverviewView() {
-  const { data, isLoading, isError, error, refetch, isFetching } =
-    useDashboardOverview({ range: "week" });
-
-  const term = data?.academic_term;
-  const stats = data?.statistics;
-
-  return (
-    <div data-figma-frame="64:190">
-      <PageHeading
-        title="College Admin Dashboard"
-        description="Operational snapshot across students, academics, finance and campus services."
-        figmaFrame="64:190"
-        onRefresh={() => void refetch()}
-        actions={
-          <Button className="h-9 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]">
-            Download report
-          </Button>
-        }
-      />
-      <QueryState
-        isLoading={isLoading || isFetching}
-        isError={isError}
-        error={error}
-        onRetry={() => void refetch()}
-      >
-        <div className="mb-4 flex flex-wrap gap-2 text-xs text-[#607086]">
-          <span className="rounded border border-[#dce3ec] bg-white px-3 py-2">
-            Range: {data?.filters.date_range ?? "week"}
-          </span>
-          {term?.academic_year_label ? (
-            <span className="rounded border border-[#dce3ec] bg-white px-3 py-2">
-              {term.academic_year_label}
-              {term.semester_label ? ` · ${term.semester_label}` : ""}
-            </span>
-          ) : null}
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Total students" value={stats?.total_students ?? 0} />
-          <StatCard label="Active students" value={stats?.active_students ?? 0} />
-          <StatCard label="Faculty" value={stats?.faculty_count ?? 0} />
-          <StatCard label="Employees" value={stats?.employee_count ?? 0} />
-          <StatCard label="Departments" value={stats?.department_count ?? 0} />
-          <StatCard label="Programmes" value={stats?.programme_count ?? 0} />
-        </div>
-        <SectionPanel title="Operations" className="mt-6">
-          <OperationsGrid
-            attendance={data?.attendance}
-            exams={data?.examinations}
-            finance={data?.finance}
-            library={data?.library_hostel}
-            pending={data?.pending_approval_count}
-            support={data?.unresolved_support_count}
-          />
-        </SectionPanel>
-        {data?.notifications?.length ? (
-          <SectionPanel title="Important alerts" className="mt-6">
-            <ul className="divide-y divide-[#eceff4]">
-              {data.notifications.map((n, idx) => (
-                <li key={`${n.title}-${idx}`} className="py-3 text-sm">
-                  <p className="font-medium text-[#172b45]">{n.title}</p>
-                  <p className="text-[#607086]">{n.message}</p>
-                </li>
-              ))}
-            </ul>
-          </SectionPanel>
-        ) : null}
-      </QueryState>
-    </div>
-  );
+  return <CollegeOverviewDashboard />;
 }
 
 function SectionPanel({
@@ -107,10 +40,12 @@ function SectionPanel({
 }) {
   return (
     <section
-      className={`rounded-xl border border-[#dce3ec] bg-white p-5 shadow-[0px_1px_1px_rgba(23,43,69,0.04)] ${className ?? ""}`}
+      className={`rounded-xl border border-[#e8ecf2] bg-[#fafbfc] p-4 shadow-none sm:p-5 ${className ?? ""}`}
     >
-      <h2 className="text-sm font-semibold text-[#172b45]">{title}</h2>
-      <div className="mt-4">{children}</div>
+      <h2 className="px-1 text-[15px] font-semibold tracking-[-0.01em] text-[#111827]">
+        {title}
+      </h2>
+      <div className="mt-3">{children}</div>
     </section>
   );
 }
@@ -150,7 +85,7 @@ function OperationsGrid({
   support?: number;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       <StatCard
         label="Attendance sessions"
         value={attendance?.sessions_submitted ?? 0}
@@ -378,7 +313,7 @@ function DashboardStatsShell({
         error={query.error}
         onRetry={() => void query.refetch()}
       >
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {cards.map(([label, value]) => (
             <StatCard
               key={String(label)}
@@ -413,7 +348,7 @@ function OperationalView({
         error={query.error}
         onRetry={() => void query.refetch()}
       >
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {section === "attendance" || !section ? (
             <>
               <StatCard

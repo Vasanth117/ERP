@@ -6,10 +6,21 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "dashboard-stats", params ?? {}] as const,
   dashboardOperations: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "dashboard-operations", params ?? {}] as const,
-  pendingApprovals: (offset?: number) =>
-    [...collegeAdminQueryKeys.all, "pending-approvals", offset ?? 0] as const,
-  activities: (offset?: number) =>
-    [...collegeAdminQueryKeys.all, "activities", offset ?? 0] as const,
+  pendingApprovals: (offset?: number, limit?: number) =>
+    [
+      ...collegeAdminQueryKeys.all,
+      "pending-approvals",
+      offset ?? 0,
+      limit ?? 20,
+    ] as const,
+  activities: (offset?: number, limit?: number, range?: string) =>
+    [
+      ...collegeAdminQueryKeys.all,
+      "activities",
+      offset ?? 0,
+      limit ?? 20,
+      range ?? "week",
+    ] as const,
   profile: () => [...collegeAdminQueryKeys.all, "institution-profile"] as const,
   campuses: (activeOnly?: boolean) =>
     [...collegeAdminQueryKeys.all, "campuses", activeOnly ?? false] as const,
