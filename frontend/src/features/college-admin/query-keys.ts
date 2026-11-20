@@ -130,4 +130,6 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "department-faculty-allocation-page", params ?? {}] as const,
   departmentStatusHistoryPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "department-status-history-page", params ?? {}] as const,
+  departmentResourceManagementPage: (departmentId?: string) =>
+    [...collegeAdminQueryKeys.all, "department-resource-management-page", departmentId ?? "default"] as const,
 };

@@ -92,6 +92,7 @@ const SLUG_API: Record<string, string> = {
   "programme-course-mapping": "/college-admin/departments/programme-course-mapping/page",
   "department-faculty-allocation": "/college-admin/departments/faculty-allocation/page",
   "department-status-history": "/college-admin/departments/status-history/page",
+  "department-resource-management": "/college-admin/departments/resource-management/page",
   // CA 05 academics
   "all-programmes": "/college-admin/academic-config/programmes",
   "course-catalogue": "/college-admin/academic-config/courses",

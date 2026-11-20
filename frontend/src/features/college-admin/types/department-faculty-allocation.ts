@@ -44,7 +44,8 @@ export type DepartmentFacultyAllocationPage = {
   semester_filter_label: string;
   department_filter_label: string;
   designation_filter_label: string;
-  scope_indicator_label: string;
+  resources_nav_label: string;
+  resources_nav_href: string;
   updated_at_label: string;
   semester_options: InstitutionFieldOption[];
   department_options: InstitutionFieldOption[];

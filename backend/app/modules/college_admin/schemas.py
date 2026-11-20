@@ -2567,7 +2567,8 @@ class DepartmentFacultyAllocationPageRead(BaseModel):
     semester_filter_label: str
     department_filter_label: str
     designation_filter_label: str
-    scope_indicator_label: str
+    resources_nav_label: str
+    resources_nav_href: str
     updated_at_label: str
     semester_options: list[InstitutionFieldOption]
     department_options: list[InstitutionFieldOption]
@@ -2640,6 +2641,76 @@ class DepartmentStatusHistoryTimelineItem(BaseModel):
     date_label: str
     tone: str
     nested_status_label: str | None = None
+
+
+class DepartmentResourceKpiCard(BaseModel):
+    key: str
+    title: str
+    value: str
+    subtitle: str
+    subtitle_tone: str
+
+
+class DepartmentResourceTab(BaseModel):
+    department_id: str
+    label: str
+    short_label: str
+
+
+class DepartmentResourceLabRow(BaseModel):
+    lab_id: str
+    lab_name: str
+    room_label: str
+    capacity: int
+    systems_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class DepartmentResourceBudgetBar(BaseModel):
+    key: str
+    label: str
+    spent_label: str
+    cap_label: str
+    spent_amount: float
+    cap_amount: float
+
+
+class DepartmentResourceOpenRequestItem(BaseModel):
+    request_id: str
+    title: str
+    detail_line: str
+    status_tag: str
+    status_tone: str
+
+
+class DepartmentResourceManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    request_resource_label: str
+    request_resource_href: str
+    faculty_nav_label: str
+    faculty_nav_href: str
+    updated_at_label: str
+    department_tabs: list[DepartmentResourceTab]
+    more_departments_label: str
+    more_department_options: list[InstitutionFieldOption]
+    selected_department_id: str
+    kpi_cards: list[DepartmentResourceKpiCard]
+    laboratories_section_title: str
+    laboratories_table_headers: list[str]
+    laboratory_rows: list[DepartmentResourceLabRow]
+    laboratories_footer_count_label: str
+    laboratories_view_all_label: str
+    laboratories_view_all_href: str | None
+    budget_section_title: str
+    budget_bars: list[DepartmentResourceBudgetBar]
+    open_requests_section_title: str
+    open_requests: list[DepartmentResourceOpenRequestItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
 
 
 class DepartmentStatusHistoryPageRead(BaseModel):

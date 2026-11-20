@@ -214,10 +214,16 @@ export function DepartmentFacultyAllocationDashboard() {
               }}
               options={data.designation_options}
             />
-            <span className="ml-2 inline-flex items-center gap-1.5 text-[12px] text-[#6b7280]">
-              <span className="size-1.5 rounded-full bg-[#3b82f6]" />
-              {data.scope_indicator_label}
-            </span>
+            <Link
+              href={
+                departmentId
+                  ? `${data.resources_nav_href}?departmentId=${encodeURIComponent(departmentId)}`
+                  : data.resources_nav_href
+              }
+              className="ml-2 inline-flex h-9 items-center rounded-md border border-[#dce3ec] bg-white px-4 text-[13px] font-medium text-[#245dd8] hover:bg-[#eff6ff]"
+            >
+              {data.resources_nav_label}
+            </Link>
           </div>
           <span className="text-[12px] tabular-nums text-[#9ca3af]">{data.updated_at_label}</span>
         </div>

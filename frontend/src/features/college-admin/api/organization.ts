@@ -19,6 +19,7 @@ import type {
   DepartmentFacultyAllocationFormValues,
 } from "@/features/college-admin/types/department-faculty-allocation";
 import type { DepartmentStatusHistoryPage } from "@/features/college-admin/types/department-status-history";
+import type { DepartmentResourceManagementPage } from "@/features/college-admin/types/department-resource-management";
 import type { DepartmentManagementDashboardPage } from "@/features/college-admin/types/department-management-dashboard";
 import type { ApiPage } from "@/features/college-admin/types/dashboard";
 
@@ -176,6 +177,19 @@ export async function saveDepartmentFacultyAllocation(payload: {
   return apiRequest<DepartmentFacultyAllocationSaveResult>(
     "/college-admin/departments/faculty-allocation/save",
     { method: "POST", body: payload },
+  );
+}
+
+export async function fetchDepartmentResourceManagementPage(
+  departmentId?: string,
+  view?: string,
+): Promise<DepartmentResourceManagementPage> {
+  const qs = new URLSearchParams();
+  if (departmentId) qs.set("department_id", departmentId);
+  if (view) qs.set("view", view);
+  const suffix = qs.size ? `?${qs.toString()}` : "";
+  return apiRequest<DepartmentResourceManagementPage>(
+    `/college-admin/departments/resource-management/page${suffix}`,
   );
 }
 

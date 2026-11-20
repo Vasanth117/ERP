@@ -81,6 +81,9 @@ from app.modules.college_admin.department_faculty_allocation_page_service import
     save_department_faculty_allocation,
 )
 from app.modules.college_admin.department_status_history_page_service import get_department_status_history_page
+from app.modules.college_admin.department_resource_management_page_service import (
+    get_department_resource_management_page,
+)
 from app.modules.college_admin.department_management_dashboard_page_service import (
     get_department_management_dashboard_page,
 )
@@ -166,6 +169,7 @@ from app.modules.college_admin.schemas import (
     DepartmentFacultyAllocationSavePayload,
     DepartmentFacultyAllocationSaveResult,
     DepartmentStatusHistoryPageRead,
+    DepartmentResourceManagementPageRead,
     DepartmentManagementDashboardPageRead,
     DepartmentPerformanceOverviewRead,
     FacultyStatisticsOverviewRead,
@@ -1706,6 +1710,20 @@ async def department_faculty_allocation_save_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[DepartmentFacultyAllocationSaveResult]:
     data = await save_department_faculty_allocation(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/departments/resource-management/page",
+    response_model=ApiResponse[DepartmentResourceManagementPageRead],
+)
+async def department_resource_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    department_id: Annotated[str | None, Query()] = None,
+    view: Annotated[str | None, Query()] = None,
+) -> ApiResponse[DepartmentResourceManagementPageRead]:
+    data = await get_department_resource_management_page(scope, department_id=department_id, view=view)
     return success_response(data, request_id=get_request_id())
 
 

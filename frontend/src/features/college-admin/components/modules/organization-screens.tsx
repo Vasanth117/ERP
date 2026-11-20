@@ -25,6 +25,7 @@ import { OrganizationalHierarchyDashboard } from "@/features/college-admin/compo
 import { ProgrammeCourseMappingDashboard } from "@/features/college-admin/components/organization/programme-course-mapping-dashboard";
 import { DepartmentFacultyAllocationDashboard } from "@/features/college-admin/components/organization/department-faculty-allocation-dashboard";
 import { DepartmentStatusHistoryDashboard } from "@/features/college-admin/components/organization/department-status-history-dashboard";
+import { DepartmentResourceManagementDashboard } from "@/features/college-admin/components/organization/department-resource-management-dashboard";
 import { DepartmentManagementDashboard } from "@/features/college-admin/components/organization/department-management-dashboard";
 import {
   QueryState,
@@ -52,6 +53,8 @@ export function OrganizationScreen({ slug }: { slug: string }) {
       return <DepartmentFacultyAllocationDashboard />;
     case "department-status-history":
       return <DepartmentStatusHistoryDashboard />;
+    case "department-resource-management":
+      return <DepartmentResourceManagementDashboard />;
     case "organizational-hierarchy":
       return <OrganizationalHierarchyDashboard />;
     default:
