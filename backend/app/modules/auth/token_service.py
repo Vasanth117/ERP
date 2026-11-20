@@ -6,7 +6,7 @@ from datetime import timedelta
 from beanie import PydanticObjectId
 from beanie.operators import Eq
 
-from app.common.time import utcnow
+from app.common.time import as_utc_aware, utcnow
 from app.core.config import get_settings
 from app.core.security import hash_refresh_token, new_refresh_token_plaintext
 from app.modules.auth.models import RefreshToken, User
@@ -31,7 +31,7 @@ async def rotate_refresh_token(plaintext: str) -> tuple[User, str]:
     existing = await RefreshToken.find_one(Eq(RefreshToken.token_hash, token_hash))
     if existing is None or existing.revoked_at is not None:
         raise ValueError("invalid_refresh_token")
-    if existing.expires_at <= utcnow():
+    if as_utc_aware(existing.expires_at) <= utcnow():
         raise ValueError("expired_refresh_token")
 
     user = await User.get(existing.user_id)

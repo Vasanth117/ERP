@@ -40,6 +40,11 @@ class ParentCommunicationPreferences(BaseModel):
 class ParentProfile(Document):
     tenant_id: PydanticObjectId
     user_id: PydanticObjectId
+    parent_id: str | None = Field(
+        default=None,
+        max_length=64,
+        description="Official parent / guardian login identifier within the college",
+    )
     display_name: str | None = Field(default=None, max_length=200)
     contact_phone: str | None = Field(default=None, max_length=32)
     alternate_email: str | None = Field(default=None, max_length=254)
@@ -67,6 +72,11 @@ class ParentProfile(Document):
             IndexModel(
                 [("tenant_id", ASCENDING), ("contact_phone", ASCENDING)],
                 name="parent_phone_lookup",
+                sparse=True,
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("parent_id", ASCENDING)],
+                name="parent_by_official_id",
                 sparse=True,
             ),
         ]

@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
+import { AuthSessionBootstrap } from "@/components/auth/auth-session-bootstrap";
 import { Toaster } from "@/components/ui/sonner";
 
 type AppProvidersProps = {
@@ -34,6 +35,7 @@ export function AppProviders({ children }: AppProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthSessionBootstrap />
       {children}
       <Toaster richColors closeButton position="top-right" />
       {showQueryDevtools ? (

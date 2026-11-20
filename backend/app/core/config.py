@@ -36,6 +36,13 @@ class Settings(BaseSettings):
   payroll_integration_enabled: bool = False
   default_retention_days: int = 90
   subscription_trial_days: int = 14
+  login_default_tenant_code: str = Field(
+    default="",
+    description=(
+      "Optional college code for deployments with one database per college; "
+      "used when login requests omit tenant_code."
+    ),
+  )
 
   model_config = SettingsConfigDict(
     env_file=".env",

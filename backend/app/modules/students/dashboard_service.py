@@ -338,22 +338,29 @@ async def get_pending_tasks(scope: AccessScope, user: User) -> list[PendingTaskS
 async def get_recent_activities(scope: AccessScope, user: User, pagination: Pagination) -> Page[StudentActivityRead]:
     authorize(scope, Permission.STUDENT_DASHBOARD_READ)
     tenant_id = require_student_scope(scope)
-    skip = (pagination.page - 1) * pagination.page_size
-    items, total = await _activity_repo.page_for_user(tenant_id, user.id, skip=skip, limit=pagination.page_size)
+    items, total = await _activity_repo.page_for_user(
+        tenant_id,
+        user.id,
+        skip=pagination.offset,
+        limit=pagination.limit,
+    )
     return Page(
         items=[StudentActivityRead.from_document(row) for row in items],
-        page=pagination.page,
-        page_size=pagination.page_size,
         total=total,
+        limit=pagination.limit,
+        offset=pagination.offset,
     )
 
 
 async def get_academic_notifications(scope: AccessScope, user: User, pagination: Pagination) -> Page[NotificationSummary]:
     authorize(scope, Permission.STUDENT_DASHBOARD_READ)
     tenant_id = require_student_scope(scope)
-    raw = await _reader.academic_notifications(tenant_id, user.id, limit=pagination.page_size * pagination.page)
-    start = (pagination.page - 1) * pagination.page_size
-    chunk = raw[start : start + pagination.page_size]
+    raw = await _reader.academic_notifications(
+        tenant_id,
+        user.id,
+        limit=pagination.offset + pagination.limit,
+    )
+    chunk = raw[pagination.offset : pagination.offset + pagination.limit]
     items = [
         NotificationSummary(
             id=item["id"],
@@ -364,4 +371,9 @@ async def get_academic_notifications(scope: AccessScope, user: User, pagination:
         )
         for item in chunk
     ]
-    return Page(items=items, page=pagination.page, page_size=pagination.page_size, total=len(raw))
+    return Page(
+        items=items,
+        total=len(raw),
+        limit=pagination.limit,
+        offset=pagination.offset,
+    )

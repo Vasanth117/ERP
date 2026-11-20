@@ -34,7 +34,7 @@ export function CollegeAdminAuthGate({ children }: { children: ReactNode }) {
           Email: admin@demo-college.edu · Tenant: demo-college
         </p>
         <Link
-          href={`/login?returnUrl=${returnUrl}`}
+          href={`/login?portal=institution&next=${returnUrl}`}
           className="mt-6 inline-flex h-10 items-center rounded-lg bg-[#245dd8] px-5 text-sm font-medium text-white hover:bg-[#1f4fb8]"
         >
           Sign in
