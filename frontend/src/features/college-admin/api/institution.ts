@@ -5,11 +5,16 @@ import type {
   CampusCreate,
   CampusUpdate,
   ConfigurationHistoryItem,
+  InstitutionalOverview,
   InstitutionProfile,
   InstitutionProfileUpdate,
   InstitutionSettings,
   InstitutionSettingsPatch,
 } from "@/features/college-admin/types/institution";
+
+export async function fetchInstitutionalOverview(): Promise<InstitutionalOverview> {
+  return apiRequest<InstitutionalOverview>("/college-admin/institution/overview");
+}
 
 export async function fetchInstitutionProfile(): Promise<InstitutionProfile> {
   return apiRequest<InstitutionProfile>("/college-admin/institution/profile");

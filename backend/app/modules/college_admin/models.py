@@ -134,6 +134,7 @@ class CollegeDashboardPreferences(Document):
     default_department_id: PydanticObjectId | None = None
     default_campus_id: PydanticObjectId | None = None
     default_academic_year_label: str | None = None
+    dismissed_alert_keys: list[str] = Field(default_factory=list)
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:

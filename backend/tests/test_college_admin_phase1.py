@@ -15,6 +15,17 @@ from app.modules.academics.models import AcademicYearContext
 from app.modules.auth.models import User
 from app.modules.college_admin.dashboard_service import get_dashboard_overview, get_institutional_statistics
 from app.modules.college_admin.enums import DashboardDateRange
+from app.modules.college_admin.institution_overview_service import get_institutional_overview
+from app.modules.college_admin.academic_performance_overview_service import get_academic_performance_overview
+from app.modules.college_admin.attendance_overview_service import get_attendance_overview
+from app.modules.college_admin.examination_overview_service import get_examination_overview
+from app.modules.college_admin.finance_overview_service import get_finance_overview
+from app.modules.college_admin.pending_approvals_overview_service import get_pending_approvals_overview
+from app.modules.college_admin.recent_activities_overview_service import get_recent_activities_overview
+from app.modules.college_admin.alerts_overview_service import get_alerts_overview
+from app.modules.college_admin.department_performance_overview_service import get_department_performance_overview
+from app.modules.college_admin.faculty_statistics_overview_service import get_faculty_statistics_overview
+from app.modules.college_admin.student_statistics_overview_service import get_student_statistics_overview
 from app.modules.college_admin.institution_service import (
     create_campus,
     get_institution_profile,
@@ -113,6 +124,55 @@ async def test_dashboard_aggregation(db_ready) -> None:
 
     stats = await get_institutional_statistics(scope)
     assert stats.statistics.faculty_count == 0
+
+    overview_data = await get_institutional_overview(scope)
+    assert overview_data.profile.tenant_id == str(tenant.id)
+    assert overview_data.statistics.total_students == 1
+    assert len(overview_data.programme_mix) >= 1
+    assert overview_data.compliance_items
+
+    student_stats = await get_student_statistics_overview(scope)
+    assert student_stats.kpis.total_enrolled >= 1
+    assert student_stats.programme_year_matrix
+
+    faculty_stats = await get_faculty_statistics_overview(scope)
+    assert faculty_stats.kpis is not None
+    assert isinstance(faculty_stats.faculty_by_department, list)
+
+    dept_perf = await get_department_performance_overview(scope)
+    assert dept_perf.scorecard_total >= 0
+    assert dept_perf.kpis is not None
+
+    academic = await get_academic_performance_overview(scope)
+    assert academic.kpis is not None
+    assert academic.academic_risk
+
+    attendance = await get_attendance_overview(scope, date_range=DashboardDateRange.MONTH)
+    assert attendance.kpis is not None
+    assert attendance.correction_requests
+
+    examinations = await get_examination_overview(scope)
+    assert examinations.kpis is not None
+    assert examinations.readiness_checklist is not None
+
+    finance = await get_finance_overview(scope)
+    assert finance.kpis is not None
+    assert finance.payment_modes
+
+    approvals = await get_pending_approvals_overview(scope, date_range=DashboardDateRange.MONTH)
+    assert approvals.kpis is not None
+    assert approvals.queue_rows is not None
+    assert approvals.pending_by_module is not None
+
+    activities = await get_recent_activities_overview(scope, date_range=DashboardDateRange.TODAY)
+    assert activities.kpis is not None
+    assert activities.feed_rows is not None
+    assert activities.activity_by_module is not None
+
+    alerts = await get_alerts_overview(scope, user)
+    assert alerts.kpis is not None
+    assert alerts.delivery_channels is not None
+    assert alerts.alert_rules is not None
 
 
 @pytest.mark.anyio

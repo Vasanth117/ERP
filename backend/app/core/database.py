@@ -2083,6 +2083,30 @@ def document_models() -> list[type]:
     ]
 
 
+# Index definitions renamed in Beanie models; drop stale names before init_beanie (MongoDB code 85).
+_LEGACY_INDEX_DROPS: dict[str, tuple[str, ...]] = {
+    "hostel_allocations": ("unique_active_student_allocation",),
+}
+
+
+async def _drop_legacy_beanie_indexes(database) -> None:
+    for collection_name, index_names in _LEGACY_INDEX_DROPS.items():
+        collection = database[collection_name]
+        for index_name in index_names:
+            try:
+                await collection.drop_index(index_name)
+                logger.info(
+                    "Dropped legacy MongoDB index %s on %s",
+                    index_name,
+                    collection_name,
+                )
+            except Exception as exc:
+                code = getattr(exc, "code", None)
+                if code == 27 or "index not found" in str(exc).lower():
+                    continue
+                raise
+
+
 def _mongo_connection_hint(exc: BaseException) -> str | None:
     message = str(exc)
     if "replica set named" in message and "set named 'None'" in message:
@@ -2091,6 +2115,27 @@ def _mongo_connection_hint(exc: BaseException) -> str | None:
             "replica set rs0. For local Windows MongoDB without Docker, set "
             "MONGODB_URL=mongodb://127.0.0.1:27017/erp in backend/.env. "
             "For transactions, configure replSet rs0 (see backend/.env.example)."
+        )
+    lowercase = message.lower()
+    if (
+        "actively refused" in lowercase
+        or "errno: 111" in lowercase
+        or "10061" in message
+        or "serverselectiontimeouterror" in lowercase
+        or "no servers found" in lowercase
+    ):
+        settings = get_settings()
+        return (
+            f"Cannot reach MongoDB at {settings.mongodb_url!r} "
+            f"(database {settings.mongodb_db_name!r}). "
+            "Nothing is listening on the configured host/port, or mongod is stopped. "
+            "From the repo root, start the stack with: "
+            "docker compose up -d mongodb mongo-init redis "
+            "(see docker-compose.yml). "
+            "If you use a local Windows MongoDB service instead, start the "
+            "'MongoDB' service and keep MONGODB_URL=mongodb://127.0.0.1:27017/erp "
+            "in backend/.env. If mongod was running and suddenly stopped, check "
+            "free disk space on the drive holding MongoDB data."
         )
     return None
 
@@ -2106,8 +2151,10 @@ async def connect_to_mongo() -> None:
         if hint:
             logger.error(hint)
         raise
+    database = _client[settings.mongodb_db_name]
+    await _drop_legacy_beanie_indexes(database)
     await init_beanie(
-        database=_client[settings.mongodb_db_name],
+        database=database,
         document_models=document_models(),
     )
     logger.info("Connected to MongoDB database %s", settings.mongodb_db_name)

@@ -1,0 +1,29 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function ReplaceIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M14 4C14 3.46957 14.2107 2.96086 14.5858 2.58579C14.9609 2.21071 15.4696 2 16 2"/>
+      <path d="M16 10C15.4696 10 14.9609 9.78929 14.5858 9.41421C14.2107 9.03914 14 8.53043 14 8"/>
+      <path d="M20 2C20.5304 2 21.0391 2.21071 21.4142 2.58579C21.7893 2.96086 22 3.46957 22 4"/>
+      <path d="M22 8C22 8.53043 21.7893 9.03914 21.4142 9.41421C21.0391 9.78929 20.5304 10 20 10"/>
+      <path d="M3 7L6 10L9 7"/>
+      <path d="M6 10V5C6 4.20435 6.31607 3.44129 6.87868 2.87868C7.44129 2.31607 8.20435 2 9 2H10"/>
+      <path d="M4 14H8C8.53043 14 9.03914 14.2107 9.41421 14.5858C9.78929 14.9609 10 15.4696 10 16V20C10 20.5304 9.78929 21.0391 9.41421 21.4142C9.03914 21.7893 8.53043 22 8 22H4C3.46957 22 2.96086 21.7893 2.58579 21.4142C2.21071 21.0391 2 20.5304 2 20V16C2 15.4696 2.21071 14.9609 2.58579 14.5858C2.96086 14.2107 3.46957 14 4 14Z"/>
+
+    </svg>
+  );
+}

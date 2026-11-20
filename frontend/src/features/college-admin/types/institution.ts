@@ -1,3 +1,8 @@
+import type {
+  AcademicTermSummary,
+  HeadcountStatistics,
+} from "@/features/college-admin/types/dashboard";
+
 export type InstitutionAddress = {
   line1?: string | null;
   line2?: string | null;
@@ -123,4 +128,48 @@ export type ConfigurationHistoryItem = {
   changed_keys: string[];
   created_at: string;
   created_by: string | null;
+};
+
+export type CampusOverviewRow = {
+  campus_id: string;
+  campus_code: string;
+  name: string;
+  is_main: boolean;
+  is_active: boolean;
+  location_label: string;
+  student_count: number;
+  department_count: number;
+};
+
+export type ProgrammeLevelMixItem = {
+  level: string;
+  label: string;
+  student_count: number;
+  programme_count: number;
+};
+
+export type ComplianceStatusItem = {
+  title: string;
+  status_code: string;
+  detail?: string | null;
+};
+
+export type KeyContactItem = {
+  name: string;
+  role_label: string;
+  email?: string | null;
+  phone?: string | null;
+};
+
+export type InstitutionalOverview = {
+  profile: InstitutionProfile;
+  academic_term: AcademicTermSummary;
+  statistics: HeadcountStatistics;
+  accreditation_summary: string | null;
+  accreditation_detail: string | null;
+  campuses: CampusOverviewRow[];
+  programme_mix: ProgrammeLevelMixItem[];
+  compliance_items: ComplianceStatusItem[];
+  key_contacts: KeyContactItem[];
+  generated_at: string;
 };

@@ -1,0 +1,27 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function Plug2Icon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M9 2V8"/>
+      <path d="M15 2V8"/>
+      <path d="M12 17V22"/>
+      <path d="M5 8H19"/>
+      <path d="M6 11V8H18V11C18 12.5913 17.3679 14.1174 16.2426 15.2426C15.1174 16.3679 13.5913 17 12 17C10.4087 17 8.88258 16.3679 7.75736 15.2426C6.63214 14.1174 6 12.5913 6 11Z"/>
+
+    </svg>
+  );
+}

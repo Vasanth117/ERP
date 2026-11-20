@@ -1,4 +1,12 @@
-import Image from "next/image";
+"use client";
+
+import { ErpIcon } from "@/components/icons/erp/erp-icon";
+import type { ErpIconName } from "@/components/icons/erp/names";
+import {
+  getCollegeAdminErpIcon,
+  resolveCollegeAdminIconSlug,
+} from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { cn } from "@/lib/utils";
 
 export function CollegeAdminIcon({
   name,
@@ -9,13 +17,27 @@ export function CollegeAdminIcon({
   size?: number;
   className?: string;
 }) {
+  const slug = resolveCollegeAdminIconSlug(name);
+  const Icon = getCollegeAdminErpIcon(slug);
+
+  const dim = { width: size, height: size, style: { width: size, height: size } };
+
+  if (Icon) {
+    return (
+      <Icon
+        {...dim}
+        className={cn("!size-auto shrink-0", className)}
+        aria-hidden
+      />
+    );
+  }
+
   return (
-    <Image
-      src={`/college-admin/icons/${name}.svg`}
-      alt=""
-      width={size}
-      height={size}
-      className={className ?? "size-4 shrink-0"}
+    <ErpIcon
+      name={slug as ErpIconName}
+      {...dim}
+      className={cn("!size-auto shrink-0", className)}
+      aria-hidden
     />
   );
 }

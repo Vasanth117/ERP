@@ -1,0 +1,27 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function DoorOpenIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M13 4H16C16.5304 4 17.0391 4.21071 17.4142 4.58579C17.7893 4.96086 18 5.46957 18 6V20"/>
+      <path d="M2 20H5"/>
+      <path d="M13 20H22"/>
+      <path d="M10 12V12.01"/>
+      <path d="M13 4.5622V20.7192C13 20.8711 12.9653 21.021 12.8987 21.1575C12.8321 21.294 12.7352 21.4135 12.6155 21.507C12.4958 21.6005 12.3564 21.6655 12.2078 21.6971C12.0592 21.7287 11.9054 21.726 11.758 21.6892L5 20.0002V5.5622C5.00007 5.11621 5.1492 4.68303 5.42371 4.33153C5.69821 3.98002 6.08232 3.73035 6.515 3.6222L10.515 2.6222C10.8098 2.54852 11.1174 2.54297 11.4146 2.60595C11.7118 2.66894 11.9908 2.79881 12.2303 2.98571C12.4699 3.17261 12.6637 3.41163 12.797 3.68461C12.9304 3.9576 12.9998 4.25838 13 4.5622Z"/>
+
+    </svg>
+  );
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -33,11 +34,26 @@ export function QueryState({
   }
 
   if (isError) {
+    const status = (error as Error & { status?: number })?.status;
+    const unauthorized = status === 401;
     return (
       <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-900">
-        <p className="font-medium">Could not load this section</p>
-        <p className="mt-1 text-red-800/90">{error?.message ?? "Unknown error"}</p>
-        {onRetry ? (
+        <p className="font-medium">
+          {unauthorized ? "Sign in required" : "Could not load this section"}
+        </p>
+        <p className="mt-1 text-red-800/90">
+          {unauthorized
+            ? "Your session is missing or expired. Sign in with the demo college account to load live data."
+            : (error?.message ?? "Unknown error")}
+        </p>
+        {unauthorized ? (
+          <Link
+            href="/login"
+            className="mt-4 inline-flex h-9 items-center rounded-lg bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            Go to login
+          </Link>
+        ) : onRetry ? (
           <Button type="button" variant="outline" className="mt-4" onClick={onRetry}>
             Retry
           </Button>
@@ -78,12 +94,16 @@ export function StatCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-xl border border-[#dce3ec] bg-white p-4 shadow-[0px_1px_1px_rgba(23,43,69,0.04)]">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#8a98aa]">
-        {label}
+    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[box-shadow,border-color] duration-150 hover:border-[#dce3ec] hover:shadow-[0_4px_14px_rgba(15,23,42,0.06)]">
+      <p className="text-[12px] font-medium leading-snug text-[#6b7280]">{label}</p>
+      <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight text-[#111827] tabular-nums">
+        {value}
       </p>
-      <p className="mt-2 text-2xl font-semibold text-[#172b45]">{value}</p>
-      {hint ? <p className="mt-1 text-xs text-[#607086]">{hint}</p> : null}
+      {hint ? (
+        <p className="mt-auto pt-3 text-[12px] leading-snug text-[#9ca3af]">{hint}</p>
+      ) : (
+        <span className="mt-auto block min-h-[1.125rem]" aria-hidden />
+      )}
     </div>
   );
 }

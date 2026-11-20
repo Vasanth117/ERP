@@ -1,0 +1,26 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function SatelliteDishIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M4 10C3.18444 11.3951 2.85414 13.0211 3.06072 14.6238C3.26731 16.2265 3.99913 17.7155 5.14179 18.8582C6.28445 20.0009 7.77353 20.7327 9.37624 20.9393C10.9789 21.1459 12.6049 20.8156 14 20L4 10Z"/>
+      <path d="M9 15L12 12"/>
+      <path d="M17 13C17 11.4087 16.3679 9.88258 15.2426 8.75736C14.1174 7.63214 12.5913 7 11 7"/>
+      <path d="M21 13C21 10.3478 19.9464 7.8043 18.0711 5.92893C16.1957 4.05357 13.6522 3 11 3"/>
+
+    </svg>
+  );
+}

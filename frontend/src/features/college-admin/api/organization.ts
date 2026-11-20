@@ -1,4 +1,6 @@
 import { apiRequest } from "@/lib/api/client";
+import { itemsFromListResponse, totalFromListResponse } from "@/features/college-admin/api/normalize";
+import type { ApiPage } from "@/features/college-admin/types/dashboard";
 
 export type Department = {
   department_id: string;
@@ -21,8 +23,23 @@ export type OrganizationUnit = {
   parent_unit_id: string | null;
 };
 
+export async function fetchDepartmentsPage(
+  limit = 200,
+  offset = 0,
+): Promise<ApiPage<Department>> {
+  return apiRequest(
+    `/college-admin/departments?limit=${limit}&offset=${offset}`,
+  );
+}
+
 export async function fetchDepartments(): Promise<Department[]> {
-  return apiRequest("/college-admin/departments");
+  const page = await fetchDepartmentsPage();
+  return itemsFromListResponse<Department>(page);
+}
+
+export async function fetchDepartmentsTotal(): Promise<number> {
+  const page = await fetchDepartmentsPage(1, 0);
+  return totalFromListResponse(page);
 }
 
 export async function fetchDepartment(id: string): Promise<Department> {

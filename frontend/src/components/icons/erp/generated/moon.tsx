@@ -1,0 +1,23 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function MoonIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M12 3C10.8065 4.19347 10.136 5.81217 10.136 7.5C10.136 9.18783 10.8065 10.8065 12 12C13.1935 13.1935 14.8122 13.864 16.5 13.864C18.1878 13.864 19.8065 13.1935 21 12C21 13.78 20.4722 15.5201 19.4832 17.0001C18.4943 18.4802 17.0887 19.6337 15.4441 20.3149C13.7996 20.9961 11.99 21.1743 10.2442 20.8271C8.49836 20.4798 6.89471 19.6226 5.63604 18.364C4.37736 17.1053 3.5202 15.5016 3.17293 13.7558C2.82566 12.01 3.00389 10.2004 3.68508 8.55585C4.36627 6.91131 5.51982 5.50571 6.99986 4.51677C8.47991 3.52784 10.22 3 12 3Z"/>
+
+    </svg>
+  );
+}

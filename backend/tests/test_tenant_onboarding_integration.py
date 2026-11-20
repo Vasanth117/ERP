@@ -75,7 +75,7 @@ async def test_duplicate_tenant_code_rejected(db_ready) -> None:
         await register_tenant(scope, payload)
     assert exc.value.code == "CONFLICT"
 
-
+    
 @pytest.mark.anyio
 async def test_duplicate_domain_rejected(db_ready) -> None:
     scope = _super_admin_scope()

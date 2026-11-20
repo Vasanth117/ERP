@@ -1,0 +1,27 @@
+import type { SVGProps } from "react";
+
+import { cn } from "@/lib/utils";
+
+export function ListRestartIcon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={cn("size-6 shrink-0", className)}
+      aria-hidden
+      {...props}
+    >
+      <path d="M21 6H3"/>
+      <path d="M7 12H3"/>
+      <path d="M7 18H3"/>
+      <path d="M12 18C12.6296 18.8395 13.5075 19.4597 14.5092 19.7726C15.5108 20.0855 16.5856 20.0753 17.5811 19.7434C18.5767 19.4116 19.4426 18.7749 20.0562 17.9236C20.6698 17.0722 21 16.0494 21 15C21 13.8065 20.5259 12.6619 19.682 11.818C18.8381 10.9741 17.6935 10.5 16.5 10.5C15.17 10.5 13.96 11.04 13.09 11.91L11 14"/>
+      <path d="M11 10V14H15"/>
+
+    </svg>
+  );
+}

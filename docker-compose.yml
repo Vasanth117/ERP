@@ -1,7 +1,6 @@
 # Local stack for the ERP API.
 # Kafka is intentionally absent: it is an optional later event-streaming path.
 # RabbitMQ is the broker for Celery jobs.
-
 services:
   mongodb:
     image: mongo:7
