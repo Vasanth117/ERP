@@ -10,13 +10,20 @@ import {
 import { PageHeading } from "@/features/college-admin/components/layout/page-heading";
 import { CollegeOverviewDashboard } from "@/features/college-admin/components/dashboard/college-overview-dashboard";
 import { InstitutionalOverviewDashboard } from "@/features/college-admin/components/dashboard/institutional-overview-dashboard";
+import { AcademicPerformanceDashboard } from "@/features/college-admin/components/dashboard/academic-performance-dashboard";
+import { AttendanceOverviewDashboard } from "@/features/college-admin/components/dashboard/attendance-overview-dashboard";
+import { ExaminationOverviewDashboard } from "@/features/college-admin/components/dashboard/examination-overview-dashboard";
+import { FinanceSummaryDashboard } from "@/features/college-admin/components/dashboard/finance-summary-dashboard";
+import { PendingApprovalsDashboard } from "@/features/college-admin/components/dashboard/pending-approvals-dashboard";
+import { RecentActivitiesDashboard } from "@/features/college-admin/components/dashboard/recent-activities-dashboard";
+import { AlertsDashboard } from "@/features/college-admin/components/dashboard/alerts-dashboard";
+import { DepartmentPerformanceDashboard } from "@/features/college-admin/components/dashboard/department-performance-dashboard";
+import { FacultyStatisticsDashboard } from "@/features/college-admin/components/dashboard/faculty-statistics-dashboard";
 import { StudentStatisticsDashboard } from "@/features/college-admin/components/dashboard/student-statistics-dashboard";
 import {
   useDashboardOverview,
   useDashboardStatistics,
   useOperationalSummaries,
-  usePendingApprovals,
-  useRecentActivities,
 } from "@/features/college-admin/hooks/use-dashboard";
 
 function formatMoney(value: number) {
@@ -131,132 +138,39 @@ export function StudentStatisticsView() {
 }
 
 export function FacultyStatisticsView() {
-  const q = useDashboardStatistics();
-  return (
-    <DashboardStatsShell
-      frame="65:1116"
-      title="Faculty & employee statistics"
-      query={q}
-      emphasis="faculty"
-    />
-  );
+  return <FacultyStatisticsDashboard />;
 }
 
 export function DepartmentPerformanceView() {
-  const q = useDashboardStatistics();
-  return (
-    <DashboardStatsShell
-      frame="65:1592"
-      title="Department performance"
-      query={q}
-      emphasis="departments"
-    />
-  );
+  return <DepartmentPerformanceDashboard />;
 }
 
 export function AcademicAnalyticsView() {
-  const q = useOperationalSummaries();
-  return <OperationalView frame="66:1973" title="Academic performance" query={q} />;
+  return <AcademicPerformanceDashboard />;
 }
 
 export function AttendanceOverviewView() {
-  const q = useOperationalSummaries();
-  return <OperationalView frame="66:2485" title="Attendance overview" query={q} section="attendance" />;
+  return <AttendanceOverviewDashboard />;
 }
 
 export function ExaminationOverviewView() {
-  const q = useOperationalSummaries();
-  return <OperationalView frame="66:2970" title="Examination overview" query={q} section="exams" />;
+  return <ExaminationOverviewDashboard />;
 }
 
 export function FinanceSummaryView() {
-  const q = useOperationalSummaries();
-  return <OperationalView frame="66:3440" title="Finance summary" query={q} section="finance" />;
+  return <FinanceSummaryDashboard />;
 }
 
 export function PendingApprovalsView() {
-  const q = usePendingApprovals();
-  return (
-    <div data-figma-frame="67:3905">
-      <PageHeading title="Pending approvals dashboard" figmaFrame="67:3905" />
-      <QueryState
-        isLoading={q.isLoading}
-        isError={q.isError}
-        error={q.error}
-        isEmpty={!q.data?.items.length}
-        emptyMessage="No pending approvals."
-        onRetry={() => void q.refetch()}
-      >
-        <ul className="divide-y rounded-xl border border-[#dce3ec] bg-white">
-          {q.data?.items.map((item) => (
-            <li key={item.reference_id} className="px-4 py-3 text-sm">
-              <p className="font-medium text-[#172b45]">{item.title}</p>
-              <p className="text-[#607086]">
-                {item.category} · {new Date(item.submitted_at).toLocaleString()}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </QueryState>
-    </div>
-  );
+  return <PendingApprovalsDashboard />;
 }
 
 export function RecentActivitiesView() {
-  const q = useRecentActivities();
-  return (
-    <div data-figma-frame="67:4394">
-      <PageHeading title="Recent institutional activities" figmaFrame="67:4394" />
-      <QueryState
-        isLoading={q.isLoading}
-        isError={q.isError}
-        error={q.error}
-        isEmpty={!q.data?.items.length}
-        onRetry={() => void q.refetch()}
-      >
-        <ul className="divide-y rounded-xl border border-[#dce3ec] bg-white">
-          {q.data?.items.map((item) => (
-            <li key={item.activity_id} className="px-4 py-3 text-sm">
-              <p className="font-medium text-[#172b45]">{item.title}</p>
-              <p className="text-[#607086]">
-                {item.actor_label ?? "System"} ·{" "}
-                {new Date(item.occurred_at).toLocaleString()}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </QueryState>
-    </div>
-  );
+  return <RecentActivitiesDashboard />;
 }
 
 export function AlertsDashboardView() {
-  const { data, isLoading, isError, error, refetch } = useDashboardOverview();
-  return (
-    <div data-figma-frame="67:4882">
-      <PageHeading
-        title="Important alerts & notifications"
-        figmaFrame="67:4882"
-        onRefresh={() => void refetch()}
-      />
-      <QueryState
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        isEmpty={!data?.notifications.length}
-        onRetry={() => void refetch()}
-      >
-        <ul className="divide-y rounded-xl border border-[#dce3ec] bg-white">
-          {data?.notifications.map((n, idx) => (
-            <li key={`${n.title}-${idx}`} className="px-4 py-3 text-sm">
-              <p className="font-medium text-[#172b45]">{n.title}</p>
-              <p className="text-[#607086]">{n.message}</p>
-            </li>
-          ))}
-        </ul>
-      </QueryState>
-    </div>
-  );
+  return <AlertsDashboard />;
 }
 
 function DashboardStatsShell({
@@ -292,7 +206,7 @@ function DashboardStatsShell({
 
   return (
     <div data-figma-frame={frame}>
-      <PageHeading title={title} figmaFrame={frame} onRefresh={() => void query.refetch()} />
+      <PageHeading title={title} figmaFrame={frame} />
       <QueryState
         isLoading={query.isLoading}
         isError={query.isError}
@@ -327,7 +241,7 @@ function OperationalView({
   const d = query.data;
   return (
     <div data-figma-frame={frame}>
-      <PageHeading title={title} figmaFrame={frame} onRefresh={() => void query.refetch()} />
+      <PageHeading title={title} figmaFrame={frame} />
       <QueryState
         isLoading={query.isLoading}
         isError={query.isError}

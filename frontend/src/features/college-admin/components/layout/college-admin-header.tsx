@@ -43,17 +43,6 @@ export function CollegeAdminHeader() {
         <span className="text-[11px] font-semibold text-[#607086]">{term}</span>
       </div>
 
-      <div className="flex items-center gap-1.5 rounded bg-[#ebf2ff] px-2 py-1">
-        <CollegeAdminIcon
-          name="h-404d1"
-          size={6}
-          className="size-1.5 shrink-0 fill-[#245dd8] text-[#245dd8]"
-        />
-        <span className="text-[11px] font-semibold text-[#245dd8]">
-          College scope
-        </span>
-      </div>
-
       <button
         type="button"
         className="rounded p-1 hover:bg-[#f5f8ff]"

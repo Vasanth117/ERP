@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
+import { FilterIcon } from "@/components/icons/erp/generated/filter";
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminChevronDown,
   CollegeAdminDownload,
-  CollegeAdminRefreshCw,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchAcademicYears, fetchProgrammes } from "@/features/college-admin/api/academics";
 import { QueryState, StatCard } from "@/features/college-admin/components/ui/query-state";
@@ -24,36 +25,6 @@ const STUDY_YEAR_OPTIONS = [
   { value: "4", label: "Year 4" },
 ];
 
-function formatUpdatedAt(iso: string | undefined) {
-  if (!iso) return "—";
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "Asia/Kolkata",
-      timeZoneName: "short",
-    }).format(new Date(iso));
-  } catch {
-    return "—";
-  }
-}
-
-function formatSnapshotFooter(iso: string | undefined) {
-  if (!iso) return "—";
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "Asia/Kolkata",
-      timeZoneName: "short",
-    }).format(new Date(iso));
-  } catch {
-    return "—";
-  }
-}
 
 function Panel({
   title,
@@ -186,6 +157,10 @@ function DistributionBars({ items }: { items: DistributionItem[] }) {
   );
 }
 
+function formatAyLabel(label: string) {
+  return label.replace(/-/g, "–");
+}
+
 function FilterSelect({
   value,
   onChange,
@@ -194,6 +169,7 @@ function FilterSelect({
   disabled,
   "aria-label": ariaLabel,
   className,
+  leadingIcon,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -202,16 +178,29 @@ function FilterSelect({
   disabled?: boolean;
   "aria-label"?: string;
   className?: string;
+  leadingIcon?: ReactNode;
 }) {
   return (
-    <div className={cn("relative inline-flex min-w-0", className)}>
+    <div className={cn("relative inline-flex min-w-[8.75rem]", className)}>
+      {leadingIcon ? (
+        <span
+          className={cn(
+            "pointer-events-none absolute left-2.5 top-1/2 z-[1] -translate-y-1/2",
+            active ? "text-[#245dd8]" : "text-[#6b7280]",
+          )}
+          aria-hidden
+        >
+          {leadingIcon}
+        </span>
+      ) : null}
       <select
         aria-label={ariaLabel}
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "w-full min-w-0 cursor-pointer appearance-none truncate rounded-md border py-1.5 pl-3 pr-8 text-xs outline-none transition-colors",
+          "w-full min-w-[8.75rem] cursor-pointer appearance-none truncate rounded-md border py-1.5 pr-8 text-xs outline-none transition-colors",
+          leadingIcon ? "pl-8" : "pl-3",
           active
             ? "border-[#245dd8] bg-[#eef4ff] font-medium text-[#245dd8]"
             : "border-[#e5e7eb] bg-white text-[#374151]",
@@ -257,11 +246,43 @@ export function StudentStatisticsDashboard() {
     queryFn: fetchProgrammes,
   });
 
-  const effectiveYear =
-    academicYear ||
-    data?.filters.academic_year_label ||
-    data?.academic_term.academic_year_label ||
-    "";
+  const academicYearOptions = useMemo(() => {
+    const labels = new Set<string>();
+    for (const y of yearsQ.data ?? []) {
+      if (y.label?.trim()) {
+        labels.add(y.label.trim());
+      }
+    }
+    const fromStats =
+      data?.filters.academic_year_label?.trim() ||
+      data?.academic_term.academic_year_label?.trim();
+    if (fromStats) {
+      labels.add(fromStats);
+    }
+    return Array.from(labels).sort((a, b) => b.localeCompare(a));
+  }, [yearsQ.data, data?.filters.academic_year_label, data?.academic_term.academic_year_label]);
+
+  const defaultAcademicYear = useMemo(() => {
+    const current = (yearsQ.data ?? []).find((y) => y.is_current)?.label?.trim();
+    if (current) return current;
+    return (
+      data?.filters.academic_year_label?.trim() ||
+      data?.academic_term.academic_year_label?.trim() ||
+      academicYearOptions[0] ||
+      ""
+    );
+  }, [yearsQ.data, data, academicYearOptions]);
+
+  useEffect(() => {
+    if (academicYear || !defaultAcademicYear) return;
+    setAcademicYear(defaultAcademicYear);
+  }, [academicYear, defaultAcademicYear]);
+
+  const selectedAcademicYear = useMemo(() => {
+    if (academicYear) return academicYear;
+    if (defaultAcademicYear) return defaultAcademicYear;
+    return academicYearOptions[0] ?? "";
+  }, [academicYear, academicYearOptions, defaultAcademicYear]);
 
   const handleExport = useCallback(() => {
     if (!data) return;
@@ -332,16 +353,6 @@ export function StudentStatisticsDashboard() {
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Button
             type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#e5e7eb] bg-white text-xs font-medium text-[#374151]"
-            onClick={() => void refetch()}
-            disabled={isLoading}
-          >
-            <CollegeAdminRefreshCw className="size-3.5" />
-            Refresh
-          </Button>
-          <Button
-            type="button"
             className="h-9 gap-1.5 border border-[#245dd8] bg-[#245dd8] text-xs font-medium text-white hover:bg-[#1f4fb8]"
             onClick={handleExport}
             disabled={isLoading || !data}
@@ -354,22 +365,28 @@ export function StudentStatisticsDashboard() {
 
       <div className="flex flex-wrap items-center gap-2">
         <FilterSelect
-          value={academicYear || effectiveYear}
+          value={selectedAcademicYear || "__placeholder__"}
           onChange={setAcademicYear}
-          active={Boolean(academicYear || effectiveYear)}
+          active={Boolean(selectedAcademicYear)}
           aria-label="Academic year"
-          className="max-w-[8.5rem]"
-          disabled={yearsQ.isLoading && !effectiveYear}
+          className="min-w-[9.5rem]"
+          leadingIcon={<CalendarIcon className="size-3.5" />}
+          disabled={yearsQ.isLoading && academicYearOptions.length === 0}
         >
-          {(yearsQ.data ?? [])
-            .filter((y) => y.label)
-            .map((y) => (
-              <option key={y.year_id ?? y.label} value={y.label}>
-                {y.label}
-              </option>
-            ))}
-          {!yearsQ.data?.length && effectiveYear ? (
-            <option value={effectiveYear}>{effectiveYear}</option>
+          {selectedAcademicYear || academicYearOptions.length > 0 ? null : (
+            <option value="__placeholder__" disabled>
+              {yearsQ.isLoading ? "Loading…" : "Academic year"}
+            </option>
+          )}
+          {academicYearOptions.map((label) => (
+            <option key={label} value={label}>
+              {formatAyLabel(label)}
+            </option>
+          ))}
+          {selectedAcademicYear && !academicYearOptions.includes(selectedAcademicYear) ? (
+            <option value={selectedAcademicYear}>
+              {formatAyLabel(selectedAcademicYear)}
+            </option>
           ) : null}
         </FilterSelect>
 
@@ -378,7 +395,8 @@ export function StudentStatisticsDashboard() {
           onChange={setProgrammeCode}
           active={Boolean(programmeCode)}
           aria-label="Programme"
-          className="max-w-[11rem]"
+          className="min-w-[11.5rem]"
+          leadingIcon={<FilterIcon className="size-3.5" />}
           disabled={programmesQ.isLoading}
         >
           <option value="">All programmes</option>
@@ -394,7 +412,8 @@ export function StudentStatisticsDashboard() {
           onChange={setStudyYear}
           active={Boolean(studyYear)}
           aria-label="Study year"
-          className="max-w-[7.5rem]"
+          className="min-w-[8.5rem]"
+          leadingIcon={<FilterIcon className="size-3.5" />}
         >
           {STUDY_YEAR_OPTIONS.map((opt) => (
             <option key={opt.value || "all"} value={opt.value}>
@@ -403,14 +422,6 @@ export function StudentStatisticsDashboard() {
           ))}
         </FilterSelect>
 
-        <span className="inline-flex items-center gap-1.5 rounded-md border border-[#e5e7eb] bg-white px-3 py-1.5 text-xs text-[#374151]">
-          <span className="size-1.5 rounded-full bg-[#245dd8]" />
-          College scope
-        </span>
-
-        <p className="ml-auto text-xs text-[#9ca3af]">
-          Updated {formatUpdatedAt(data?.generated_at)}
-        </p>
       </div>
 
       <QueryState
@@ -557,7 +568,6 @@ export function StudentStatisticsDashboard() {
               <span>
                 Live institutional data · Student, hostel and admission records · All times IST
               </span>
-              <span>Snapshot · {formatSnapshotFooter(data.generated_at)}</span>
             </footer>
           </>
         ) : (

@@ -11,6 +11,7 @@ export type AcademicTerm = {
   term_id: string;
   label: string;
   academic_year_id?: string;
+  is_current?: boolean;
 };
 
 export type Programme = {

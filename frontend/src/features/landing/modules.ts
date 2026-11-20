@@ -8,6 +8,8 @@ export type LandingModule = {
 
 const moduleWorkspaces: Record<string, string> = {
   institution: "/college-admin/dashboard",
+  "student-academic": "/student/home",
+  performance: "/student/home",
 };
 
 /** Module cards route to workspaces when implemented; otherwise Figma “Page Under Construction”. */

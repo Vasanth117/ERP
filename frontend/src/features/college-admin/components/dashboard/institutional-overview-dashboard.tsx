@@ -387,14 +387,6 @@ export function InstitutionalOverviewDashboard() {
               </div>
             </div>
 
-            <p className="border-t border-[#f1f5f9] pt-4 text-[11px] text-[#9ca3af]">
-              Snapshot generated{" "}
-              {new Intl.DateTimeFormat("en-IN", {
-                dateStyle: "medium",
-                timeStyle: "short",
-                timeZone: profile?.timezone ?? undefined,
-              }).format(new Date(data.generated_at))}
-            </p>
           </>
         ) : null}
       </QueryState>

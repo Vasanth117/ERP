@@ -26,6 +26,23 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "institutional-overview"] as const,
   studentStatistics: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "student-statistics", params ?? {}] as const,
+  facultyStatistics: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-statistics", params ?? {}] as const,
+  departmentPerformance: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "department-performance", params ?? {}] as const,
+  academicPerformance: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "academic-performance", params ?? {}] as const,
+  attendanceOverview: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "attendance-overview", params ?? {}] as const,
+  examinationOverview: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "examination-overview", params ?? {}] as const,
+  financeOverview: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "finance-overview", params ?? {}] as const,
+  pendingApprovalsOverview: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "pending-approvals-overview", params ?? {}] as const,
+  recentActivitiesOverview: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "recent-activities-overview", params ?? {}] as const,
+  alertsOverview: () => [...collegeAdminQueryKeys.all, "alerts-overview"] as const,
   campuses: (activeOnly?: boolean) =>
     [...collegeAdminQueryKeys.all, "campuses", activeOnly ?? false] as const,
   campus: (id: string) => [...collegeAdminQueryKeys.all, "campus", id] as const,
