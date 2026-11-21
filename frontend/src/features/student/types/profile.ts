@@ -5,6 +5,28 @@ export type EmergencyContact = {
   email?: string | null;
 };
 
+export type GuardianContact = {
+  name: string;
+  relationship: string;
+  phone: string;
+  email?: string | null;
+  occupation?: string | null;
+};
+
+export type StudentOfficialPersonal = {
+  gender?: string | null;
+  date_of_birth?: string | null;
+  nationality?: string | null;
+  mother_tongue?: string | null;
+  blood_group?: string | null;
+  religion?: string | null;
+  community?: string | null;
+  aadhaar_masked?: string | null;
+  alternate_mobile?: string | null;
+  personal_email?: string | null;
+  identity_documents_verified?: boolean;
+};
+
 export type ProfileDocumentRef = {
   ref: string;
   label: string;
@@ -25,7 +47,10 @@ export type StudentProfile = {
   batch_label: string | null;
   section_code: string | null;
   contact_phone: string | null;
+  alternate_contact_phone: string | null;
   alternate_email: string | null;
+  official_personal?: StudentOfficialPersonal | null;
+  guardians?: GuardianContact[];
   permanent_address: string | null;
   current_address: string | null;
   emergency_contacts: EmergencyContact[];
@@ -37,6 +62,7 @@ export type StudentProfile = {
 
 export type StudentProfileUpdate = {
   contact_phone?: string | null;
+  alternate_contact_phone?: string | null;
   alternate_email?: string | null;
   permanent_address?: string | null;
   current_address?: string | null;

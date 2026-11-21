@@ -46,6 +46,7 @@ class StudentProfileSummary(BaseModel):
 class AcademicTermInfo(BaseModel):
     academic_year_label: str | None = None
     semester_label: str | None = None
+    semester_number: int | None = Field(default=None, ge=1, le=12)
 
 
 class EnrolledCourseSummary(BaseModel):
@@ -149,6 +150,28 @@ class StudentDashboardStats(BaseModel):
     unread_notification_count: int = 0
 
 
+class GuardianContactRead(BaseModel):
+    name: str
+    relationship: str
+    phone: str
+    email: str | None = None
+    occupation: str | None = None
+
+
+class StudentOfficialPersonalRead(BaseModel):
+    gender: str | None = None
+    date_of_birth: date | None = None
+    nationality: str | None = None
+    mother_tongue: str | None = None
+    blood_group: str | None = None
+    religion: str | None = None
+    community: str | None = None
+    aadhaar_masked: str | None = None
+    alternate_mobile: str | None = None
+    personal_email: str | None = None
+    identity_documents_verified: bool = False
+
+
 class StudentProfileRead(BaseModel):
     user_id: str
     full_name: str
@@ -164,7 +187,10 @@ class StudentProfileRead(BaseModel):
     batch_label: str | None = None
     section_code: str | None = None
     contact_phone: str | None = None
+    alternate_contact_phone: str | None = None
     alternate_email: EmailStr | None = None
+    official_personal: StudentOfficialPersonalRead | None = None
+    guardians: list[GuardianContactRead] = Field(default_factory=list)
     permanent_address: str | None = None
     current_address: str | None = None
     emergency_contacts: list[EmergencyContact] = Field(default_factory=list)
@@ -181,6 +207,8 @@ class StudentProfileRead(BaseModel):
         full_name: str,
         email: str,
         department_name: str | None,
+        official_personal: StudentOfficialPersonalRead | None = None,
+        guardians: list[GuardianContactRead] | None = None,
     ) -> "StudentProfileRead":
         return cls(
             user_id=str(profile.user_id),
@@ -197,7 +225,10 @@ class StudentProfileRead(BaseModel):
             batch_label=profile.batch_label,
             section_code=profile.section_code,
             contact_phone=profile.contact_phone,
+            alternate_contact_phone=profile.alternate_contact_phone,
             alternate_email=profile.alternate_email,  # type: ignore[arg-type]
+            official_personal=official_personal,
+            guardians=guardians or [],
             permanent_address=profile.permanent_address,
             current_address=profile.current_address,
             emergency_contacts=profile.emergency_contacts,
@@ -210,6 +241,7 @@ class StudentProfileRead(BaseModel):
 
 class StudentProfileUpdate(BaseModel):
     contact_phone: str | None = Field(default=None, max_length=32)
+    alternate_contact_phone: str | None = Field(default=None, max_length=32)
     alternate_email: EmailStr | None = None
     permanent_address: str | None = Field(default=None, max_length=1000)
     current_address: str | None = Field(default=None, max_length=1000)
@@ -279,12 +311,32 @@ class AcademicEligibilityRead(BaseModel):
     cgpa: float | None = None
 
 
+class StudentAcademicInformationRead(BaseModel):
+    """ST 01.04 academic information panel (read-only)."""
+
+    regulation_label: str | None = None
+    admission_type: str | None = None
+    batch_display: str | None = None
+    current_semester_number: int | None = Field(default=None, ge=1, le=12)
+
+
+class StudentAcademicAdvisorRead(BaseModel):
+    """Class advisor and mentor shown on ST 01.04."""
+
+    class_advisor_name: str | None = None
+    mentor_name: str | None = None
+
+
 class AcademicDetailsRead(BaseModel):
     admission: AdmissionInfoRead
     enrollment_status: EnrollmentStatusRead
     department_programme: DepartmentProgrammeRead
     current_enrollments: list[EnrollmentLineRead]
     academic_record: AcademicEligibilityRead | None = None
+    academic_information: StudentAcademicInformationRead = Field(
+        default_factory=StudentAcademicInformationRead
+    )
+    advisors: StudentAcademicAdvisorRead = Field(default_factory=StudentAcademicAdvisorRead)
 
 
 class EnrollmentRequestCreate(BaseModel):

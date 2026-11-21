@@ -1,0 +1,2 @@
+export { StudentProfileUpdateRequestsScreen } from "@/features/student/components/screens/profile-update-requests-screen";
+export { StudentDocumentsOverviewScreen as StudentDocumentsScreen } from "@/features/student/components/screens/student-documents-overview-screen";

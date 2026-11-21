@@ -57,12 +57,26 @@ export type AcademicEligibility = {
   cgpa: number | null;
 };
 
+export type StudentAcademicInformation = {
+  regulation_label: string | null;
+  admission_type: string | null;
+  batch_display: string | null;
+  current_semester_number: number | null;
+};
+
+export type StudentAcademicAdvisor = {
+  class_advisor_name: string | null;
+  mentor_name: string | null;
+};
+
 export type AcademicDetails = {
   admission: AdmissionInfo;
   enrollment_status: EnrollmentStatus;
   department_programme: DepartmentProgramme;
   current_enrollments: EnrollmentLine[];
   academic_record: AcademicEligibility | null;
+  academic_information: StudentAcademicInformation;
+  advisors: StudentAcademicAdvisor;
 };
 
 export type EnrollmentRequestCreate = {

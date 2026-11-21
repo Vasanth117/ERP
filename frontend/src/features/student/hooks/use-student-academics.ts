@@ -17,6 +17,7 @@ export function useAcademicDetails() {
   return useQuery({
     queryKey: studentQueryKeys.academics(),
     queryFn: fetchAcademicDetails,
+    retry: false,
   });
 }
 
@@ -24,6 +25,7 @@ export function useEnrollmentStatus() {
   return useQuery({
     queryKey: studentQueryKeys.enrollmentStatus(),
     queryFn: fetchEnrollmentStatus,
+    retry: false,
   });
 }
 

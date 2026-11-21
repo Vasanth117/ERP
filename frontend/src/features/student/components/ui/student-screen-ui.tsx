@@ -3,9 +3,11 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PORTAL_PAGE_DESC, PORTAL_PAGE_TITLE } from "@/lib/portal/shell-styles";
 import { cn } from "@/lib/utils";
 
-export { QueryState, StatCard } from "@/features/college-admin/components/ui/query-state";
+export { QueryState, StatCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/query-state";
+export { CollegeAdminDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 
 export function SectionPanel({
   title,
@@ -13,22 +15,27 @@ export function SectionPanel({
   actionHref,
   actionLabel,
   className,
+  variant = "default",
 }: {
   title: string;
   children: ReactNode;
   actionHref?: string;
   actionLabel?: string;
   className?: string;
+  variant?: "default" | "subtle";
 }) {
   return (
     <section
       className={cn(
-        "rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-5",
+        "rounded-lg border border-[#e8ecf2] p-4 sm:p-5",
+        variant === "subtle"
+          ? "bg-[#fafbfc] shadow-none"
+          : "bg-white shadow-[0_1px_2px_rgba(23,43,69,0.04)]",
         className,
       )}
     >
       <div className="mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
+        <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-[#111827]">{title}</h3>
         {actionHref && actionLabel ? (
           <Link
             href={actionHref}
@@ -43,29 +50,27 @@ export function SectionPanel({
   );
 }
 
+/** In-page heading — module title + tabs live in `StudentPortalChrome`. */
 export function PageHeading({
   title,
   description,
   figmaPage,
 }: {
-  title: string;
+  title?: string;
   description?: string;
   figmaPage?: string;
 }) {
+  if (!title && !description) return null;
   return (
-    <header className="mb-6 flex flex-col gap-2 border-b border-[#e8ecf2] pb-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-[1.35rem] font-semibold tracking-tight text-[#111827]">{title}</h1>
-        {figmaPage ? (
-          <span className="rounded-md bg-[#eff6ff] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[#1d4ed8]">
-            {figmaPage}
-          </span>
-        ) : null}
-      </div>
+    <div
+      className="mb-5"
+      data-figma-page={figmaPage}
+    >
+      {title ? <h2 className={PORTAL_PAGE_TITLE}>{title}</h2> : null}
       {description ? (
-        <p className="max-w-3xl text-sm text-[#6b7280]">{description}</p>
+        <p className={cn(PORTAL_PAGE_DESC, "max-w-3xl", title && "mt-1.5")}>{description}</p>
       ) : null}
-    </header>
+    </div>
   );
 }
 

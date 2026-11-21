@@ -128,7 +128,11 @@ async def get_student_dashboard(
     context = await _reader.current_academic_context(tenant_id)
     year = context.academic_year_label if context else "N/A"
     semester = context.semester_label if context else "N/A"
-    academic_term = AcademicTermInfo(academic_year_label=context.academic_year_label if context else None, semester_label=context.semester_label if context else None)
+    academic_term = AcademicTermInfo(
+        academic_year_label=context.academic_year_label if context else None,
+        semester_label=context.semester_label if context else None,
+        semester_number=context.semester_number if context else None,
+    )
 
     enrolled_courses = (
         await _resolve_enrollments(scope, user, year, semester) if context else []

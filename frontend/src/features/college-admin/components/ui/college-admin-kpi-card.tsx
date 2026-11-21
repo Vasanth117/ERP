@@ -60,6 +60,10 @@ export function collegeAdminKpiToneForIndex(index: number): CollegeAdminKpiTone 
   return COLLEGE_ADMIN_KPI_TONES[Math.abs(index) % COLLEGE_ADMIN_KPI_TONES.length]!;
 }
 
+export function collegeAdminKpiToneStyles(tone: CollegeAdminKpiTone) {
+  return TONE_STYLES[tone];
+}
+
 export function collegeAdminKpiToneForKey(key: string): CollegeAdminKpiTone {
   let hash = 0;
   for (let i = 0; i < key.length; i += 1) {

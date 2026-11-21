@@ -17,6 +17,7 @@ export type StudentProfileSummary = {
 export type AcademicTermInfo = {
   academic_year_label: string | null;
   semester_label: string | null;
+  semester_number?: number | null;
 };
 
 export type EnrolledCourseSummary = {

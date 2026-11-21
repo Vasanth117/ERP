@@ -161,6 +161,29 @@ class StudentDocumentPortalRead(BaseModel):
     title: str
 
 
+class StudentRecordDocumentRead(BaseModel):
+    document_id: str
+    title: str
+    category: str
+    uploaded_at: datetime | None
+    verified: bool
+    file_format: str
+    download_available: bool
+    source: str = Field(description="record | academic")
+
+
+class StudentRecordDocumentDownloadRead(BaseModel):
+    document_id: str
+    document_type: str
+    download_token: str
+    expires_at: datetime
+    file_name: str | None = None
+
+
+class StudentRecordDocumentBulkDownloadRead(BaseModel):
+    items: list[StudentRecordDocumentDownloadRead]
+
+
 class DocumentRequestInput(BaseModel):
     request_type: str
     reason: str | None = Field(default=None, max_length=2000)

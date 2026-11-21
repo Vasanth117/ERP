@@ -173,6 +173,7 @@ class StudentGuardianRelationship(Document):
     relationship: str = Field(max_length=64)
     phone: str = Field(max_length=32)
     email: str | None = Field(default=None, max_length=254)
+    occupation: str | None = Field(default=None, max_length=120)
     portal_access_allowed: bool = False
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

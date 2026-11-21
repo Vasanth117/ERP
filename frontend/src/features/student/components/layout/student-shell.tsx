@@ -1,16 +1,17 @@
 import type { ReactNode } from "react";
 
-import { StudentHeader } from "@/features/student/components/layout/student-header";
+import { StudentPortalChrome } from "@/features/student/components/layout/student-portal-chrome";
 import { StudentSidebar } from "@/features/student/components/layout/student-sidebar";
+import { PORTAL_CONTENT_COLUMN, PORTAL_MAIN, PORTAL_SHELL } from "@/lib/portal/shell-styles";
 
+/** Student shell matches college admin: sidebar + main column (no top search header). */
 export function StudentShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className={PORTAL_SHELL}>
       <StudentSidebar />
-      <div className="flex min-w-0 flex-1 flex-col bg-white">
-        <StudentHeader />
-        <main className="flex-1 overflow-auto bg-[#f8fafc] px-6 py-5 md:px-8 md:py-6">
-          {children}
+      <div className={PORTAL_CONTENT_COLUMN}>
+        <main className={PORTAL_MAIN}>
+          <StudentPortalChrome>{children}</StudentPortalChrome>
         </main>
       </div>
     </div>

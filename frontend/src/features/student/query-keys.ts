@@ -2,9 +2,15 @@ export const studentQueryKeys = {
   all: ["student"] as const,
   dashboard: (range?: string) => [...studentQueryKeys.all, "dashboard", range ?? "week"] as const,
   dashboardStats: () => [...studentQueryKeys.all, "dashboard-stats"] as const,
+  dashboardCgpa: () => [...studentQueryKeys.all, "dashboard-cgpa"] as const,
+  dashboardBacklog: () => [...studentQueryKeys.all, "dashboard-backlog"] as const,
   dashboardActivities: (limit: number, offset: number) =>
     [...studentQueryKeys.all, "dashboard-activities", limit, offset] as const,
   profile: () => [...studentQueryKeys.all, "profile"] as const,
+  profileCorrections: () => [...studentQueryKeys.all, "profile-corrections"] as const,
+  recordDocuments: () => [...studentQueryKeys.all, "record-documents"] as const,
+  communicationPreferences: () =>
+    [...studentQueryKeys.all, "communication-preferences"] as const,
   profileActivities: (limit: number, offset: number) =>
     [...studentQueryKeys.all, "profile-activities", limit, offset] as const,
   academics: () => [...studentQueryKeys.all, "academics"] as const,

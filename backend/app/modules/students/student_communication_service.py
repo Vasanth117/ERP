@@ -29,6 +29,7 @@ from app.modules.students.student_portal_models import (
     StudentNotificationReadStatus,
     StudentProfileCorrectionRequest,
 )
+from app.modules.students.profile_correction_fields import ALLOWED_CORRECTION_FIELDS as _ALLOWED_CORRECTION_FIELDS
 from app.modules.students.student_portal_schemas import (
     AnnouncementFeedRead,
     CommunicationPreferencesRead,
@@ -41,7 +42,6 @@ from app.modules.students.student_portal_schemas import (
 
 _reader = StudentDataReader()
 _DOC_TYPES = frozenset(t.value for t in StudentDocumentPortalType)
-_ALLOWED_CORRECTION_FIELDS = frozenset({"roll_number", "admission_number", "programme_name", "section_code", "display_name"})
 
 
 async def _read_map(tenant_id: PydanticObjectId, user_id: PydanticObjectId) -> dict[str, StudentNotificationReadStatus]:
@@ -384,8 +384,11 @@ async def correction_history(scope: AccessScope, user: User) -> list[dict]:
         {
             "request_id": r.request_id,
             "field_name": r.field_name,
+            "proposed_value": r.proposed_value,
+            "reason": r.reason,
             "status": r.status.value,
             "created_at": r.created_at,
+            "updated_at": r.updated_at,
         }
         for r in rows
     ]

@@ -27,6 +27,14 @@ class StudentDocumentPortalType(str, Enum):
     OTHER = "other"
 
 
+class StudentRecordDocumentCategory(str, Enum):
+    IDENTITY = "identity"
+    ACADEMIC = "academic"
+    ADMISSION = "admission"
+    FINANCIAL = "financial"
+    OTHER = "other"
+
+
 class StudentDocumentRequestStatus(str, Enum):
     SUBMITTED = "submitted"
     UNDER_REVIEW = "under_review"

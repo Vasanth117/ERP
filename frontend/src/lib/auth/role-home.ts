@@ -2,7 +2,7 @@
 export function homePathForRole(role: string): string {
   switch (role) {
     case "student":
-      return "/student/home";
+      return "/student/dashboard";
     case "parent":
       return "/under-construction?module=parent";
     case "college_admin":

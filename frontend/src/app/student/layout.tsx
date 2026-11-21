@@ -6,7 +6,7 @@ import { StudentShell } from "@/features/student/components/layout/student-shell
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-student-portal",
+  variable: "--font-college-admin",
   display: "swap",
 });
 
@@ -15,6 +15,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     <div
       className={`${inter.className} ${inter.variable} text-[#172b45] antialiased`}
       data-student-portal=""
+      data-college-admin-font=""
     >
       <StudentShell>
         <StudentAuthGate>{children}</StudentAuthGate>

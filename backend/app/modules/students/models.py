@@ -51,6 +51,7 @@ class StudentProfile(Document):
     batch_label: str | None = None
     section_code: str | None = None
     contact_phone: str | None = Field(default=None, max_length=32)
+    alternate_contact_phone: str | None = Field(default=None, max_length=32)
     alternate_email: str | None = Field(default=None, max_length=254)
     permanent_address: str | None = Field(default=None, max_length=1000)
     current_address: str | None = Field(default=None, max_length=1000)

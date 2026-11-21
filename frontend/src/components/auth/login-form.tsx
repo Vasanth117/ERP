@@ -328,7 +328,7 @@ export function LoginForm() {
     return (
       <StudentPerformanceLoginForm
         nextPath={
-          nextPath.startsWith("/student") ? nextPath : "/student/home"
+          nextPath.startsWith("/student") ? nextPath : "/student/dashboard"
         }
         portal="student-performance"
       />

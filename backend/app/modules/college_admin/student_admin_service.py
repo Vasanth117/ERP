@@ -25,6 +25,7 @@ from app.modules.college_admin.student_admin_models import (
     StudentTransfer,
     TransferStatus,
 )
+from app.modules.college_admin.profile_correction_apply import apply_profile_correction
 from app.modules.college_admin.student_admin_schemas import (
     AdmissionCreate,
     AdmissionRead,
@@ -417,20 +418,7 @@ async def decide_profile_correction(scope: AccessScope, payload: ProfileCorrecti
         raise AppError(code="NOT_FOUND", message="Correction request not found", status_code=404)
     if payload.approve:
         row.status = StudentDocumentRequestStatus.APPROVED
-        profile = await StudentProfile.find_one(Eq(StudentProfile.tenant_id, tenant_id), Eq(StudentProfile.user_id, row.user_id))
-        record = await StudentRecord.find_one(Eq(StudentRecord.tenant_id, tenant_id), Eq(StudentRecord.user_id, row.user_id))
-        if profile and row.field_name in {"roll_number", "programme_name", "section_code"}:
-            if row.field_name == "roll_number":
-                profile.roll_number = row.proposed_value
-                if record:
-                    record.roll_number = row.proposed_value
-            elif row.field_name == "section_code":
-                profile.section_code = row.proposed_value
-                if record:
-                    record.section_code = row.proposed_value
-            await profile.save()
-            if record:
-                await record.save()
+        await apply_profile_correction(tenant_id, row)
     else:
         row.status = StudentDocumentRequestStatus.REJECTED
     row.updated_at = utcnow()

@@ -1,6 +1,7 @@
 """Student academic and enrollment views (read) plus permitted requests."""
 
 from beanie import PydanticObjectId
+from beanie.odm.operators.find.comparison import Eq
 
 from app.api.deps import AccessScope
 from app.authorization.permissions import Permission
@@ -18,7 +19,9 @@ from app.modules.students.enums import (
 from app.modules.students.integrations.data_reader import StudentDataReader
 from app.modules.students.models import StudentAcademicRequest
 from app.modules.students.policy import require_student_scope
-from app.modules.students.profile_service import _department_name, ensure_student_profile
+from app.modules.academics.curriculum_models import CourseRecord
+from app.modules.academics.models import AcademicYearContext
+from app.modules.students.profile_service import _department_name, _load_admission, ensure_student_profile
 from app.modules.students.repositories import (
     StudentAcademicRecordRepository,
     StudentActivityRepository,
@@ -35,6 +38,8 @@ from app.modules.students.schemas import (
     EnrollmentRequestCreate,
     EnrollmentRequestRead,
     EnrollmentStatusRead,
+    StudentAcademicAdvisorRead,
+    StudentAcademicInformationRead,
     enrollment_history_from_doc,
     enrollment_line_from_doc,
     enrollment_status_from_record,
@@ -58,14 +63,51 @@ _PERMITTED_REQUEST_TYPES = frozenset(
 )
 
 
-async def _current_term(tenant_id: PydanticObjectId) -> tuple[str, str]:
+def _batch_display_label(batch_label: str | None, metadata: dict) -> str | None:
+    if not batch_label:
+        return None
+    explicit = metadata.get("batch_display")
+    if isinstance(explicit, str) and explicit.strip():
+        return explicit.strip()
+    raw = batch_label.strip()
+    if "–" in raw or ("-" in raw and len(raw) > 6):
+        return raw.replace("-", "–")
+    try:
+        start = int(raw[:4])
+        duration = metadata.get("programme_duration_years")
+        years = int(duration) if duration is not None else 4
+        return f"{start}–{start + years}"
+    except (TypeError, ValueError):
+        return raw
+
+
+async def _programme_regulation(tenant_id: PydanticObjectId, programme_code: str | None) -> str | None:
+    if not programme_code:
+        return None
+    course = await CourseRecord.find_one(
+        Eq(CourseRecord.tenant_id, tenant_id),
+        Eq(CourseRecord.course_code, programme_code),
+    )
+    if course is None or not course.regulation_label:
+        return None
+    return course.regulation_label
+
+
+async def _current_semester_number(tenant_id: PydanticObjectId) -> int | None:
+    context = await AcademicYearContext.find_one(
+        Eq(AcademicYearContext.tenant_id, tenant_id),
+        Eq(AcademicYearContext.is_current, True),
+    )
+    if context is None:
+        return None
+    return context.semester_number
+
+
+async def _resolve_term_labels(tenant_id: PydanticObjectId) -> tuple[str, str]:
+    """Returns current year/semester labels, or placeholders when the college has not set a term."""
     context = await _reader.current_academic_context(tenant_id)
     if context is None:
-        raise AppError(
-            code="ACADEMIC_CONTEXT_MISSING",
-            message="Current academic year is not configured for this college",
-            status_code=503,
-        )
+        return "N/A", "N/A"
     return context.academic_year_label, context.semester_label
 
 
@@ -74,7 +116,7 @@ async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetail
     tenant_id = require_student_scope(scope)
     profile = await ensure_student_profile(scope, user)
     department_name = await _department_name(tenant_id, profile.department_id)
-    year, semester = await _current_term(tenant_id)
+    year, semester = await _resolve_term_labels(tenant_id)
 
     admission = AdmissionInfoRead(
         student_id=profile.student_id,
@@ -100,22 +142,28 @@ async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetail
         section_code=profile.section_code,
     )
 
-    enrollments = await _enrollment_repo.list_for_term(tenant_id, user.id, academic_year_label=year, semester_label=semester)
-    if enrollments:
-        current_lines = [enrollment_line_from_doc(row) for row in enrollments]
-    else:
-        roster = await _reader.roster_entries(tenant_id, user.id, academic_year_label=year, semester_label=semester)
-        current_lines = [
-            EnrollmentLineRead(
-                course_code=r.course_code,
-                course_name=r.course_code,
-                section_code=r.section_code,
-                status=enrollment_status.enrollment_status,
-                academic_year_label=year,
-                semester_label=semester,
+    current_lines: list[EnrollmentLineRead] = []
+    if year != "N/A" and semester != "N/A":
+        enrollments = await _enrollment_repo.list_for_term(
+            tenant_id, user.id, academic_year_label=year, semester_label=semester
+        )
+        if enrollments:
+            current_lines = [enrollment_line_from_doc(row) for row in enrollments]
+        else:
+            roster = await _reader.roster_entries(
+                tenant_id, user.id, academic_year_label=year, semester_label=semester
             )
-            for r in roster
-        ]
+            current_lines = [
+                EnrollmentLineRead(
+                    course_code=r.course_code,
+                    course_name=r.course_code,
+                    section_code=r.section_code,
+                    status=enrollment_status.enrollment_status,
+                    academic_year_label=year,
+                    semester_label=semester,
+                )
+                for r in roster
+            ]
 
     academic_record = None
     if record is not None:
@@ -127,12 +175,32 @@ async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetail
             cgpa=record.cgpa,
         )
 
+    admission_doc = await _load_admission(tenant_id, user.id, profile)
+    meta = admission_doc.metadata if admission_doc is not None else {}
+    regulation = meta.get("regulation_label") if isinstance(meta.get("regulation_label"), str) else None
+    if not regulation:
+        regulation = await _programme_regulation(tenant_id, profile.programme_code)
+    admission_type = meta.get("admission_type") if isinstance(meta.get("admission_type"), str) else None
+
+    academic_information = StudentAcademicInformationRead(
+        regulation_label=regulation,
+        admission_type=admission_type,
+        batch_display=_batch_display_label(profile.batch_label or admission_doc.batch_label if admission_doc else None, meta),
+        current_semester_number=await _current_semester_number(tenant_id),
+    )
+    advisors = StudentAcademicAdvisorRead(
+        class_advisor_name=meta.get("class_advisor_name") if isinstance(meta.get("class_advisor_name"), str) else None,
+        mentor_name=meta.get("mentor_name") if isinstance(meta.get("mentor_name"), str) else None,
+    )
+
     return AcademicDetailsRead(
         admission=admission,
         enrollment_status=enrollment_status,
         department_programme=department_programme,
         current_enrollments=current_lines,
         academic_record=academic_record,
+        academic_information=academic_information,
+        advisors=advisors,
     )
 
 
@@ -152,7 +220,7 @@ async def get_enrollment_history(scope: AccessScope, user: User, pagination: Pag
 async def get_enrollment_status(scope: AccessScope, user: User) -> EnrollmentStatusRead:
     authorize(scope, Permission.STUDENT_ENROLLMENT_READ)
     tenant_id = require_student_scope(scope)
-    year, semester = await _current_term(tenant_id)
+    year, semester = await _resolve_term_labels(tenant_id)
     record = await _record_repo.get_current(tenant_id, user.id, academic_year_label=year, semester_label=semester)
     return enrollment_status_from_record(record, year=year, semester=semester)
 
@@ -160,7 +228,7 @@ async def get_enrollment_status(scope: AccessScope, user: User) -> EnrollmentSta
 async def get_academic_eligibility(scope: AccessScope, user: User) -> AcademicEligibilityRead:
     authorize(scope, Permission.STUDENT_ACADEMIC_READ)
     tenant_id = require_student_scope(scope)
-    year, semester = await _current_term(tenant_id)
+    year, semester = await _resolve_term_labels(tenant_id)
     record = await _record_repo.get_current(tenant_id, user.id, academic_year_label=year, semester_label=semester)
     if record is None:
         return AcademicEligibilityRead()
@@ -178,7 +246,7 @@ async def submit_enrollment_request(scope: AccessScope, user: User, payload: Enr
     tenant_id = require_student_scope(scope)
     if payload.request_type not in _PERMITTED_REQUEST_TYPES:
         raise AppError(code="FORBIDDEN", message="This request type cannot be submitted by students", status_code=403)
-    year, semester = await _current_term(tenant_id)
+    year, semester = await _resolve_term_labels(tenant_id)
     doc = StudentAcademicRequest(
         tenant_id=tenant_id,
         user_id=user.id,

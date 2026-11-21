@@ -3,9 +3,18 @@
 import { AcademicsScreen } from "@/features/student/components/screens/academics-screens";
 import { StudentDashboardScreen } from "@/features/student/components/screens/dashboard-screen";
 import {
+  StudentProfileAcademicScreen,
   StudentProfileActivityScreen,
+  StudentProfileContactScreen,
+  StudentProfileEditScreen,
+  StudentProfileGuardianScreen,
+  StudentProfilePersonalScreen,
   StudentProfileScreen,
 } from "@/features/student/components/screens/profile-screens";
+import {
+  StudentDocumentsScreen,
+  StudentProfileUpdateRequestsScreen,
+} from "@/features/student/components/screens/st01-portal-screens";
 import { CurriculumScreen } from "@/features/student/components/screens/curriculum-screens";
 import { RegistrationScreen } from "@/features/student/components/screens/registration-screens";
 import { StudentPortalHomeScreen } from "@/features/student/components/screens/portal-home-screen";
@@ -95,7 +104,14 @@ export function StudentScreen({ slug }: { slug: string }) {
   if (slug === "portal-home") return <StudentPortalHomeScreen />;
   if (slug === "dashboard") return <StudentDashboardScreen />;
   if (slug === "profile") return <StudentProfileScreen />;
+  if (slug === "profile-personal") return <StudentProfilePersonalScreen />;
+  if (slug === "profile-academic") return <StudentProfileAcademicScreen />;
+  if (slug === "profile-contact") return <StudentProfileContactScreen />;
+  if (slug === "profile-guardian") return <StudentProfileGuardianScreen />;
+  if (slug === "profile-edit") return <StudentProfileEditScreen />;
   if (slug === "profile-activity") return <StudentProfileActivityScreen />;
+  if (slug === "profile-update-requests") return <StudentProfileUpdateRequestsScreen />;
+  if (slug === "documents") return <StudentDocumentsScreen />;
   if (ACADEMICS_SLUGS.has(slug)) {
     return <AcademicsScreen slug={slug as Parameters<typeof AcademicsScreen>[0]["slug"]} />;
   }

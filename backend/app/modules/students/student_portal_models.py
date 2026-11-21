@@ -166,9 +166,14 @@ class StudentDocumentReference(Document):
     document_id: str
     document_type: str
     title: str
+    category: str = Field(default="other", max_length=32)
+    file_format: str = Field(default="PDF", max_length=16)
+    verified: bool = True
+    uploaded_at: datetime | None = None
     authorized: bool = True
     storage_token: str | None = None
     last_viewed_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:

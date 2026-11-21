@@ -22,6 +22,7 @@ class AcademicYearContext(Document):
     tenant_id: PydanticObjectId
     academic_year_label: str
     semester_label: str
+    semester_number: int | None = Field(default=None, ge=1, le=12)
     semester_start: date | None = None
     semester_end: date | None = None
     is_current: bool = True

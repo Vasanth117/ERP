@@ -13,11 +13,11 @@ const moduleLoginTargets: Record<string, { portal: string; next: string }> = {
   },
   "student-academic": {
     portal: "student-performance",
-    next: "/student/home",
+    next: "/student/dashboard",
   },
   performance: {
     portal: "student-performance",
-    next: "/student/home",
+    next: "/student/dashboard",
   },
 };
 

@@ -21,7 +21,11 @@ from app.modules.hostel.communication_service import acknowledge_inbox, mark_inb
 from app.modules.hostel.rules_incident_service import acknowledge_rule, list_published_rules_for_resident
 from app.modules.hostel.leave_outpass_service import submit_leave_student, submit_outpass_student
 from app.modules.hostel.waiting_list_service import respond_to_offer
-from app.modules.students.academic_document_service import download_academic_document
+from app.modules.students.student_record_document_service import (
+    download_all_record_documents,
+    download_record_document,
+    list_record_documents,
+)
 from app.modules.students.deps import student_portal_request_rate_limit, student_user
 from app.modules.students.student_communication_service import (
     announcements,
@@ -481,6 +485,24 @@ async def authorized_docs_route(scope: Annotated[AccessScope, Depends(get_access
     return success_response([d.model_dump() for d in data], request_id=get_request_id())
 
 
+@student_portal_router.get("/me/documents/record")
+async def student_record_documents_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[list]:
+    data = await list_record_documents(scope, user)
+    return success_response([d.model_dump(mode="json") for d in data], request_id=get_request_id())
+
+
+@student_portal_router.get("/me/documents/record/download-all")
+async def student_record_documents_download_all_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[dict]:
+    data = await download_all_record_documents(scope, user)
+    return success_response(data.model_dump(mode="json"), request_id=get_request_id())
+
+
 @student_portal_router.post("/me/documents/requests", response_model=ApiResponse[dict])
 async def document_request_route(
     payload: DocumentRequestInput,
@@ -501,8 +523,13 @@ async def document_requests_history_route(
 
 
 @student_portal_router.get("/me/documents/{document_id}/download-token", response_model=ApiResponse)
-async def document_download_token_route(document_id: str, scope: Annotated[AccessScope, Depends(get_access_scope)], user: Annotated[User, Depends(student_user)]) -> ApiResponse:
-    return success_response(await download_academic_document(scope, user, document_id), request_id=get_request_id())
+async def document_download_token_route(
+    document_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse:
+    data = await download_record_document(scope, user, document_id)
+    return success_response(data.model_dump(mode="json"), request_id=get_request_id())
 
 
 @student_portal_router.post("/me/profile-corrections", response_model=ApiResponse[dict])
