@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
+import { CollegeAdminKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useDepartmentResourceManagementPage } from "@/features/college-admin/hooks/use-department-resource-management";
 import { cn } from "@/lib/utils";
@@ -62,15 +63,6 @@ export function DepartmentResourceManagementDashboard() {
   );
 
   const headers = data?.laboratories_table_headers ?? [];
-
-  const subtitleToneClass = useMemo(
-    () => ({
-      success: "text-[#047857]",
-      warning: "text-[#c2410c]",
-      muted: "text-[#6b7280]",
-    }),
-    [],
-  );
 
   return (
     <div className="space-y-5" data-figma-frame="69:134809">
@@ -148,25 +140,19 @@ export function DepartmentResourceManagementDashboard() {
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()} isEmpty={false}>
         {data ? (
           <div className={cn("space-y-5", isFetching && "opacity-70")}>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {data.kpi_cards.map((card) => (
-                <article
+            <CollegeAdminKpiGrid>
+              {data.kpi_cards.map((card, index) => (
+                <CollegeAdminKpiCard
                   key={card.key}
-                  className="rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-                >
-                  <p className="text-[12px] font-medium text-[#6b7280]">{card.title}</p>
-                  <p className="mt-1 text-[28px] font-bold tabular-nums tracking-tight text-[#111827]">{card.value}</p>
-                  <p
-                    className={cn(
-                      "mt-1 text-[12px]",
-                      subtitleToneClass[card.subtitle_tone as keyof typeof subtitleToneClass] ?? "text-[#6b7280]",
-                    )}
-                  >
-                    {card.subtitle}
-                  </p>
-                </article>
+                  kpiKey={card.key}
+                  index={index}
+                  label={card.title}
+                  value={card.value}
+                  hint={card.subtitle}
+                  hintTone={card.subtitle_tone}
+                />
               ))}
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
               <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">

@@ -11,6 +11,7 @@ import {
   CollegeAdminChevronDown,
   CollegeAdminChevronRight,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { usePendingApprovalsOverview } from "@/features/college-admin/hooks/use-pending-approvals-overview";
 import type { DashboardDateRange } from "@/features/college-admin/types/dashboard";
@@ -76,41 +77,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "danger" | "success" | "warning" | "muted";
-}) {
-  const toneClass =
-    hintTone === "danger"
-      ? "text-[#dc2626]"
-      : hintTone === "success"
-        ? "text-[#047857]"
-        : hintTone === "warning"
-          ? "text-[#d97706]"
-          : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p
-        className={cn(
-          "mt-3 text-[1.75rem] font-bold tabular-nums",
-          hintTone === "danger" ? "text-[#dc2626]" : "text-[#111827]",
-        )}
-      >
-        {value}
-      </p>
-      {hint ? <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p> : <span className="mt-auto block min-h-[1.125rem]" aria-hidden />}
-    </div>
   );
 }
 
@@ -301,27 +267,27 @@ export function PendingApprovalsDashboard() {
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard label="Awaiting your action" value={kpis?.awaiting_action ?? 0} hint={awaitingHint} />
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard label="Awaiting your action" value={kpis?.awaiting_action ?? 0} hint={awaitingHint} />
+              <CollegeAdminDashboardKpiCard
                 label="Overdue"
                 value={kpis?.overdue_count ?? 0}
                 hint={overdueHint}
                 hintTone={kpis?.overdue_count ? "danger" : "muted"}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Approved this week"
                 value={kpis?.approved_this_week ?? 0}
                 hint={approvedHint}
                 hintTone="success"
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Escalated to you"
                 value={kpis?.escalated_to_college_admin ?? 0}
                 hint={escalatedHint}
                 hintTone={kpis?.escalated_to_college_admin ? "warning" : "muted"}
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="xl:col-span-2">

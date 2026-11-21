@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 
+import { AcademicConfigurationDashboard } from "@/features/college-admin/components/academics/academic-configuration-dashboard";
+import { AcademicYearManagementDashboard } from "@/features/college-admin/components/academics/academic-year-management-dashboard";
+import { ProgrammeManagementDashboard } from "@/features/college-admin/components/academics/programme-management-dashboard";
+import { SemesterManagementDashboard } from "@/features/college-admin/components/academics/semester-management-dashboard";
 import {
   fetchAcademicTerms,
   fetchAcademicYears,
   fetchConfigHistory,
-  fetchProgrammes,
 } from "@/features/college-admin/api/academics";
 import {
   DataTable,
@@ -17,22 +19,19 @@ import {
   columnsFromRows,
   rowsFromApi,
 } from "@/features/college-admin/components/ui/college-admin-screen-ui";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
+import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 
 export function AcademicsScreen({ slug }: { slug: string }) {
   switch (slug) {
     case "academic-configuration-dashboard":
-      return <AcademicsDashboard />;
+      return <AcademicConfigurationDashboard />;
     case "academic-year-management":
-      return <YearsList />;
+      return <AcademicYearManagementDashboard />;
     case "semester-management":
-      return <TermsList />;
+      return <SemesterManagementDashboard />;
     case "programme-management":
-      return <ProgrammesList />;
+      return <ProgrammeManagementDashboard />;
     case "academic-configuration-history":
       return <ConfigHistory />;
     case "course-configuration":
@@ -50,53 +49,8 @@ export function AcademicsScreen({ slug }: { slug: string }) {
         />
       );
     default:
-      return <AcademicsDashboard />;
+      return <AcademicConfigurationDashboard />;
   }
-}
-
-function AcademicsDashboard() {
-  const years = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-years"],
-    queryFn: fetchAcademicYears,
-  });
-  const programmes = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "programmes"],
-    queryFn: fetchProgrammes,
-  });
-
-  const loading = years.isLoading || programmes.isLoading;
-  const error = years.error ?? programmes.error;
-
-  return (
-    <QueryState
-      isLoading={loading}
-      isError={Boolean(error)}
-      error={error as Error}
-      onRetry={() => {
-        void years.refetch();
-        void programmes.refetch();
-      }}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Academic years" value={years.data?.length ?? 0} />
-        <StatCard label="Programmes" value={programmes.data?.length ?? 0} />
-        <StatCard
-          label="Current year"
-          value={
-            years.data?.find((y) => y.is_current)?.label ??
-            years.data?.[0]?.label ??
-            "—"
-          }
-        />
-        <Link
-          href="/college-admin/academics/academic-year-management"
-          className="flex items-center rounded-xl border border-[#dce3ec] bg-white p-4 text-sm font-medium text-[#245dd8] shadow-[0px_1px_1px_rgba(23,43,69,0.04)]"
-        >
-          Manage academic years →
-        </Link>
-      </div>
-    </QueryState>
-  );
 }
 
 function YearsList() {
@@ -117,15 +71,6 @@ function TermsList() {
   });
   const rows = rowsFromApi(q.data);
   return <ListSection title="Semesters & terms" q={q} rows={rows} />;
-}
-
-function ProgrammesList() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "programmes-list"],
-    queryFn: fetchProgrammes,
-  });
-  const rows = rowsFromApi(q.data);
-  return <ListSection title="Programmes" q={q} rows={rows} />;
 }
 
 function ConfigHistory() {

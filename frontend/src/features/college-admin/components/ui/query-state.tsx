@@ -91,26 +91,4 @@ function StatusPanel({
   return <div className={className}>{message}</div>;
 }
 
-export function StatCard({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string | number;
-  hint?: string;
-}) {
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-[box-shadow,border-color] duration-150 hover:border-[#dce3ec] hover:shadow-[0_4px_14px_rgba(15,23,42,0.06)]">
-      <p className="text-[12px] font-medium leading-snug text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight text-[#111827] tabular-nums">
-        {value}
-      </p>
-      {hint ? (
-        <p className="mt-auto pt-3 text-[12px] leading-snug text-[#9ca3af]">{hint}</p>
-      ) : (
-        <span className="mt-auto block min-h-[1.125rem]" aria-hidden />
-      )}
-    </div>
-  );
-}
+export { StatCard, CollegeAdminKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";

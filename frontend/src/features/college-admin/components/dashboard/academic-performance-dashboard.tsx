@@ -12,6 +12,7 @@ import {
   CollegeAdminDownload,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchAcademicTerms, fetchAcademicYears, fetchProgrammes } from "@/features/college-admin/api/academics";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useAcademicPerformanceOverview } from "@/features/college-admin/hooks/use-academic-performance";
 import { cn } from "@/lib/utils";
@@ -65,32 +66,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "success" | "warning" | "muted";
-}) {
-  const toneClass =
-    hintTone === "success"
-      ? "text-[#059669]"
-      : hintTone === "warning"
-        ? "text-[#d97706]"
-        : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold tabular-nums text-[#111827]">{value}</p>
-      {hint ? <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p> : <span className="mt-auto block min-h-[1.125rem]" aria-hidden />}
-    </div>
   );
 }
 
@@ -427,8 +402,8 @@ export function AcademicPerformanceDashboard() {
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Overall pass rate"
                 value={kpis?.overall_pass_rate_pct != null ? `${kpis.overall_pass_rate_pct}%` : "—"}
                 hint={passChangeHint}
@@ -438,7 +413,7 @@ export function AcademicPerformanceDashboard() {
                     : "muted"
                 }
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Average CGPA"
                 value={kpis?.average_cgpa ?? "—"}
                 hint={
@@ -447,18 +422,18 @@ export function AcademicPerformanceDashboard() {
                     : "Published semester results"
                 }
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="First class with distinction"
                 value={kpis?.first_class_distinction_pct != null ? `${kpis.first_class_distinction_pct}%` : "—"}
                 hint={`${kpis?.first_class_distinction_student_count ?? 0} students`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Students with backlogs"
                 value={kpis?.students_with_backlogs ?? 0}
                 hint={`${kpis?.students_with_backlogs_pct ?? "—"}% · ${kpis?.students_with_three_plus_arrears ?? 0} with 3+ arrears`}
                 hintTone="warning"
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

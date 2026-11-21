@@ -1,3 +1,5 @@
+import { academicsTabs as academicsSectionTabs } from "@/features/college-admin/config/academics-section-tabs";
+
 export type CollegeAdminTab = {
   label: string;
   href: string;
@@ -224,6 +226,8 @@ export const organizationTabs: CollegeAdminTab[] = [
   },
 ];
 
+export const academicsTabs: CollegeAdminTab[] = [...academicsSectionTabs];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -238,6 +242,9 @@ export function resolveSectionTabs(
   }
   if (pathname.startsWith("/college-admin/organization")) {
     return { section: "Organization", tabs: organizationTabs };
+  }
+  if (pathname.startsWith("/college-admin/academics")) {
+    return { section: "Academics", tabs: academicsTabs };
   }
   return null;
 }

@@ -114,6 +114,14 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "login-account-activity-page", params ?? {}] as const,
   departmentManagementDashboard: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "department-management-dashboard", params ?? {}] as const,
+  academicConfigurationDashboard: () =>
+    [...collegeAdminQueryKeys.all, "academic-configuration-dashboard"] as const,
+  academicYearManagement: (page?: number) =>
+    [...collegeAdminQueryKeys.all, "academic-year-management", page ?? 1] as const,
+  semesterManagement: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "semester-management", params ?? {}] as const,
+  programmeManagement: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "programme-management", params ?? {}] as const,
   allDepartmentsListPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "all-departments-list-page", params ?? {}] as const,
   createEditDepartmentPage: (departmentId: string | null) =>

@@ -560,6 +560,205 @@ class AcademicYearTableRow(BaseModel):
     status_tone: str
 
 
+class AcademicYearManagementTableRow(BaseModel):
+    year_id: str
+    label: str
+    start_label: str
+    end_label: str
+    student_count: int
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class AcademicYearClosingChecklistItem(BaseModel):
+    key: str
+    title: str
+    detail: str | None = None
+    completed: bool
+
+
+class AcademicYearRuleToggle(BaseModel):
+    key: str
+    title: str
+    description: str
+    enabled: bool
+
+
+class AcademicYearCreateFormField(BaseModel):
+    key: str
+    label: str
+    required: bool = False
+    field_type: str = "text"
+
+
+class AcademicYearCreateFormOption(BaseModel):
+    value: str
+    label: str
+
+
+class YearsSemestersSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    active: bool
+
+
+class AcademicYearManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    close_current_year_label: str
+    close_current_year_enabled: bool
+    close_target_year_label: str | None = None
+    new_academic_year_label: str
+    academic_years_table_title: str
+    table_headers: list[str]
+    academic_years: list[AcademicYearManagementTableRow]
+    academic_year_count_label: str
+    page: int
+    page_size: int
+    total_pages: int
+    total_years: int
+    create_section_title: str
+    create_form_note: str
+    create_submit_label: str
+    cancel_label: str
+    create_fields: list[AcademicYearCreateFormField]
+    copy_from_options: list[AcademicYearCreateFormOption]
+    semester_count_options: list[AcademicYearCreateFormOption]
+    checklist_title: str
+    checklist_items: list[AcademicYearClosingChecklistItem]
+    rules_section_title: str
+    rules: list[AcademicYearRuleToggle]
+    sub_nav: list[YearsSemestersSubNavItem]
+    semesters_button_label: str
+    semesters_button_href: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AcademicYearManagementCreate(BaseModel):
+    label: str = Field(min_length=4, max_length=64)
+    copy_from_year_id: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
+    semester_count: int = Field(default=2, ge=1, le=4)
+    admission_intake_opens: date | None = None
+
+
+class AcademicYearManagementRulesSave(BaseModel):
+    only_one_current_year: bool = True
+    lock_closed_years: bool = True
+
+
+class SemesterManagementTableRow(BaseModel):
+    term_id: str
+    label: str
+    period_label: str
+    week_label: str
+    course_count: int
+    status_code: str
+    status_label: str
+    status_tone: str
+    is_current: bool
+
+
+class SemesterSettingsForm(BaseModel):
+    teaching_starts: date | None = None
+    last_instruction_day: date | None = None
+    mid_semester_exam_date: date | None = None
+    end_semester_exam_date: date | None = None
+    course_registration_opens: date | None = None
+    add_drop_deadline: date | None = None
+
+
+class SemesterSettingsFieldMeta(BaseModel):
+    key: str
+    label: str
+    required: bool = False
+
+
+class SemesterProgressItem(BaseModel):
+    key: str
+    label: str
+    progress_percent: int
+
+
+class SemesterLinkedItem(BaseModel):
+    key: str
+    title: str
+    subtitle: str
+    status_label: str
+    status_tone: str
+
+
+class SemesterManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    new_semester_label: str
+    year_filter_options: list[AcademicYearCreateFormOption]
+    selected_academic_year_id: str | None
+    selected_academic_year_label: str
+    semesters_panel_title: str
+    table_headers: list[str]
+    semester_rows: list[SemesterManagementTableRow]
+    semester_count_label: str
+    manage_terms_href: str
+    manage_terms_label: str
+    selected_term_id: str | None
+    settings_panel_title: str
+    settings_form: SemesterSettingsForm | None
+    settings_field_meta: list[SemesterSettingsFieldMeta]
+    save_label: str
+    cancel_label: str
+    settings_form_note: str
+    progress_section_title: str
+    progress_items: list[SemesterProgressItem]
+    linked_section_title: str
+    linked_items: list[SemesterLinkedItem]
+    sub_nav: list[YearsSemestersSubNavItem]
+    years_button_label: str
+    years_button_href: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class SemesterManagementSettingsSave(BaseModel):
+    term_id: str
+    settings: SemesterSettingsForm
+
+
+class SemesterManagementCreate(BaseModel):
+    academic_year_id: str
+    label: str = Field(min_length=2, max_length=64)
+    term_code: str | None = Field(default=None, max_length=32)
+
+
+class ProgrammeManagementTableRow(BaseModel):
+    programme_id: str
+    programme_name: str
+    programme_code: str
+    level_label: str
+    department_label: str
+    duration_label: str
+    intake_label: str
+    regulation_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+
+
+class ProgrammeManagementCreate(BaseModel):
+    programme_code: str = Field(min_length=2, max_length=32)
+    name: str = Field(min_length=2, max_length=200)
+    department_id: str | None = None
+    duration_semesters: int = Field(default=8, ge=1, le=20)
+    credits_required: float = Field(default=160, ge=0)
+
+
 class AcademicYearSemesterForm(BaseModel):
     odd_semester_start: date | None = None
     odd_semester_end: date | None = None
@@ -666,6 +865,37 @@ class PoliciesPagination(BaseModel):
     page_numbers: list[int]
     has_previous: bool
     has_next: bool
+
+
+class ProgrammeManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    add_programme_label: str
+    search_placeholder: str
+    level_filter_label: str
+    department_filter_label: str
+    regulation_filter_label: str
+    status_filter_label: str
+    level_options: list[InstitutionPolicyFilterOption]
+    department_options: list[InstitutionPolicyFilterOption]
+    regulation_options: list[InstitutionPolicyFilterOption]
+    status_options: list[InstitutionPolicyFilterOption]
+    programmes_section_title: str
+    programmes_count_label: str
+    table_headers: list[str]
+    programmes: list[ProgrammeManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    create_section_title: str
+    create_form_note: str
+    create_submit_label: str
+    create_cancel_label: str
+    create_fields: list[AcademicYearCreateFormField]
+    create_department_options: list[AcademicYearCreateFormOption]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
 
 
 class InstitutionCalendarHolidayRow(BaseModel):
@@ -2737,6 +2967,67 @@ class DepartmentStatusHistoryPageRead(BaseModel):
     timeline_section_title: str
     selected_timeline_department_id: str
     timeline_items: list[DepartmentStatusHistoryTimelineItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AcademicConfigAreaTableRow(BaseModel):
+    area_key: str
+    area_label: str
+    owner_label: str
+    last_updated_label: str
+    progress_percent: int
+    status_code: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class AcademicRegulationUsageItem(BaseModel):
+    regulation_key: str
+    regulation_label: str
+    student_count: int
+    share_percent: int
+    tone: str
+
+
+class AcademicConfigShortcutItem(BaseModel):
+    key: str
+    title: str
+    subtitle: str
+    action_label: str
+    href: str
+    icon_slug: str = "circle"
+
+
+class AcademicConfigSetupAlert(BaseModel):
+    title: str
+    description: str
+    continue_label: str
+    continue_href: str
+    deadline_label: str | None = None
+
+
+class AcademicConfigurationDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    checklist_label: str
+    checklist_href: str
+    open_current_year_label: str
+    open_current_year_href: str
+    kpis: list[UserDashboardKpi]
+    setup_alert: AcademicConfigSetupAlert | None = None
+    config_section_title: str
+    config_table_headers: list[str]
+    config_area_rows: list[AcademicConfigAreaTableRow]
+    config_footer_count_label: str
+    config_checklist_href: str
+    config_checklist_label: str
+    regulations_section_title: str
+    regulation_items: list[AcademicRegulationUsageItem]
+    shortcuts_section_title: str
+    shortcuts: list[AcademicConfigShortcutItem]
     footer_disclaimer: str
     footer_snapshot_label: str
     generated_at: datetime

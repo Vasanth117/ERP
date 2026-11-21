@@ -27,6 +27,11 @@ export function CollegeAdminPageTabs({
   className?: string;
 }) {
   const pathname = usePathname();
+  const items = tabs ?? [];
+
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
     <nav
@@ -34,7 +39,7 @@ export function CollegeAdminPageTabs({
       aria-label="Section navigation"
     >
       <div className="scrollbar-thin -mb-px flex flex-nowrap items-end gap-x-5 overflow-x-auto">
-        {tabs.map((tab) => {
+        {items.map((tab) => {
           const active = isTabActive(pathname, tab);
           return (
             <Link
