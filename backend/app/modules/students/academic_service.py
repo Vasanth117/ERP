@@ -17,7 +17,11 @@ from app.modules.students.enums import (
     StudentActivityType,
 )
 from app.modules.students.integrations.data_reader import StudentDataReader
-from app.modules.students.models import StudentAcademicRequest
+from app.modules.students.models import (
+    StudentAcademicRecord,
+    StudentAcademicRequest,
+    StudentEnrollment,
+)
 from app.modules.students.policy import require_student_scope
 from app.modules.academics.curriculum_models import CourseRecord
 from app.modules.academics.models import AcademicYearContext
@@ -100,7 +104,16 @@ async def _current_semester_number(tenant_id: PydanticObjectId) -> int | None:
     )
     if context is None:
         return None
-    return context.semester_number
+    if context.semester_number is not None:
+        return context.semester_number
+    import re
+    match = re.search(r"\d+", context.semester_label)
+    if match:
+        try:
+            return int(match.group())
+        except ValueError:
+            pass
+    return None
 
 
 async def _resolve_term_labels(tenant_id: PydanticObjectId) -> tuple[str, str]:
@@ -109,6 +122,28 @@ async def _resolve_term_labels(tenant_id: PydanticObjectId) -> tuple[str, str]:
     if context is None:
         return "N/A", "N/A"
     return context.academic_year_label, context.semester_label
+
+
+async def _get_academic_record(
+    tenant_id: PydanticObjectId,
+    user_id: PydanticObjectId,
+    year: str,
+    semester: str,
+) -> StudentAcademicRecord | None:
+    """Finds current academic record for user, with graceful fallback across terms."""
+    if year != "N/A" and semester != "N/A":
+        record = await _record_repo.get_current(tenant_id, user_id, academic_year_label=year, semester_label=semester)
+        if record is not None:
+            return record
+    if year != "N/A":
+        record = await StudentAcademicRecord.find_one(
+            {"tenant_id": tenant_id, "user_id": user_id, "academic_year_label": year}
+        )
+        if record is not None:
+            return record
+    return await StudentAcademicRecord.find_one(
+        {"tenant_id": tenant_id, "user_id": user_id}
+    ).sort("-updated_at")
 
 
 async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetailsRead:
@@ -130,7 +165,7 @@ async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetail
         section_code=profile.section_code,
     )
 
-    record = await _record_repo.get_current(tenant_id, user.id, academic_year_label=year, semester_label=semester)
+    record = await _get_academic_record(tenant_id, user.id, year, semester)
     enrollment_status = enrollment_status_from_record(record, year=year, semester=semester)
 
     department_programme = DepartmentProgrammeRead(
@@ -147,6 +182,24 @@ async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetail
         enrollments = await _enrollment_repo.list_for_term(
             tenant_id, user.id, academic_year_label=year, semester_label=semester
         )
+        if not enrollments:
+            enrollments = await StudentEnrollment.find(
+                {
+                    "tenant_id": tenant_id,
+                    "user_id": user.id,
+                    "academic_year_label": year,
+                    "status": StudentEnrollmentStatus.ACTIVE,
+                }
+            ).sort("course_code").to_list()
+        if not enrollments:
+            enrollments = await StudentEnrollment.find(
+                {
+                    "tenant_id": tenant_id,
+                    "user_id": user.id,
+                    "status": StudentEnrollmentStatus.ACTIVE,
+                }
+            ).sort("course_code").to_list()
+
         if enrollments:
             current_lines = [enrollment_line_from_doc(row) for row in enrollments]
         else:
@@ -207,13 +260,14 @@ async def get_academic_details(scope: AccessScope, user: User) -> AcademicDetail
 async def get_enrollment_history(scope: AccessScope, user: User, pagination: Pagination) -> Page[EnrollmentHistoryRead]:
     authorize(scope, Permission.STUDENT_ENROLLMENT_READ)
     tenant_id = require_student_scope(scope)
-    skip = (pagination.page - 1) * pagination.page_size
-    items, total = await _history_repo.list_for_user(tenant_id, user.id, skip=skip, limit=pagination.page_size)
+    items, total = await _history_repo.list_for_user(
+        tenant_id, user.id, skip=pagination.offset, limit=pagination.limit
+    )
     return Page(
         items=[enrollment_history_from_doc(row) for row in items],
-        page=pagination.page,
-        page_size=pagination.page_size,
         total=total,
+        limit=pagination.limit,
+        offset=pagination.offset,
     )
 
 
@@ -221,7 +275,7 @@ async def get_enrollment_status(scope: AccessScope, user: User) -> EnrollmentSta
     authorize(scope, Permission.STUDENT_ENROLLMENT_READ)
     tenant_id = require_student_scope(scope)
     year, semester = await _resolve_term_labels(tenant_id)
-    record = await _record_repo.get_current(tenant_id, user.id, academic_year_label=year, semester_label=semester)
+    record = await _get_academic_record(tenant_id, user.id, year, semester)
     return enrollment_status_from_record(record, year=year, semester=semester)
 
 
@@ -229,7 +283,7 @@ async def get_academic_eligibility(scope: AccessScope, user: User) -> AcademicEl
     authorize(scope, Permission.STUDENT_ACADEMIC_READ)
     tenant_id = require_student_scope(scope)
     year, semester = await _resolve_term_labels(tenant_id)
-    record = await _record_repo.get_current(tenant_id, user.id, academic_year_label=year, semester_label=semester)
+    record = await _get_academic_record(tenant_id, user.id, year, semester)
     if record is None:
         return AcademicEligibilityRead()
     return AcademicEligibilityRead(
@@ -290,13 +344,12 @@ async def get_enrollment_request_status(scope: AccessScope, user: User, request_
 async def list_enrollment_requests(scope: AccessScope, user: User, pagination: Pagination) -> Page[EnrollmentRequestRead]:
     authorize(scope, Permission.STUDENT_ENROLLMENT_READ)
     tenant_id = require_student_scope(scope)
-    skip = (pagination.page - 1) * pagination.page_size
     query = StudentAcademicRequest.find({"tenant_id": tenant_id, "user_id": user.id}).sort("-submitted_at")
     total = await query.count()
-    items = await query.skip(skip).limit(pagination.page_size).to_list()
+    items = await query.skip(pagination.offset).limit(pagination.limit).to_list()
     return Page(
         items=[request_from_doc(row) for row in items],
-        page=pagination.page,
-        page_size=pagination.page_size,
         total=total,
+        limit=pagination.limit,
+        offset=pagination.offset,
     )

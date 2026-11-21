@@ -177,5 +177,8 @@ export function isStudentTabActive(pathname: string, tab: CollegeAdminTab): bool
   if (tab.href === "/student/documents") {
     return pathname === tab.href || pathname.startsWith(`${tab.href}/`);
   }
+  if (tab.href === "/student/academics") {
+    return pathname === tab.href;
+  }
   return pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 }

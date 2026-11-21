@@ -34,6 +34,9 @@ export type EnrollmentLine = {
   status: string;
   academic_year_label: string;
   semester_label: string;
+  category?: string | null;
+  credits?: number | null;
+  faculty_name?: string | null;
 };
 
 export type EnrollmentHistory = {

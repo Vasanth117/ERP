@@ -288,6 +288,9 @@ class EnrollmentLineRead(BaseModel):
     status: StudentEnrollmentStatus
     academic_year_label: str
     semester_label: str
+    category: str | None = None
+    credits: float | None = None
+    faculty_name: str | None = None
 
 
 class EnrollmentHistoryRead(BaseModel):
@@ -387,6 +390,9 @@ def enrollment_line_from_doc(row: StudentEnrollment) -> EnrollmentLineRead:
         status=row.status,
         academic_year_label=row.academic_year_label,
         semester_label=row.semester_label,
+        category=getattr(row, "category", None) or "Theory",
+        credits=getattr(row, "credits", None) or 3.0,
+        faculty_name=getattr(row, "faculty_name", None),
     )
 
 

@@ -15,7 +15,14 @@ from app.modules.auth.models import User
 from app.modules.college_admin.student_admin_models import AdmissionStatus, StudentAdmission, StudentGuardianRelationship
 from app.modules.parents.enums import ParentAccountStatus
 from app.modules.parents.models import ParentProfile
-from app.modules.students.models import EmergencyContact, ProfileDocumentRef, StudentProfile
+from app.modules.students.enums import AcademicStanding, ProgressionStatus, StudentEnrollmentStatus
+from app.modules.students.models import (
+    EmergencyContact,
+    ProfileDocumentRef,
+    StudentAcademicRecord,
+    StudentEnrollment,
+    StudentProfile,
+)
 from app.modules.students.student_portal_enums import StudentRecordDocumentCategory
 from app.modules.students.student_portal_models import StudentDocumentReference
 from app.modules.tenants.domain_utils import normalize_tenant_code
@@ -29,8 +36,8 @@ DEV_PARENT_ID = "PAR-DEMO001"
 DEV_PARENT_EMAIL = "parent.demo@demo-college.edu"
 DEV_PARENT_PASSWORD = "ParentDemo123!"
 DEMO_ACADEMIC_YEAR = "2025-26"
-DEMO_SEMESTER = "Odd Semester"
-DEMO_SEMESTER_NUMBER = 3
+DEMO_SEMESTER = "Semester 5"
+DEMO_SEMESTER_NUMBER = 5
 DEMO_DOC_UPLOADED = datetime(2022, 6, 12, 10, 0, 0, tzinfo=timezone.utc)
 
 DEMO_STUDENT_RECORD_DOCUMENTS: tuple[dict, ...] = (
@@ -141,10 +148,12 @@ async def _ensure_academic_context(tenant_id) -> None:
     )
     today = date.today()
     if existing is not None:
-        if existing.semester_number is None:
-            existing.semester_number = DEMO_SEMESTER_NUMBER
-            await existing.save()
-            print(f"set semester_number={DEMO_SEMESTER_NUMBER} on academic context")
+        existing.academic_year_label = DEMO_ACADEMIC_YEAR
+        existing.semester_label = DEMO_SEMESTER
+        existing.semester_number = DEMO_SEMESTER_NUMBER
+        existing.updated_at = utcnow()
+        await existing.save()
+        print(f"synced academic context to {DEMO_ACADEMIC_YEAR} / {DEMO_SEMESTER} (sem {DEMO_SEMESTER_NUMBER})")
         return
     await AcademicYearContext(
         tenant_id=tenant_id,
@@ -196,8 +205,8 @@ async def main() -> None:
                 student_id=DEV_STUDENT_ID,
                 roll_number="24CSE001",
                 admission_number="ADM-2024-001",
-                programme_code="BTECH-CSE",
-                programme_name="B.Tech CSE",
+                programme_code="B.E. CSE",
+                programme_name="B.E. CSE",
                 batch_label="2024",
                 section_code="A",
                 contact_phone="+91 98400 12345",
@@ -215,6 +224,8 @@ async def main() -> None:
             student_profile.student_id = DEV_STUDENT_ID
             student_profile.roll_number = student_profile.roll_number or "24CSE001"
             student_profile.admission_number = student_profile.admission_number or "ADM-2024-001"
+            student_profile.programme_name = "B.E. CSE"
+            student_profile.programme_code = "B.E. CSE"
             student_profile.contact_phone = student_profile.contact_phone or "+91 98400 12345"
             student_profile.alternate_contact_phone = student_profile.alternate_contact_phone or "+91 98400 67890"
             student_profile.alternate_email = student_profile.alternate_email or "student.demo.personal@mail.com"
@@ -383,6 +394,81 @@ async def main() -> None:
             parent_profile.updated_at = utcnow()
             await parent_profile.save()
             print(f"updated parent profile {DEV_PARENT_ID}")
+
+        academic_record = await StudentAcademicRecord.find_one(
+            Eq(StudentAcademicRecord.tenant_id, tenant.id),
+            Eq(StudentAcademicRecord.user_id, student.id),
+            Eq(StudentAcademicRecord.academic_year_label, DEMO_ACADEMIC_YEAR),
+            Eq(StudentAcademicRecord.semester_label, DEMO_SEMESTER),
+        )
+        if academic_record is None:
+            await StudentAcademicRecord(
+                tenant_id=tenant.id,
+                user_id=student.id,
+                academic_year_label=DEMO_ACADEMIC_YEAR,
+                semester_label=DEMO_SEMESTER,
+                enrollment_status=StudentEnrollmentStatus.ACTIVE,
+                academic_standing=AcademicStanding.GOOD,
+                progression_status=ProgressionStatus.PROMOTED,
+                promotion_eligible=True,
+                credits_registered=20.0,
+                credits_earned=88.0,
+                cgpa=8.52,
+                eligibility_summary={
+                    "minimum_credits_required": 160,
+                    "credits_completed": 88,
+                    "semesters_completed": 4,
+                    "total_semesters": 8,
+                },
+            ).insert()
+            print("seeded student academic record (Sem 5, 88 credits earned)")
+        else:
+            academic_record.credits_registered = 20.0
+            academic_record.credits_earned = 88.0
+            academic_record.cgpa = 8.52
+            academic_record.promotion_eligible = True
+            academic_record.updated_at = utcnow()
+            await academic_record.save()
+
+        demo_subjects = [
+            ("CS3501", "Compiler Design", "Theory", 4.0, "Dr. M. Rao"),
+            ("CS3591", "Computer Networks", "Theory", 4.0, "Dr. T. Iyer"),
+            ("CS3551", "Distributed Systems", "Theory", 3.0, "Prof. R. Narayanan"),
+            ("CS3401", "Database Management Systems", "Theory", 4.0, "Prof. R. Narayanan"),
+            ("CS3511", "Networks Laboratory", "Lab", 2.0, "Dr. T. Iyer"),
+            ("CS3E01", "Machine Learning", "Elective", 3.0, "Dr. A. Kumar"),
+        ]
+        for code, name, category, credits, faculty in demo_subjects:
+            existing_enrollment = await StudentEnrollment.find_one(
+                Eq(StudentEnrollment.tenant_id, tenant.id),
+                Eq(StudentEnrollment.user_id, student.id),
+                Eq(StudentEnrollment.academic_year_label, DEMO_ACADEMIC_YEAR),
+                Eq(StudentEnrollment.semester_label, DEMO_SEMESTER),
+                Eq(StudentEnrollment.course_code, code),
+            )
+            if existing_enrollment is None:
+                await StudentEnrollment(
+                    tenant_id=tenant.id,
+                    user_id=student.id,
+                    academic_year_label=DEMO_ACADEMIC_YEAR,
+                    semester_label=DEMO_SEMESTER,
+                    course_id=code.lower(),
+                    course_code=code,
+                    course_name=name,
+                    section_code="A",
+                    status=StudentEnrollmentStatus.ACTIVE,
+                    category=category,
+                    credits=credits,
+                    faculty_name=faculty,
+                    approved_at=utcnow(),
+                ).insert()
+            else:
+                existing_enrollment.course_name = name
+                existing_enrollment.category = category
+                existing_enrollment.credits = credits
+                existing_enrollment.faculty_name = faculty
+                await existing_enrollment.save()
+        print("seeded/synced 6 demo registered subjects for Semester 5")
 
         print()
         print("--- Dev portal users (local only) ---")

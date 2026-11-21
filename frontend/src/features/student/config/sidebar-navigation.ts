@@ -269,5 +269,8 @@ export function sidebarNavActive(pathname: string, href: string): boolean {
   if (href === "/student/profile") {
     return pathname === href || pathname.startsWith("/student/profile/");
   }
+  if (href === "/student/academics") {
+    return pathname === href;
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

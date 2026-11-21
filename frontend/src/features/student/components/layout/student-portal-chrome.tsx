@@ -7,7 +7,9 @@ import { usePathname } from "next/navigation";
 import type { CollegeAdminTab } from "@/features/college-admin/config/section-tabs";
 import { StudentPageTabs } from "@/features/student/components/layout/student-page-tabs";
 import { StudentSt01ModuleNav } from "@/features/student/components/layout/student-st01-module-nav";
+import { StudentSt02ModuleNav } from "@/features/student/components/layout/student-st02-module-nav";
 import { isStudentSt01Path } from "@/features/student/config/st01-tabs";
+import { isStudentSt02Path } from "@/features/student/config/st02-tabs";
 import {
   resolveStudentModuleKey,
   studentModuleChrome,
@@ -40,6 +42,15 @@ export function StudentPortalChrome({ children }: { children: ReactNode }) {
     return (
       <div className="mx-auto w-full max-w-[1440px]" data-figma-page="ST 01">
         <StudentSt01ModuleNav />
+        {children}
+      </div>
+    );
+  }
+
+  if (isStudentSt02Path(pathname)) {
+    return (
+      <div className="mx-auto w-full max-w-[1440px]" data-figma-page="ST 02">
+        <StudentSt02ModuleNav />
         {children}
       </div>
     );

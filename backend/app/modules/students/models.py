@@ -137,6 +137,9 @@ class StudentEnrollment(Document):
     section_code: str
     department_id: PydanticObjectId | None = None
     status: StudentEnrollmentStatus = StudentEnrollmentStatus.ACTIVE
+    category: str | None = Field(default="Theory", max_length=32)
+    credits: float | None = Field(default=3, ge=0)
+    faculty_name: str | None = Field(default=None, max_length=120)
     approved_at: datetime | None = None
     is_official: bool = True
     created_at: datetime = Field(default_factory=utcnow)
