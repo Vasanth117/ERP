@@ -13,6 +13,7 @@ import {
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchDepartments } from "@/features/college-admin/api/organization";
 import { fetchProgrammes } from "@/features/college-admin/api/academics";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useAttendanceOverview } from "@/features/college-admin/hooks/use-attendance-overview";
 import type { DashboardDateRange } from "@/features/college-admin/types/dashboard";
@@ -66,35 +67,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "danger" | "warning" | "muted";
-}) {
-  const toneClass =
-    hintTone === "danger" ? "text-[#dc2626]" : hintTone === "warning" ? "text-[#d97706]" : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p
-        className={cn(
-          "mt-3 text-[1.75rem] font-bold tabular-nums",
-          hintTone === "danger" ? "text-[#dc2626]" : "text-[#111827]",
-        )}
-      >
-        {value}
-      </p>
-      {hint ? <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p> : <span className="mt-auto block min-h-[1.125rem]" aria-hidden />}
-    </div>
   );
 }
 
@@ -350,29 +322,29 @@ export function AttendanceOverviewDashboard() {
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Today’s student attendance"
                 value={kpis?.today_student_attendance_pct != null ? `${kpis.today_student_attendance_pct}%` : "—"}
                 hint={`${kpis?.today_students_present ?? 0} of ${kpis?.today_students_total ?? 0} present`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Semester average"
                 value={kpis?.semester_average_pct != null ? `${kpis.semester_average_pct}%` : "—"}
                 hint={`Target ${kpis?.semester_target_pct ?? 85}% · minimum ${kpis?.semester_minimum_pct ?? 75}%`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label={`Below ${kpis?.semester_minimum_pct ?? 75}%`}
                 value={kpis?.students_below_minimum ?? 0}
                 hint="Condonation risk"
                 hintTone="danger"
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Today’s faculty attendance"
                 value={kpis?.today_faculty_attendance_pct != null ? `${kpis.today_faculty_attendance_pct}%` : "—"}
                 hint={`${kpis?.today_faculty_present ?? 0} of ${kpis?.today_faculty_total ?? 0} present`}
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

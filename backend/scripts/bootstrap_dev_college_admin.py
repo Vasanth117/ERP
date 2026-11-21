@@ -1,4 +1,9 @@
-"""Seed a demo college tenant and college admin for local development (idempotent)."""
+"""Minimal demo admin bootstrap (legacy).
+
+For the full client demo college, run:
+  py -3 scripts/seed_demo_college.py
+  py -3 scripts/bootstrap_subscription_plans.py  # once, if billing enabled
+"""
 
 import asyncio
 

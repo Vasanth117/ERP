@@ -31,7 +31,11 @@ class AcademicYear(Document):
     label: str = Field(min_length=4, max_length=64)
     start_date: date | None = None
     end_date: date | None = None
+    admission_intake_opens: date | None = None
     is_current: bool = False
+    summer_term_start: date | None = None
+    summer_term_end: date | None = None
+    year_end_closing: date | None = None
     status: ConfigPublicationStatus = ConfigPublicationStatus.DRAFT
     version: int = 1
     created_at: datetime = Field(default_factory=utcnow)
@@ -57,6 +61,11 @@ class AcademicTerm(Document):
     label: str = Field(min_length=2, max_length=64)
     start_date: date | None = None
     end_date: date | None = None
+    last_instruction_day: date | None = None
+    mid_semester_exam_date: date | None = None
+    end_semester_exam_date: date | None = None
+    course_registration_opens: date | None = None
+    add_drop_deadline: date | None = None
     is_current: bool = False
     status: ConfigPublicationStatus = ConfigPublicationStatus.DRAFT
     created_at: datetime = Field(default_factory=utcnow)

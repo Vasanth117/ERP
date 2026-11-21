@@ -8,7 +8,9 @@ from pathlib import Path
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 
-ALLOWED_EXTENSIONS = frozenset({".pdf", ".ppt", ".pptx", ".doc", ".docx", ".txt", ".png", ".jpg", ".jpeg"})
+ALLOWED_EXTENSIONS = frozenset(
+    {".pdf", ".ppt", ".pptx", ".doc", ".docx", ".txt", ".png", ".jpg", ".jpeg", ".svg", ".ico", ".webp"}
+)
 ALLOWED_MIME_PREFIXES = (
     "application/pdf",
     "application/vnd.",

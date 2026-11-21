@@ -56,7 +56,16 @@ TENANT_FEATURE_FLAGS_ALLOWLIST = frozenset(
     }
 )
 
-BRANDING_THEME_KEYS = frozenset({"surface", "accent", "font_family", "border_radius"})
+BRANDING_THEME_KEYS = frozenset(
+    {
+        "surface",
+        "accent",
+        "font_family",
+        "border_radius",
+        "text_on_primary",
+        "accent_status",
+    }
+)
 
 
 class PlatformSettingsUpdate(BaseModel):

@@ -34,8 +34,10 @@ from app.modules.platform.service import (
     get_tenant_statistics,
 )
 from app.modules.tenants.enums import TenantOperationalStatus
+from app.modules.demo.router import router as demo_college_router
 
 router = APIRouter()
+router.include_router(demo_college_router)
 router.include_router(platform_configuration_router, tags=["platform-configuration"])
 router.include_router(platform_operators_router)
 router.include_router(platform_security_router)

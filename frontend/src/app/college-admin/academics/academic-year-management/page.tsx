@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { AcademicYearManagementDashboard } from "@/features/college-admin/components/academics/academic-year-management-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="academics"
-      slug="academic-year-management"
-      figmaNodeId="69:139876"
-      title='Academic Year Management'
-    />
-  );
+  return <AcademicYearManagementDashboard />;
 }

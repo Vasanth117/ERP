@@ -12,6 +12,7 @@ import {
   CollegeAdminDownload,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchAcademicYears, fetchProgrammes } from "@/features/college-admin/api/academics";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState, StatCard } from "@/features/college-admin/components/ui/query-state";
 import { useStudentStatisticsOverview } from "@/features/college-admin/hooks/use-student-statistics";
 import type { DistributionItem } from "@/features/college-admin/types/student-statistics";
@@ -52,48 +53,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiHint({
-  children,
-  tone,
-}: {
-  children: ReactNode;
-  tone?: "success" | "warning" | "muted";
-}) {
-  const toneClass =
-    tone === "success"
-      ? "text-[#059669]"
-      : tone === "warning"
-        ? "text-[#d97706]"
-        : "text-[#9ca3af]";
-  return <p className={cn("mt-auto pt-3 text-[12px] leading-snug", toneClass)}>{children}</p>;
-}
-
-function EnrolmentKpi({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "success" | "warning" | "muted";
-}) {
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[12px] font-medium leading-snug text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight text-[#111827] tabular-nums">
-        {value}
-      </p>
-      {hint ? (
-        <KpiHint tone={hintTone}>{hint}</KpiHint>
-      ) : (
-        <span className="mt-auto block min-h-[1.125rem]" aria-hidden />
-      )}
-    </div>
   );
 }
 
@@ -432,8 +391,8 @@ export function StudentStatisticsDashboard() {
       >
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <EnrolmentKpi
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Total enrolled"
                 value={kpis?.total_enrolled.toLocaleString("en-IN") ?? 0}
                 hint={totalEnrolledHint}
@@ -442,24 +401,32 @@ export function StudentStatisticsDashboard() {
                     ? "success"
                     : "muted"
                 }
+                kpiKey="total_enrolled"
+                index={0}
               />
-              <EnrolmentKpi
+              <CollegeAdminDashboardKpiCard
                 label="New admissions"
                 value={kpis?.new_admissions.toLocaleString("en-IN") ?? 0}
                 hint={admissionsHint}
+                kpiKey="new_admissions"
+                index={1}
               />
-              <EnrolmentKpi
+              <CollegeAdminDashboardKpiCard
                 label="Hostel residents"
                 value={kpis?.hostel_residents.toLocaleString("en-IN") ?? 0}
                 hint={hostelHint}
+                kpiKey="hostel_residents"
+                index={2}
               />
-              <EnrolmentKpi
+              <CollegeAdminDashboardKpiCard
                 label="Discontinued"
                 value={kpis?.discontinued.toLocaleString("en-IN") ?? 0}
                 hint={discontinuedHint}
                 hintTone="warning"
+                kpiKey="discontinued"
+                index={3}
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

@@ -249,6 +249,9 @@ async def create_campus(scope: AccessScope, payload: CampusCreate) -> CampusRead
         contact_phone=payload.contact_phone,
         timezone=payload.timezone,
         locale=payload.locale,
+        area_acres=payload.area_acres,
+        built_up_sq_m=payload.built_up_sq_m,
+        buildings_count=payload.buildings_count,
         updated_by=scope.user_id,
     )
     await campus.insert()

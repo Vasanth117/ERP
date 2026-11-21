@@ -39,6 +39,8 @@ async def institution_permission_overlay(
     extra: set[Permission] = set()
     denied: set[Permission] = set()
     for assignment in assignments:
+        if getattr(assignment, "assignment_status", "active") != "active":
+            continue
         role_doc = await InstitutionRole.get(assignment.institution_role_id)
         if role_doc is None or not role_doc.is_active:
             continue

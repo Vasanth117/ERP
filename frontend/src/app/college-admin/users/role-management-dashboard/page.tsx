@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { RoleManagementDashboard } from "@/features/college-admin/components/users/role-management-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="role-management-dashboard"
-      figmaNodeId="69:126349"
-      title='Role Management Dashboard'
-    />
-  );
+  return <RoleManagementDashboard />;
 }

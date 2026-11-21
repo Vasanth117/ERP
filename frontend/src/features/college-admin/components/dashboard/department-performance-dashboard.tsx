@@ -16,6 +16,7 @@ import {
   fetchAcademicYears,
   fetchProgrammes,
 } from "@/features/college-admin/api/academics";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useDepartmentPerformanceOverview } from "@/features/college-admin/hooks/use-department-performance";
 import { cn } from "@/lib/utils";
@@ -84,36 +85,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "success" | "warning" | "muted";
-}) {
-  const toneClass =
-    hintTone === "success"
-      ? "text-[#059669]"
-      : hintTone === "warning"
-        ? "text-[#d97706]"
-        : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold tabular-nums text-[#111827]">{value}</p>
-      {hint ? (
-        <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p>
-      ) : (
-        <span className="mt-auto block min-h-[1.125rem]" aria-hidden />
-      )}
-    </div>
   );
 }
 
@@ -393,31 +364,31 @@ export function DepartmentPerformanceDashboard() {
       >
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Best pass rate"
                 value={kpis?.best_pass_rate_pct != null ? `${kpis.best_pass_rate_pct}%` : "—"}
                 hint={kpis?.best_pass_rate_department_name ?? "No exam results yet"}
                 hintTone="success"
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Lowest pass rate"
                 value={kpis?.lowest_pass_rate_pct != null ? `${kpis.lowest_pass_rate_pct}%` : "—"}
                 hint={kpis?.lowest_pass_rate_department_name ?? "—"}
                 hintTone="warning"
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Avg. attendance"
                 value={kpis?.average_attendance_pct != null ? `${kpis.average_attendance_pct}%` : "—"}
                 hint={`${kpis?.departments_above_attendance_threshold ?? 0} of ${kpis?.departments_total_for_attendance ?? 0} departments above ${kpis?.departments_attendance_threshold_pct ?? 85}%`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Faculty vacancies"
                 value={kpis?.faculty_vacancies_total ?? 0}
                 hint={`Across ${kpis?.faculty_vacancies_department_count ?? 0} departments`}
                 hintTone="warning"
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <Panel
               title="Department scorecard"

@@ -1,12 +1,5 @@
-import { CollegeAdminFigmaScreen } from "@/features/college-admin/components/college-admin-figma-screen";
+import { AllUsersListDashboard } from "@/features/college-admin/components/users/all-users-list-dashboard";
 
 export default function Page() {
-  return (
-    <CollegeAdminFigmaScreen
-      moduleKey="users"
-      slug="all-users-list"
-      figmaNodeId="69:125172"
-      title='All Users List'
-    />
-  );
+  return <AllUsersListDashboard />;
 }

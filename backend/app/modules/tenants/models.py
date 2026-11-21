@@ -17,6 +17,10 @@ class Tenant(Document):
     status: TenantOperationalStatus = TenantOperationalStatus.ACTIVE
     lifecycle_status: TenantLifecycleStatus = TenantLifecycleStatus.ACTIVE
     is_active: bool = True
+    is_demo: bool = Field(
+        default=False,
+        description="Demo colleges are read-only for tenant users; platform operators may re-seed.",
+    )
     institution_email: str | None = None
     contact_phone: str | None = None
     address: InstitutionAddress = Field(default_factory=InstitutionAddress)

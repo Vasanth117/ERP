@@ -1,0 +1,1 @@
+"""Demo college seeding and read-only safeguards."""

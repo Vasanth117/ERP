@@ -11,6 +11,7 @@ import {
   CollegeAdminChevronRight,
   CollegeAdminDownload,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useRecentActivitiesOverview } from "@/features/college-admin/hooks/use-recent-activities-overview";
 import type { DashboardDateRange } from "@/features/college-admin/types/dashboard";
@@ -47,35 +48,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "danger" | "success" | "muted";
-}) {
-  const toneClass =
-    hintTone === "danger" ? "text-[#dc2626]" : hintTone === "success" ? "text-[#047857]" : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p
-        className={cn(
-          "mt-3 text-[1.75rem] font-bold tabular-nums",
-          hintTone === "danger" ? "text-[#dc2626]" : "text-[#111827]",
-        )}
-      >
-        {value}
-      </p>
-      {hint ? <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p> : <span className="mt-auto block min-h-[1.125rem]" aria-hidden />}
-    </div>
   );
 }
 
@@ -275,30 +247,30 @@ export function RecentActivitiesDashboard() {
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label={kpis?.actions_kpi_label ?? "Actions today"}
                 value={(kpis?.actions_count ?? 0).toLocaleString("en-IN")}
                 hint={actionsHint}
                 hintTone={kpis?.actions_vs_daily_avg_pct && kpis.actions_vs_daily_avg_pct > 0 ? "success" : "muted"}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Active administrators"
                 value={kpis?.active_administrators ?? 0}
                 hint={activeHint}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Records changed"
                 value={(kpis?.records_changed ?? 0).toLocaleString("en-IN")}
                 hint={kpis?.records_changed_hint}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Failed actions"
                 value={kpis?.failed_actions ?? 0}
                 hint={kpis?.failed_actions_hint}
                 hintTone={kpis?.failed_actions ? "danger" : "muted"}
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="xl:col-span-2">

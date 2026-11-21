@@ -9,6 +9,7 @@ import { SlidersHorizontalIcon } from "@/components/icons/erp/generated/sliders-
 import { SquareCheckIcon } from "@/components/icons/erp/generated/square-check";
 import { Button } from "@/components/ui/button";
 import { CollegeAdminChevronRight } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useAlertsOverview, useMarkAllAlertsRead } from "@/features/college-admin/hooks/use-alerts-overview";
 import type { DashboardAlertItem } from "@/features/college-admin/types/alerts-overview";
@@ -38,35 +39,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "danger" | "muted" | "success";
-}) {
-  const toneClass =
-    hintTone === "danger" ? "text-[#dc2626]" : hintTone === "success" ? "text-[#047857]" : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p
-        className={cn(
-          "mt-3 text-[1.75rem] font-bold tabular-nums",
-          hintTone === "danger" ? "text-[#dc2626]" : "text-[#111827]",
-        )}
-      >
-        {value}
-      </p>
-      {hint ? <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p> : <span className="mt-auto block min-h-[1.125rem]" aria-hidden />}
-    </div>
   );
 }
 
@@ -170,22 +142,38 @@ export function AlertsDashboard() {
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Critical"
                 value={kpis?.critical_count ?? 0}
                 hint={kpis?.critical_hint}
                 hintTone={kpis?.critical_count ? "danger" : "muted"}
+                kpiKey="critical"
+                index={0}
               />
-              <KpiCard label="Warnings" value={kpis?.warning_count ?? 0} hint={kpis?.warning_hint} />
-              <KpiCard label="Information" value={kpis?.info_count ?? 0} hint={kpis?.info_hint} />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
+                label="Warnings"
+                value={kpis?.warning_count ?? 0}
+                hint={kpis?.warning_hint}
+                kpiKey="warnings"
+                index={1}
+              />
+              <CollegeAdminDashboardKpiCard
+                label="Information"
+                value={kpis?.info_count ?? 0}
+                hint={kpis?.info_hint}
+                kpiKey="information"
+                index={2}
+              />
+              <CollegeAdminDashboardKpiCard
                 label="Resolved today"
                 value={kpis?.resolved_today ?? 0}
                 hint={kpis?.resolved_hint}
                 hintTone="success"
+                kpiKey="resolved_today"
+                index={3}
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             {data.featured ? (
               <div className="rounded-xl border border-[#fecaca] bg-[#fef2f2] p-4 sm:p-5">

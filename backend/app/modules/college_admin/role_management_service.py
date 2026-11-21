@@ -68,6 +68,7 @@ async def create_institution_role(scope: AccessScope, payload: InstitutionRoleCr
         base_role=payload.base_role,
         granted_permissions=granted,
         denied_permissions=denied,
+        role_settings=dict(payload.role_settings or {}),
         updated_by=scope.user_id,
     )
     await doc.insert()
@@ -112,6 +113,8 @@ async def update_institution_role(
             )
         except (ValueError, TypeError) as exc:
             raise AppError(code="VALIDATION_ERROR", message=str(exc), status_code=422) from exc
+    if payload.role_settings is not None:
+        doc.role_settings = dict(payload.role_settings)
 
     doc.version += 1
     doc.updated_at = utcnow()

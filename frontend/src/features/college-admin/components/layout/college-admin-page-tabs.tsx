@@ -6,7 +6,13 @@ import { usePathname } from "next/navigation";
 import type { CollegeAdminTab } from "@/features/college-admin/config/section-tabs";
 import { cn } from "@/lib/utils";
 
-function isTabActive(pathname: string, href: string): boolean {
+function isTabActive(pathname: string, tab: CollegeAdminTab): boolean {
+  const { href, activePrefixes } = tab;
+  if (activePrefixes?.length) {
+    return activePrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    );
+  }
   if (href === "/college-admin/dashboard") {
     return pathname === href;
   }
@@ -21,6 +27,11 @@ export function CollegeAdminPageTabs({
   className?: string;
 }) {
   const pathname = usePathname();
+  const items = tabs ?? [];
+
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
     <nav
@@ -28,8 +39,8 @@ export function CollegeAdminPageTabs({
       aria-label="Section navigation"
     >
       <div className="scrollbar-thin -mb-px flex flex-nowrap items-end gap-x-5 overflow-x-auto">
-        {tabs.map((tab) => {
-          const active = isTabActive(pathname, tab.href);
+        {items.map((tab) => {
+          const active = isTabActive(pathname, tab);
           return (
             <Link
               key={tab.href}

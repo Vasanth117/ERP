@@ -12,6 +12,7 @@ import {
   CollegeAdminDownload,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchDepartments } from "@/features/college-admin/api/organization";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useFacultyStatisticsOverview } from "@/features/college-admin/hooks/use-faculty-statistics";
 import type { DashboardDateRange } from "@/features/college-admin/types/dashboard";
@@ -72,38 +73,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "success" | "warning" | "muted";
-}) {
-  const toneClass =
-    hintTone === "success"
-      ? "text-[#059669]"
-      : hintTone === "warning"
-        ? "text-[#d97706]"
-        : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[12px] font-medium leading-snug text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold leading-none tracking-tight text-[#111827] tabular-nums">
-        {value}
-      </p>
-      {hint ? (
-        <p className={cn("mt-auto pt-3 text-[12px] leading-snug", toneClass)}>{hint}</p>
-      ) : (
-        <span className="mt-auto block min-h-[1.125rem]" aria-hidden />
-      )}
-    </div>
   );
 }
 
@@ -396,30 +365,30 @@ export function FacultyStatisticsDashboard() {
       >
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Teaching faculty"
                 value={kpis?.teaching_faculty_total.toLocaleString("en-IN") ?? 0}
                 hint={`${kpis?.teaching_faculty_regular ?? 0} regular · ${kpis?.teaching_faculty_visiting ?? 0} visiting`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Non-teaching staff"
                 value={kpis?.non_teaching_staff_total.toLocaleString("en-IN") ?? 0}
                 hint={kpis?.non_teaching_staff_detail ?? "Admin, technical & support"}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Student-faculty ratio"
                 value={kpis?.student_faculty_ratio_display ?? "—"}
                 hint={ratioHint ?? "Based on enrolled students and teaching faculty"}
                 hintTone={kpis?.regulatory_ratio_meets_norm === true ? "success" : "muted"}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Open positions"
                 value={kpis?.open_positions_total ?? 0}
                 hint={`${kpis?.open_positions_teaching ?? 0} teaching · ${kpis?.open_positions_non_teaching ?? 0} non-teaching`}
                 hintTone="warning"
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

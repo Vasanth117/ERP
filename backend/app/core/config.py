@@ -32,7 +32,6 @@ class Settings(BaseSettings):
   lms_storage_path: str = "data/lms"
   student_report_storage_path: str = "data/student_reports"
   payment_webhook_secret: str = Field(default="", repr=False)
-  payment_webhook_secret: str = Field(default="", repr=False)
   payroll_integration_enabled: bool = False
   default_retention_days: int = 90
   subscription_trial_days: int = 14
@@ -43,6 +42,8 @@ class Settings(BaseSettings):
       "used when login requests omit tenant_code."
     ),
   )
+  demo_seed_secret: str = Field(default="", repr=False)
+  demo_mutation_guard_enabled: bool = True
 
   model_config = SettingsConfigDict(
     env_file=".env",
