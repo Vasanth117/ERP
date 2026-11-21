@@ -38,6 +38,8 @@ const SLUG_API: Record<string, string> = {
   "subject-wise-attendance": "/college-admin/attendance-administration/history",
   "attendance-monitoring": "/college-admin/attendance-administration/submissions/missing",
   // CA 09
+  "exam-registration-management":
+    "/college-admin/examination-administration/registrations/page",
   "student-exam-eligibility": "/college-admin/examination-administration/eligibility",
   "hall-ticket-administration": "/college-admin/examination-administration/hall-tickets",
   "examination-reports": "/college-admin/examination-administration/reports",

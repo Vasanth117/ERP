@@ -116,6 +116,64 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "department-management-dashboard", params ?? {}] as const,
   academicConfigurationDashboard: () =>
     [...collegeAdminQueryKeys.all, "academic-configuration-dashboard"] as const,
+  studentAdministrationDashboard: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-administration-dashboard", params ?? {}] as const,
+  facultyEmployeeDashboard: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-employee-dashboard", params ?? {}] as const,
+  facultyDirectoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-directory-page", params ?? {}] as const,
+  employeeDirectoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "employee-directory-page", params ?? {}] as const,
+  facultyProfilePage: (recordId: string) =>
+    [...collegeAdminQueryKeys.all, "faculty-profile-page", recordId] as const,
+  addNewFacultyEmployeePage: () =>
+    [...collegeAdminQueryKeys.all, "add-new-faculty-employee-page"] as const,
+  employeeProfileManagementPage: (recordId?: string) =>
+    [...collegeAdminQueryKeys.all, "employee-profile-management-page", recordId ?? "picker"] as const,
+  departmentDesignationAssignmentPage: (recordId?: string) =>
+    [...collegeAdminQueryKeys.all, "department-designation-assignment-page", recordId ?? "picker"] as const,
+  facultySubjectAllocationPage: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-subject-allocation-page", params ?? {}] as const,
+  facultyWorkloadManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-workload-management-page", params ?? {}] as const,
+  facultyTimetablePage: (recordId?: string) =>
+    [...collegeAdminQueryKeys.all, "faculty-timetable-page", recordId ?? "picker"] as const,
+  employeeDocumentVerificationPage: (documentId?: string) =>
+    [...collegeAdminQueryKeys.all, "employee-document-verification-page", documentId ?? ""] as const,
+  employeeStatusManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "employee-status-management-page", params ?? {}] as const,
+  facultyEmployeeHistoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-employee-history-page", params ?? {}] as const,
+  allStudentsListPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "all-students-list-page", params ?? {}] as const,
+  studentDetailsPage: (recordId: string) =>
+    [...collegeAdminQueryKeys.all, "student-details-page", recordId] as const,
+  studentAdmissionPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-admission-page", params ?? {}] as const,
+  newStudentRegistrationPage: (admissionId?: string) =>
+    [...collegeAdminQueryKeys.all, "new-student-registration-page", admissionId ?? "new"] as const,
+  studentProfileManagementPage: (recordId?: string) =>
+    [...collegeAdminQueryKeys.all, "student-profile-management-page", recordId ?? "picker"] as const,
+  studentDocumentVerificationPage: (recordId?: string, documentKey?: string) =>
+    [...collegeAdminQueryKeys.all, "student-document-verification-page", recordId ?? "none", documentKey ?? ""] as const,
+  studentEnrollmentManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-enrollment-management-page", params ?? {}] as const,
+  examRegistrationManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "exam-registration-management-page", params ?? {}] as const,
+  batchSectionAllocationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "batch-section-allocation-page", params ?? {}] as const,
+  studentTransferManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-transfer-management-page", params ?? {}] as const,
+  studentPromotionManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-promotion-management-page", params ?? {}] as const,
+  studentStatusManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-status-management-page", params ?? {}] as const,
+  studentWithdrawalDiscontinuationPage: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-withdrawal-discontinuation-page", params ?? {}] as const,
+  studentIdCardManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-id-card-management-page", params ?? {}] as const,
+  studentAcademicHistoryPage: (recordId?: string) =>
+    [...collegeAdminQueryKeys.all, "student-academic-history-page", recordId ?? ""] as const,
   academicYearManagement: (page?: number) =>
     [...collegeAdminQueryKeys.all, "academic-year-management", page ?? 1] as const,
   semesterManagement: (params?: Record<string, string | undefined>) =>
@@ -128,6 +186,16 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "curriculum-management", params ?? {}] as const,
   courseConfiguration: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "course-configuration", params ?? {}] as const,
+  creditConfiguration: () => [...collegeAdminQueryKeys.all, "credit-configuration"] as const,
+  gradingSystemConfiguration: () => [...collegeAdminQueryKeys.all, "grading-system-configuration"] as const,
+  regulationManagement: (regulationCode?: string) =>
+    [...collegeAdminQueryKeys.all, "regulation-management", regulationCode ?? ""] as const,
+  academicCalendarConfiguration: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "academic-calendar-configuration", params ?? {}] as const,
+  batchSectionConfiguration: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "batch-section-configuration", params ?? {}] as const,
+  academicConfigurationHistoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "academic-configuration-history-page", params ?? {}] as const,
   allDepartmentsListPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "all-departments-list-page", params ?? {}] as const,
   createEditDepartmentPage: (departmentId: string | null) =>

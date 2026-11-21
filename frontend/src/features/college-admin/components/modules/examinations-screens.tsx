@@ -17,6 +17,7 @@ import {
   QueryState,
   StatCard,
 } from "@/features/college-admin/components/ui/query-state";
+import { ExamRegistrationManagementDashboard } from "@/features/college-admin/components/examinations/exam-registration-management-dashboard";
 import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 
@@ -24,7 +25,6 @@ const FORM_SLUGS = new Set([
   "examination-session-management",
   "examination-configuration",
   "exam-timetable-management",
-  "exam-registration-management",
   "examination-hall-seating-management",
   "invigilator-allocation",
   "marks-entry-management",
@@ -41,6 +41,9 @@ export function ExaminationsScreen({ slug, title }: { slug: string; title: strin
   const { apiPath, viewType } = resolveModuleEndpoint("examinations", slug);
   if (slug === "examination-dashboard") {
     return <ExaminationDashboard />;
+  }
+  if (slug === "exam-registration-management") {
+    return <ExamRegistrationManagementDashboard />;
   }
   if (FORM_SLUGS.has(slug)) {
     return (

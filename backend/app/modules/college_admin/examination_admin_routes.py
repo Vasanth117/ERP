@@ -24,6 +24,14 @@ from app.modules.college_admin.examination_admin_schemas import (
     ResultPublishRequest,
     ReviewWindowUpsert,
 )
+from app.modules.college_admin.schemas import (
+    ExamRegistrationBulkConfirmPayload,
+    ExamRegistrationManagementPageRead,
+)
+from app.modules.college_admin.exam_registration_management_page_service import (
+    bulk_confirm_exam_registrations,
+    get_exam_registration_management_page,
+)
 from app.modules.college_admin.examination_admin_service import (
     create_examination_season,
     create_examination_session,
@@ -170,3 +178,36 @@ async def centre_route(
     name: Annotated[str, Query()],
 ) -> ApiResponse[dict]:
     return success_response(await upsert_examination_centre(scope, centre_code, name), request_id=get_request_id())
+
+
+@router.get("/registrations/page", response_model=ApiResponse[ExamRegistrationManagementPageRead])
+async def exam_registration_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    session_id: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+    programme_code: Annotated[str | None, Query()] = None,
+) -> ApiResponse[ExamRegistrationManagementPageRead]:
+    return success_response(
+        await get_exam_registration_management_page(
+            scope,
+            page=page,
+            session_id=session_id,
+            status=status,
+            programme_code=programme_code,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.post("/registrations/confirm-selected", response_model=ApiResponse[ExamRegistrationManagementPageRead])
+async def exam_registration_confirm_selected_route(
+    payload: ExamRegistrationBulkConfirmPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    actor: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[ExamRegistrationManagementPageRead]:
+    return success_response(
+        await bulk_confirm_exam_registrations(scope, actor, payload),
+        request_id=get_request_id(),
+    )

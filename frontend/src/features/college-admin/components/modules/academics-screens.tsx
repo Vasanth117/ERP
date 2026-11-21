@@ -1,30 +1,18 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-
 import { AcademicConfigurationDashboard } from "@/features/college-admin/components/academics/academic-configuration-dashboard";
+import { AcademicConfigurationHistoryDashboard } from "@/features/college-admin/components/academics/academic-configuration-history-dashboard";
 import { AcademicYearManagementDashboard } from "@/features/college-admin/components/academics/academic-year-management-dashboard";
 import { CourseConfigurationDashboard } from "@/features/college-admin/components/academics/course-configuration-dashboard";
+import { CreditConfigurationDashboard } from "@/features/college-admin/components/academics/credit-configuration-dashboard";
+import { GradingSystemConfigurationDashboard } from "@/features/college-admin/components/academics/grading-system-configuration-dashboard";
 import { CurriculumManagementDashboard } from "@/features/college-admin/components/academics/curriculum-management-dashboard";
 import { ProgrammeManagementDashboard } from "@/features/college-admin/components/academics/programme-management-dashboard";
+import { AcademicCalendarConfigurationDashboard } from "@/features/college-admin/components/academics/academic-calendar-configuration-dashboard";
+import { BatchSectionConfigurationDashboard } from "@/features/college-admin/components/academics/batch-section-configuration-dashboard";
+import { RegulationManagementDashboard } from "@/features/college-admin/components/academics/regulation-management-dashboard";
 import { SemesterManagementDashboard } from "@/features/college-admin/components/academics/semester-management-dashboard";
 import { SubjectManagementDashboard } from "@/features/college-admin/components/academics/subject-management-dashboard";
-import {
-  fetchAcademicTerms,
-  fetchAcademicYears,
-  fetchConfigHistory,
-} from "@/features/college-admin/api/academics";
-import {
-  DataTable,
-  FormPlaceholder,
-  SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
-  rowsFromApi,
-} from "@/features/college-admin/components/ui/college-admin-screen-ui";
-import { QueryState } from "@/features/college-admin/components/ui/query-state";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
-
 export function AcademicsScreen({ slug }: { slug: string }) {
   switch (slug) {
     case "academic-configuration-dashboard":
@@ -36,7 +24,7 @@ export function AcademicsScreen({ slug }: { slug: string }) {
     case "programme-management":
       return <ProgrammeManagementDashboard />;
     case "academic-configuration-history":
-      return <ConfigHistory />;
+      return <AcademicConfigurationHistoryDashboard />;
     case "course-configuration":
       return <CourseConfigurationDashboard />;
     case "curriculum-management":
@@ -44,72 +32,16 @@ export function AcademicsScreen({ slug }: { slug: string }) {
     case "subject-management":
       return <SubjectManagementDashboard />;
     case "credit-configuration":
-    case "regulation-management":
+      return <CreditConfigurationDashboard />;
     case "grading-system-configuration":
+      return <GradingSystemConfigurationDashboard />;
+    case "regulation-management":
+      return <RegulationManagementDashboard />;
     case "academic-calendar-configuration":
+      return <AcademicCalendarConfigurationDashboard />;
     case "batch-section-configuration":
-      return (
-        <FormPlaceholder
-          title={slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-          description="Academic configuration form aligned with the Figma frame layout. API publish endpoints are wired on the backend."
-        />
-      );
+      return <BatchSectionConfigurationDashboard />;
     default:
       return <AcademicConfigurationDashboard />;
   }
-}
-
-function YearsList() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-years-list"],
-    queryFn: fetchAcademicYears,
-  });
-  const rows = rowsFromApi(q.data);
-  return (
-    <ListSection title="Academic years" q={q} rows={rows} />
-  );
-}
-
-function TermsList() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-terms"],
-    queryFn: () => fetchAcademicTerms(),
-  });
-  const rows = rowsFromApi(q.data);
-  return <ListSection title="Semesters & terms" q={q} rows={rows} />;
-}
-
-function ConfigHistory() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-config-history"],
-    queryFn: fetchConfigHistory,
-  });
-  const rows = rowsFromApi(q.data);
-  return <ListSection title="Configuration history" q={q} rows={rows} />;
-}
-
-function ListSection({
-  title,
-  q,
-  rows,
-}: {
-  title: string;
-  q: { isLoading: boolean; isError: boolean; error: Error | null; refetch: () => void };
-  rows: Record<string, unknown>[];
-}) {
-  const cols = columnsFromRows(rows);
-  return (
-    <QueryState
-      isLoading={q.isLoading}
-      isError={q.isError}
-      error={q.error}
-      isEmpty={!q.isLoading && rows.length === 0}
-      onRetry={() => void q.refetch()}
-    >
-      <SectionPanel title={title}>
-        <ToolbarRow onRefresh={() => void q.refetch()} />
-        <DataTable columns={cols} rows={rows} />
-      </SectionPanel>
-    </QueryState>
-  );
 }

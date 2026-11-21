@@ -12,6 +12,28 @@ import type {
   SubjectManagementPage,
 } from "@/features/college-admin/types/course-curriculum";
 import type {
+  CreditConfigurationPage,
+  CreditConfigurationSavePayload,
+  GradingSystemConfigurationPage,
+  GradingSystemConfigurationSavePayload,
+} from "@/features/college-admin/types/credit-grading";
+import type {
+  AcademicCalendarAddEventPayload,
+  AcademicCalendarConfigurationPage,
+  AcademicCalendarPublishPayload,
+} from "@/features/college-admin/types/academic-calendar-configuration";
+import type {
+  BatchSectionAddSectionPayload,
+  BatchSectionAllocationRulesPayload,
+  BatchSectionAutoAllocatePayload,
+  BatchSectionConfigurationPage,
+} from "@/features/college-admin/types/batch-section-configuration";
+import type { ConfigurationHistoryPage } from "@/features/college-admin/types/institution";
+import type {
+  RegulationManagementCreatePayload,
+  RegulationManagementPage,
+} from "@/features/college-admin/types/regulation-management";
+import type {
   ProgrammeManagementCreatePayload,
   ProgrammeManagementPage,
 } from "@/features/college-admin/types/programme-management";
@@ -200,4 +222,132 @@ export function saveCourseConfiguration(payload: CourseConfigurationSavePayload)
     method: "PUT",
     body: JSON.stringify(payload),
   });
+}
+
+export function fetchCreditConfigurationPage() {
+  return apiRequest<CreditConfigurationPage>("/college-admin/academic-config/credits/configuration/page");
+}
+
+export function saveCreditConfiguration(payload: CreditConfigurationSavePayload) {
+  return apiRequest<CreditConfigurationPage>("/college-admin/academic-config/credits/configuration/save", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function resetCreditConfiguration() {
+  return apiRequest<CreditConfigurationPage>("/college-admin/academic-config/credits/configuration/reset", {
+    method: "POST",
+  });
+}
+
+export function fetchGradingSystemConfigurationPage() {
+  return apiRequest<GradingSystemConfigurationPage>("/college-admin/academic-config/grading/configuration/page");
+}
+
+export function saveGradingSystemConfiguration(payload: GradingSystemConfigurationSavePayload) {
+  return apiRequest<GradingSystemConfigurationPage>("/college-admin/academic-config/grading/configuration/save", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function fetchRegulationManagementPage(regulation_code?: string) {
+  const q = regulation_code ? `?regulation_code=${encodeURIComponent(regulation_code)}` : "";
+  return apiRequest<RegulationManagementPage>(`/college-admin/academic-config/regulations/management/page${q}`);
+}
+
+export function createRegulationManagement(payload: RegulationManagementCreatePayload) {
+  return apiRequest<RegulationManagementPage>("/college-admin/academic-config/regulations/management/create", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+function buildAcademicCalendarQuery(params?: Record<string, string | number | undefined>) {
+  if (!params) return "";
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") search.set(key, String(value));
+  }
+  const q = search.toString();
+  return q ? `?${q}` : "";
+}
+
+export function fetchAcademicCalendarConfigurationPage(params?: Record<string, string | number | undefined>) {
+  return apiRequest<AcademicCalendarConfigurationPage>(
+    `/college-admin/academic-config/calendars/configuration/page${buildAcademicCalendarQuery(params)}`,
+  );
+}
+
+export function addAcademicCalendarEvent(payload: AcademicCalendarAddEventPayload) {
+  return apiRequest<AcademicCalendarConfigurationPage>("/college-admin/academic-config/calendars/configuration/events", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function publishAcademicCalendarConfiguration(payload: AcademicCalendarPublishPayload) {
+  return apiRequest<AcademicCalendarConfigurationPage>("/college-admin/academic-config/calendars/configuration/publish", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+function buildBatchSectionQuery(params?: Record<string, string | number | undefined>) {
+  if (!params) return "";
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== "") search.set(key, String(value));
+  }
+  const q = search.toString();
+  return q ? `?${q}` : "";
+}
+
+export function fetchBatchSectionConfigurationPage(params?: Record<string, string | number | undefined>) {
+  return apiRequest<BatchSectionConfigurationPage>(
+    `/college-admin/academic-config/batches/configuration/page${buildBatchSectionQuery(params)}`,
+  );
+}
+
+export function saveBatchSectionAllocationRules(payload: BatchSectionAllocationRulesPayload) {
+  return apiRequest<BatchSectionConfigurationPage>("/college-admin/academic-config/batches/configuration/rules", {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function addBatchSection(payload: BatchSectionAddSectionPayload) {
+  return apiRequest<BatchSectionConfigurationPage>("/college-admin/academic-config/batches/configuration/sections", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function autoAllocateBatchSections(payload: BatchSectionAutoAllocatePayload) {
+  return apiRequest<BatchSectionConfigurationPage>("/college-admin/academic-config/batches/configuration/auto-allocate", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export type AcademicConfigurationHistoryPageQuery = {
+  page?: number;
+  date_range?: string;
+  setting_area?: string;
+  actor_id?: string;
+  search?: string;
+  selected_change_id?: string;
+};
+
+export function fetchAcademicConfigurationHistoryPage(params: AcademicConfigurationHistoryPageQuery = {}) {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  if (params.date_range) qs.set("date_range", params.date_range);
+  if (params.setting_area) qs.set("setting_area", params.setting_area);
+  if (params.actor_id) qs.set("actor_id", params.actor_id);
+  if (params.search) qs.set("search", params.search);
+  if (params.selected_change_id) qs.set("selected_change_id", params.selected_change_id);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  return apiRequest<ConfigurationHistoryPage>(`/college-admin/academic-config/configuration-history/page${suffix}`);
 }

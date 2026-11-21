@@ -1,4 +1,7 @@
 import { academicsTabs as academicsSectionTabs } from "@/features/college-admin/config/academics-section-tabs";
+import { attendanceSectionTabs } from "@/features/college-admin/config/attendance-section-tabs";
+import { facultySectionTabs } from "@/features/college-admin/config/faculty-section-tabs";
+import { studentsSectionTabs } from "@/features/college-admin/config/students-section-tabs";
 
 export type CollegeAdminTab = {
   label: string;
@@ -228,6 +231,12 @@ export const organizationTabs: CollegeAdminTab[] = [
 
 export const academicsTabs: CollegeAdminTab[] = [...academicsSectionTabs];
 
+export const studentsTabs: CollegeAdminTab[] = [...studentsSectionTabs];
+
+export const facultyTabs: CollegeAdminTab[] = [...facultySectionTabs];
+
+export const attendanceTabs: CollegeAdminTab[] = [...attendanceSectionTabs];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -245,6 +254,15 @@ export function resolveSectionTabs(
   }
   if (pathname.startsWith("/college-admin/academics")) {
     return { section: "Academics", tabs: academicsTabs };
+  }
+  if (pathname.startsWith("/college-admin/students")) {
+    return { section: "Students", tabs: studentsTabs };
+  }
+  if (pathname.startsWith("/college-admin/faculty")) {
+    return { section: "Faculty & Employees", tabs: facultyTabs };
+  }
+  if (pathname.startsWith("/college-admin/attendance")) {
+    return { section: "Attendance", tabs: attendanceTabs };
   }
   return null;
 }

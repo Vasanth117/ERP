@@ -38,6 +38,7 @@ from app.modules.college_admin.faculty_admin_schemas import (
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.faculty.models import FacultyAssignment, FacultyProfile, FacultyWorkload
 from app.modules.hr.models import EmployeeProfileSnapshot
+from app.modules.college_admin.identity_models import InstitutionDepartment
 from app.modules.tenants.models import Department
 from app.repositories.user_repository import UserRepository
 
@@ -131,7 +132,10 @@ async def create_faculty_record(scope: AccessScope, payload: FacultyRecordCreate
     dept_id = to_object_id(payload.department_id, "department_id") if payload.department_id else None
     if dept_id:
         dept = await Department.get(dept_id)
-        if dept is None or dept.tenant_id != tenant_id:
+        inst_dept = await InstitutionDepartment.get(dept_id)
+        if (dept is None or dept.tenant_id != tenant_id) and (
+            inst_dept is None or inst_dept.tenant_id != tenant_id
+        ):
             raise AppError(code="VALIDATION_ERROR", message="Invalid department", status_code=422)
 
     campus_id = to_object_id(payload.campus_id, "campus_id") if payload.campus_id else None
@@ -297,7 +301,10 @@ async def assign_department(scope: AccessScope, record_id: PydanticObjectId, pay
         raise AppError(code="NOT_FOUND", message="Faculty record not found", status_code=404)
     dept_id = to_object_id(payload.department_id, "department_id")
     dept = await Department.get(dept_id)
-    if dept is None or dept.tenant_id != tenant_id:
+    inst_dept = await InstitutionDepartment.get(dept_id)
+    if (dept is None or dept.tenant_id != tenant_id) and (
+        inst_dept is None or inst_dept.tenant_id != tenant_id
+    ):
         raise AppError(code="VALIDATION_ERROR", message="Invalid department", status_code=422)
     campus_id = to_object_id(payload.campus_id, "campus_id") if payload.campus_id else None
     if payload.is_primary:

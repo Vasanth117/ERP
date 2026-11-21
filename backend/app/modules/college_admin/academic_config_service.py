@@ -203,6 +203,7 @@ async def publish_calendar(scope: AccessScope, calendar_id: PydanticObjectId) ->
     if doc is None or doc.tenant_id != tenant_id:
         raise AppError(code="NOT_FOUND", message="Calendar not found", status_code=404)
     for event in doc.events:
+        event.status = "published"
         await AcademicCalendarEvent(
             tenant_id=tenant_id,
             title=event.title,

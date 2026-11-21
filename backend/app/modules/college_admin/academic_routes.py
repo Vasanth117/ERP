@@ -42,6 +42,31 @@ from app.modules.college_admin.course_curriculum_page_service import (
     get_subject_management_page,
     save_course_configuration,
 )
+from app.modules.college_admin.academic_calendar_configuration_page_service import (
+    add_academic_calendar_event,
+    get_academic_calendar_configuration_page,
+    publish_academic_calendar_configuration,
+)
+from app.modules.college_admin.academic_configuration_history_page_service import (
+    get_academic_configuration_history_page,
+)
+from app.modules.college_admin.batch_section_configuration_page_service import (
+    add_batch_section_configuration_section,
+    auto_allocate_batch_sections,
+    get_batch_section_configuration_page,
+    save_batch_section_allocation_rules,
+)
+from app.modules.college_admin.regulation_management_page_service import (
+    create_regulation_management,
+    get_regulation_management_page,
+)
+from app.modules.college_admin.credit_grading_page_service import (
+    get_credit_configuration_page,
+    get_grading_system_configuration_page,
+    reset_credit_configuration,
+    save_credit_configuration,
+    save_grading_system_configuration,
+)
 from app.modules.college_admin.programme_management_page_service import (
     create_programme_management,
     get_programme_management_page,
@@ -75,7 +100,21 @@ from app.modules.college_admin.schemas import (
     AcademicYearManagementRulesSave,
     CourseConfigurationPageRead,
     CourseConfigurationSave,
+    CreditConfigurationPageRead,
+    CreditConfigurationSave,
     CurriculumManagementPageRead,
+    GradingSystemConfigurationPageRead,
+    GradingSystemConfigurationSave,
+    AcademicCalendarAddEventSave,
+    AcademicCalendarConfigurationPageRead,
+    AcademicCalendarPublishSave,
+    BatchSectionAddSectionSave,
+    BatchSectionAllocationRulesSave,
+    BatchSectionAutoAllocateSave,
+    BatchSectionConfigurationPageRead,
+    ConfigurationHistoryPageRead,
+    RegulationManagementCreate,
+    RegulationManagementPageRead,
     ProgrammeManagementCreate,
     ProgrammeManagementPageRead,
     SubjectManagementPageRead,
@@ -223,6 +262,234 @@ async def programme_management_create_route(
 ) -> ApiResponse[ProgrammeManagementPageRead]:
     return success_response(
         await create_programme_management(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/batches/configuration/page",
+    response_model=ApiResponse[BatchSectionConfigurationPageRead],
+)
+async def batch_section_configuration_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    batch_year: Annotated[str | None, Query()] = None,
+    programme_code: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[BatchSectionConfigurationPageRead]:
+    return success_response(
+        await get_batch_section_configuration_page(
+            scope,
+            batch_year=batch_year,
+            programme_code=programme_code,
+            page=page,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.put(
+    "/batches/configuration/rules",
+    response_model=ApiResponse[BatchSectionConfigurationPageRead],
+)
+async def batch_section_configuration_rules_route(
+    payload: BatchSectionAllocationRulesSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[BatchSectionConfigurationPageRead]:
+    return success_response(
+        await save_batch_section_allocation_rules(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/batches/configuration/sections",
+    response_model=ApiResponse[BatchSectionConfigurationPageRead],
+    status_code=status.HTTP_201_CREATED,
+)
+async def batch_section_configuration_add_section_route(
+    payload: BatchSectionAddSectionSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[BatchSectionConfigurationPageRead]:
+    return success_response(
+        await add_batch_section_configuration_section(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/batches/configuration/auto-allocate",
+    response_model=ApiResponse[BatchSectionConfigurationPageRead],
+)
+async def batch_section_configuration_auto_allocate_route(
+    payload: BatchSectionAutoAllocateSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[BatchSectionConfigurationPageRead]:
+    return success_response(
+        await auto_allocate_batch_sections(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/calendars/configuration/page",
+    response_model=ApiResponse[AcademicCalendarConfigurationPageRead],
+)
+async def academic_calendar_configuration_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    view: Annotated[str, Query()] = "list",
+    page: Annotated[int, Query(ge=1)] = 1,
+    academic_year_id: Annotated[str | None, Query()] = None,
+    month: Annotated[str | None, Query()] = None,
+    term_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[AcademicCalendarConfigurationPageRead]:
+    return success_response(
+        await get_academic_calendar_configuration_page(
+            scope,
+            view=view,
+            page=page,
+            academic_year_id=academic_year_id,
+            month=month,
+            term_id=term_id,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/calendars/configuration/events",
+    response_model=ApiResponse[AcademicCalendarConfigurationPageRead],
+    status_code=status.HTTP_201_CREATED,
+)
+async def academic_calendar_configuration_add_event_route(
+    payload: AcademicCalendarAddEventSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AcademicCalendarConfigurationPageRead]:
+    return success_response(
+        await add_academic_calendar_event(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/calendars/configuration/publish",
+    response_model=ApiResponse[AcademicCalendarConfigurationPageRead],
+)
+async def academic_calendar_configuration_publish_route(
+    payload: AcademicCalendarPublishSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AcademicCalendarConfigurationPageRead]:
+    return success_response(
+        await publish_academic_calendar_configuration(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/regulations/management/page",
+    response_model=ApiResponse[RegulationManagementPageRead],
+)
+async def regulation_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    regulation_code: Annotated[str | None, Query()] = None,
+) -> ApiResponse[RegulationManagementPageRead]:
+    return success_response(
+        await get_regulation_management_page(scope, regulation_code=regulation_code),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/regulations/management/create",
+    response_model=ApiResponse[RegulationManagementPageRead],
+    status_code=status.HTTP_201_CREATED,
+)
+async def regulation_management_create_route(
+    payload: RegulationManagementCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[RegulationManagementPageRead]:
+    return success_response(
+        await create_regulation_management(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/credits/configuration/page",
+    response_model=ApiResponse[CreditConfigurationPageRead],
+)
+async def credit_configuration_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreditConfigurationPageRead]:
+    return success_response(
+        await get_credit_configuration_page(scope),
+        request_id=get_request_id(),
+    )
+
+
+@router.put(
+    "/credits/configuration/save",
+    response_model=ApiResponse[CreditConfigurationPageRead],
+)
+async def credit_configuration_save_route(
+    payload: CreditConfigurationSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreditConfigurationPageRead]:
+    return success_response(
+        await save_credit_configuration(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/credits/configuration/reset",
+    response_model=ApiResponse[CreditConfigurationPageRead],
+)
+async def credit_configuration_reset_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CreditConfigurationPageRead]:
+    return success_response(
+        await reset_credit_configuration(scope),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/grading/configuration/page",
+    response_model=ApiResponse[GradingSystemConfigurationPageRead],
+)
+async def grading_configuration_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[GradingSystemConfigurationPageRead]:
+    return success_response(
+        await get_grading_system_configuration_page(scope),
+        request_id=get_request_id(),
+    )
+
+
+@router.put(
+    "/grading/configuration/save",
+    response_model=ApiResponse[GradingSystemConfigurationPageRead],
+)
+async def grading_configuration_save_route(
+    payload: GradingSystemConfigurationSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[GradingSystemConfigurationPageRead]:
+    return success_response(
+        await save_grading_system_configuration(scope, payload),
         request_id=get_request_id(),
     )
 
@@ -455,6 +722,34 @@ async def create_section_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[dict]:
     return success_response(await create_section(scope, payload), request_id=get_request_id())
+
+
+@router.get(
+    "/configuration-history/page",
+    response_model=ApiResponse[ConfigurationHistoryPageRead],
+)
+async def academic_configuration_history_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    date_range: Annotated[str, Query()] = "last_6_months",
+    setting_area: Annotated[str | None, Query()] = None,
+    actor_id: Annotated[str | None, Query()] = None,
+    search: Annotated[str | None, Query()] = None,
+    selected_change_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[ConfigurationHistoryPageRead]:
+    return success_response(
+        await get_academic_configuration_history_page(
+            scope,
+            page=page,
+            date_range=date_range,
+            setting_area=setting_area,
+            actor_id=actor_id,
+            search=search,
+            selected_change_id=selected_change_id,
+        ),
+        request_id=get_request_id(),
+    )
 
 
 @router.get("/configuration-history", response_model=ApiResponse[list[ConfigHistoryRead]])

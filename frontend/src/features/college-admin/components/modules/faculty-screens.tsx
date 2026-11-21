@@ -4,25 +4,28 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 
+import { fetchFaculty, fetchFacultyHistory } from "@/features/college-admin/api/faculty";
+import { AddNewFacultyEmployeeDashboard } from "@/features/college-admin/components/faculty/add-new-faculty-employee-dashboard";
+import { DepartmentDesignationAssignmentDashboard } from "@/features/college-admin/components/faculty/department-designation-assignment-dashboard";
+import { FacultySubjectAllocationDashboard } from "@/features/college-admin/components/faculty/faculty-subject-allocation-dashboard";
+import { FacultyTimetableDashboard } from "@/features/college-admin/components/faculty/faculty-timetable-dashboard";
+import { FacultyWorkloadManagementDashboard } from "@/features/college-admin/components/faculty/faculty-workload-management-dashboard";
+import { EmployeeDocumentVerificationDashboard } from "@/features/college-admin/components/faculty/employee-document-verification-dashboard";
+import { EmployeeStatusManagementDashboard } from "@/features/college-admin/components/faculty/employee-status-management-dashboard";
+import { FacultyEmployeeHistoryDashboard } from "@/features/college-admin/components/faculty/faculty-employee-history-dashboard";
+import { EmployeeDirectoryDashboard } from "@/features/college-admin/components/faculty/employee-directory-dashboard";
+import { EmployeeProfileManagementDashboard } from "@/features/college-admin/components/faculty/employee-profile-management-dashboard";
+import { FacultyDirectoryDashboard } from "@/features/college-admin/components/faculty/faculty-directory-dashboard";
+import { FacultyEmployeeDashboard } from "@/features/college-admin/components/faculty/faculty-employee-dashboard";
+import { FacultyProfileDashboard } from "@/features/college-admin/components/faculty/faculty-profile-dashboard";
 import {
-  fetchFaculty,
-  fetchFacultyHistory,
-  fetchFacultyList,
-} from "@/features/college-admin/api/faculty";
-import {
-  DataTable,
   DetailGrid,
   FormPlaceholder,
   SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
   rowsFromApi,
 } from "@/features/college-admin/components/ui/college-admin-screen-ui";
 import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
+import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 
@@ -30,35 +33,43 @@ export function FacultyScreen({ slug, title }: { slug: string; title: string }) 
   const { apiPath, viewType } = resolveModuleEndpoint("faculty", slug);
 
   if (slug === "faculty-employee-dashboard") {
-    return <FacultyDashboard />;
+    return <FacultyEmployeeDashboard />;
   }
-  if (slug === "faculty-directory" || slug === "employee-directory") {
-    return <FacultyDirectory title={title} />;
+  if (slug === "faculty-directory" || slug === "all-faculty-list") {
+    return <FacultyDirectoryDashboard />;
   }
-  if (slug === "faculty-profile" || slug === "employee-profile-management") {
-    return <FacultyProfile title={title} />;
+  if (slug === "employee-directory") {
+    return <EmployeeDirectoryDashboard />;
+  }
+  if (slug === "faculty-profile" || slug === "faculty-details") {
+    return <FacultyProfileDashboard />;
+  }
+  if (slug === "add-new-faculty-employee") {
+    return <AddNewFacultyEmployeeDashboard />;
+  }
+  if (slug === "employee-profile-management") {
+    return <EmployeeProfileManagementDashboard />;
+  }
+  if (slug === "department-designation-assignment") {
+    return <DepartmentDesignationAssignmentDashboard />;
+  }
+  if (slug === "faculty-subject-allocation") {
+    return <FacultySubjectAllocationDashboard />;
+  }
+  if (slug === "faculty-workload-management") {
+    return <FacultyWorkloadManagementDashboard />;
+  }
+  if (slug === "faculty-timetable") {
+    return <FacultyTimetableDashboard />;
+  }
+  if (slug === "employee-document-verification") {
+    return <EmployeeDocumentVerificationDashboard />;
+  }
+  if (slug === "employee-status-management") {
+    return <EmployeeStatusManagementDashboard />;
   }
   if (slug === "faculty-employee-history") {
-    return <FacultyHistory title={title} />;
-  }
-  if (
-    [
-      "add-new-faculty-employee",
-      "department-designation-assignment",
-      "faculty-subject-allocation",
-      "faculty-workload-management",
-      "faculty-timetable",
-      "employee-document-verification",
-      "employee-status-management",
-    ].includes(slug)
-  ) {
-    return (
-      <FormPlaceholder
-        title={title}
-        description="Faculty & employee workflow form aligned with Figma CA 07."
-        submitLabel="Save"
-      />
-    );
+    return <FacultyEmployeeHistoryDashboard />;
   }
 
   return (
@@ -69,69 +80,6 @@ export function FacultyScreen({ slug, title }: { slug: string; title: string }) 
       apiPath={apiPath}
       viewType={viewType}
     />
-  );
-}
-
-function FacultyDashboard() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "faculty-dashboard"],
-    queryFn: () => fetchFacultyList(100, 0),
-  });
-  const active =
-    q.data?.items.filter((f) => f.employment_status === "active").length ?? 0;
-  return (
-    <QueryState
-      isLoading={q.isLoading}
-      isError={q.isError}
-      error={q.error}
-      onRetry={() => void q.refetch()}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Total faculty & staff" value={q.data?.total ?? 0} />
-        <StatCard label="Active" value={active} />
-        <StatCard label="Listed" value={q.data?.items.length ?? 0} />
-        <Link
-          href="/college-admin/faculty/faculty-directory"
-          className="flex items-center rounded-xl border border-[#dce3ec] bg-white p-4 text-sm font-medium text-[#245dd8]"
-        >
-          Open faculty directory →
-        </Link>
-      </div>
-    </QueryState>
-  );
-}
-
-function FacultyDirectory({ title }: { title: string }) {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "faculty-list"],
-    queryFn: () => fetchFacultyList(200, 0),
-  });
-  const rows = rowsFromApi(q.data?.items);
-  const cols = columnsFromRows(rows);
-  return (
-    <QueryState
-      isLoading={q.isLoading}
-      isError={q.isError}
-      error={q.error}
-      isEmpty={!rows.length}
-      onRetry={() => void q.refetch()}
-    >
-      <SectionPanel title={title}>
-        <ToolbarRow onRefresh={() => void q.refetch()} />
-        <DataTable columns={cols.length ? cols : ["full_name", "email", "designation", "employment_status"]} rows={rows} />
-        {rows[0]?.record_id ? (
-          <p className="mt-4 text-xs text-[#607086]">
-            Open profile:{" "}
-            <Link
-              className="text-[#245dd8]"
-              href={`/college-admin/faculty/faculty-profile?id=${encodeURIComponent(String(rows[0].record_id))}`}
-            >
-              sample record
-            </Link>
-          </p>
-        ) : null}
-      </SectionPanel>
-    </QueryState>
   );
 }
 

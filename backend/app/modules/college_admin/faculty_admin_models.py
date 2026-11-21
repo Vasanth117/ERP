@@ -119,6 +119,44 @@ class FacultyEmploymentHistory(Document):
         ]
 
 
+class EmployeeStatusChangeApproval(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class EmployeeStatusChangeRequest(Document):
+    """Queued employee employment status change awaiting college approval."""
+
+    tenant_id: PydanticObjectId
+    employee_record_id: PydanticObjectId
+    user_id: PydanticObjectId
+    from_status: str = Field(max_length=48)
+    from_status_label: str = Field(max_length=64)
+    to_status: str = Field(max_length=48)
+    to_status_label: str = Field(max_length=64)
+    reason: str = Field(max_length=500)
+    effective_date: date
+    approval_status: EmployeeStatusChangeApproval = EmployeeStatusChangeApproval.PENDING
+    requested_by: PydanticObjectId
+    decided_by: PydanticObjectId | None = None
+    decided_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "employee_status_change_requests"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("approval_status", ASCENDING), ("created_at", DESCENDING)],
+                name="employee_status_change_by_status",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("employee_record_id", ASCENDING), ("created_at", DESCENDING)],
+                name="employee_status_change_by_record",
+            ),
+        ]
+
+
 class FacultyDepartmentAssignment(Document):
     tenant_id: PydanticObjectId
     user_id: PydanticObjectId
@@ -203,4 +241,25 @@ class FacultyDocumentReference(Document):
         name = "faculty_document_references"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("user_id", ASCENDING)], name="faculty_documents_by_user"),
+        ]
+
+
+class FacultyNewHireDraft(Document):
+    """In-progress add faculty / employee wizard (CA 07.05)."""
+
+    tenant_id: PydanticObjectId
+    created_by: PydanticObjectId
+    step_key: str = Field(default="personal", max_length=48)
+    values: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "faculty_new_hire_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("created_by", ASCENDING)],
+                unique=True,
+                name="unique_faculty_new_hire_draft_per_user",
+            ),
         ]

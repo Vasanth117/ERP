@@ -740,6 +740,8 @@ export type ConfigurationChangeDetail = {
   previous_value: string | null;
   new_value: string | null;
   approved_by_label: string | null;
+  reason_line: string | null;
+  applies_to_line: string | null;
   ip_line: string | null;
   open_href: string;
   open_label: string;
