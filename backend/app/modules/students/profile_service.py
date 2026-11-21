@@ -128,11 +128,15 @@ async def get_profile_activity_history(
 ) -> Page[StudentActivityRead]:
     authorize(scope, Permission.STUDENT_PROFILE_READ)
     tenant_id = require_student_scope(scope)
-    skip = (pagination.page - 1) * pagination.page_size
-    items, total = await _activity_repo.page_for_user(tenant_id, user.id, skip=skip, limit=pagination.page_size)
+    items, total = await _activity_repo.page_for_user(
+        tenant_id,
+        user.id,
+        skip=pagination.offset,
+        limit=pagination.limit,
+    )
     return Page(
         items=[StudentActivityRead.from_document(row) for row in items],
-        page=pagination.page,
-        page_size=pagination.page_size,
         total=total,
+        limit=pagination.limit,
+        offset=pagination.offset,
     )

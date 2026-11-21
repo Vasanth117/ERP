@@ -21,6 +21,14 @@ class TenantRepository:
   async def count_tenants(self) -> int:
     return await Tenant.find_all().count()
 
+  async def find_sole_active_tenant(self) -> Tenant | None:
+    """Returns the only active tenant when this database hosts a single college."""
+    tenants = await self.list_tenants(skip=0, limit=2)
+    active = [t for t in tenants if t.is_active]
+    if len(active) == 1:
+      return active[0]
+    return None
+
   async def find_department_by_code(
     self,
     tenant_id: PydanticObjectId,

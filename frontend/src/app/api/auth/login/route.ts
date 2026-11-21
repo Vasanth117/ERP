@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   if (!email || !password) {
     return NextResponse.json(
-      { message: "Email and password are required" },
+      { message: "Login and password are required" },
       { status: 400 },
     );
   }
@@ -56,11 +56,9 @@ export async function POST(request: Request) {
       "Invalid credentials or tenant configuration";
     if (
       upstream.status === 401 &&
-      envelope.error?.code === "INVALID_CREDENTIALS" &&
-      !tenant_code
+      envelope.error?.code === "INVALID_CREDENTIALS"
     ) {
-      message =
-        "Invalid email or password. College users must include a college code.";
+      message = "Invalid email or password.";
     }
     return NextResponse.json(
       {

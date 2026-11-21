@@ -14,6 +14,7 @@ from app.core.security import (
 )
 from app.modules.audit.service import record_audit
 from app.modules.auth.models import User
+from app.modules.auth.login_resolver import resolve_login_email
 from app.modules.auth.schemas import LoginRequest, RefreshRequest, TokenResponse, UserRead
 from app.modules.auth.token_service import issue_refresh_token, revoke_refresh_token, rotate_refresh_token
 from app.repositories.tenant_repository import TenantRepository
@@ -23,13 +24,7 @@ _user_repo = UserRepository()
 _tenant_repo = TenantRepository()
 
 
-async def _resolve_login_tenant(tenant_code: str | None) -> PydanticObjectId | None:
-    if tenant_code is None:
-        return None
-    code = tenant_code.strip().lower()
-    tenant = await _tenant_repo.find_tenant_by_code(code)
-    if tenant is None:
-        raise AppError(code="TENANT_NOT_FOUND", message="College not found", status_code=404)
+def _assert_tenant_login_allowed(tenant) -> PydanticObjectId:
     from app.modules.tenants.tenant_access import tenant_blocks_end_user_access
 
     if not tenant.is_active or tenant_blocks_end_user_access(tenant):
@@ -41,9 +36,36 @@ async def _resolve_login_tenant(tenant_code: str | None) -> PydanticObjectId | N
     return tenant.id
 
 
+async def _resolve_login_tenant(tenant_code: str | None) -> PydanticObjectId | None:
+    if tenant_code is not None and tenant_code.strip():
+        code = tenant_code.strip().lower()
+        tenant = await _tenant_repo.find_tenant_by_code(code)
+        if tenant is None:
+            raise AppError(code="TENANT_NOT_FOUND", message="College not found", status_code=404)
+        return _assert_tenant_login_allowed(tenant)
+
+    settings = get_settings()
+    default_code = (settings.login_default_tenant_code or "").strip()
+    if default_code:
+        tenant = await _tenant_repo.find_tenant_by_code(default_code)
+        if tenant is None:
+            raise AppError(
+                code="TENANT_CONFIG_ERROR",
+                message="Login is not configured for this college deployment",
+                status_code=503,
+            )
+        return _assert_tenant_login_allowed(tenant)
+
+    sole = await _tenant_repo.find_sole_active_tenant()
+    if sole is not None:
+        return _assert_tenant_login_allowed(sole)
+
+    return None
+
+
 async def login(payload: LoginRequest) -> TokenResponse:
-    email = str(payload.email).lower()
     tenant_id = await _resolve_login_tenant(payload.tenant_code)
+    email = await resolve_login_email(payload.email, tenant_id)
     user = await _user_repo.find_by_email_for_login(email, tenant_id)
     password_hash = user.hashed_password if user is not None else DUMMY_PASSWORD_HASH
     password_ok = verify_password(payload.password, password_hash)

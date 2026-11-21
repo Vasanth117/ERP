@@ -1,10 +1,9 @@
 /** Paths that always require a college code at sign-in. */
+/** Student/parent portals use implicit college context (per-database deployment). */
 const TENANT_LOGIN_PREFIXES = [
   "/college-admin",
   "/department-admin",
-  "/student",
   "/faculty",
-  "/parent",
   "/hr",
   "/library",
   "/hostel",
