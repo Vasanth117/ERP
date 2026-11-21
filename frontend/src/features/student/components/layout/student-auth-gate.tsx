@@ -32,7 +32,7 @@ export function StudentAuthGate({ children }: { children: ReactNode }) {
           student-role account for your tenant.
         </p>
         <Link
-          href={`/login?next=${returnUrl}`}
+          href={`/login?portal=student-performance&next=${returnUrl}`}
           className="mt-6 inline-flex h-10 items-center rounded-lg bg-[#245dd8] px-5 text-sm font-medium text-white hover:bg-[#1f4fb8]"
         >
           Sign in

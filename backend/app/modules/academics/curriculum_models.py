@@ -32,6 +32,17 @@ class CourseRecord(Document):
     description: str | None = None
     department_id: PydanticObjectId | None = None
     credit_units: float = Field(default=0, ge=0)
+    course_type: str | None = Field(default=None, max_length=64)
+    semester_number: int | None = Field(default=None, ge=1, le=12)
+    regulation_label: str | None = Field(default=None, max_length=32)
+    lecture_hours: int = Field(default=0, ge=0)
+    tutorial_hours: int = Field(default=0, ge=0)
+    practical_hours: int = Field(default=0, ge=0)
+    internal_assessment_label: str | None = Field(default=None, max_length=64)
+    end_semester_exam_label: str | None = Field(default=None, max_length=64)
+    exam_duration_label: str | None = Field(default=None, max_length=32)
+    exam_type_label: str | None = Field(default=None, max_length=64)
+    configuration_status: str = Field(default="draft", max_length=32)
     is_active: bool = True
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)

@@ -1,0 +1,50 @@
+export type AllStudentsListTableRow = {
+  record_id: string;
+  student_name: string;
+  register_number: string;
+  programme_label: string;
+  year_section_label: string;
+  attendance_label: string;
+  attendance_tone: string | null;
+  fee_status_label: string;
+  fee_status_tone: string;
+  status_label: string;
+  status_tone: string;
+  detail_href: string;
+};
+
+export type AllStudentsListPage = {
+  page_title: string;
+  page_subtitle: string;
+  export_label: string;
+  add_student_label: string;
+  add_student_href: string;
+  bulk_actions_label: string;
+  bulk_actions_href: string;
+  search_placeholder: string;
+  programme_filter_label: string;
+  year_filter_label: string;
+  section_filter_label: string;
+  status_filter_label: string;
+  programme_options: { value: string; label: string }[];
+  year_options: { value: string; label: string }[];
+  section_options: { value: string; label: string }[];
+  status_options: { value: string; label: string }[];
+  students_section_title: string;
+  students_count_label: string;
+  table_headers: string[];
+  students: AllStudentsListTableRow[];
+  showing_label: string;
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+    page_numbers: number[];
+    has_previous: boolean;
+    has_next: boolean;
+  };
+  footer_disclaimer: string;
+  footer_snapshot_label: string;
+  generated_at: string;
+};

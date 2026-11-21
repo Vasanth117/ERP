@@ -3,10 +3,8 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
+import { CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
+import { QueryState, StatCard } from "@/features/college-admin/components/ui/query-state";
 import { PageHeading } from "@/features/college-admin/components/layout/page-heading";
 import { CollegeOverviewDashboard } from "@/features/college-admin/components/dashboard/college-overview-dashboard";
 import { InstitutionalOverviewDashboard } from "@/features/college-admin/components/dashboard/institutional-overview-dashboard";
@@ -94,38 +92,56 @@ function OperationsGrid({
   support?: number;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <CollegeAdminKpiGrid columns={3}>
       <StatCard
         label="Attendance sessions"
         value={attendance?.sessions_submitted ?? 0}
         hint={`${attendance?.pending_submissions ?? 0} pending`}
+        index={0}
+        kpiKey="attendance_sessions"
+        iconSlug="clipboard-check"
       />
       <StatCard
         label="Scheduled exams"
         value={exams?.scheduled_exams ?? 0}
         hint={`${exams?.pending_evaluations ?? 0} pending evaluations`}
+        index={1}
+        kpiKey="scheduled_exams"
+        iconSlug="file-text"
       />
       <StatCard
         label="Fees collected"
         value={formatMoney(finance?.collected_amount ?? 0)}
         hint={`Outstanding ${formatMoney(finance?.outstanding_amount ?? 0)}`}
+        index={2}
+        kpiKey="fees_collected"
+        iconSlug="wallet"
       />
       <StatCard
         label="Pending approvals"
         value={pending ?? 0}
         hint={`${support ?? 0} open support items`}
+        index={3}
+        kpiKey="pending_approvals"
+        iconSlug="square-check"
       />
       <StatCard
         label="Library circulation"
         value={library?.active_circulation ?? 0}
         hint={`${library?.catalog_items ?? 0} catalogue items`}
+        index={0}
+        kpiKey="library_circulation"
+        iconSlug="library-big"
       />
       <StatCard
         label="Hostel allocations"
         value={library?.hostel_allocations ?? 0}
         hint={`${library?.pending_hostel_applications ?? 0} applications`}
+        index={1}
+        kpiKey="hostel_allocations"
+        iconSlug="hotel"
       />
-    </div>
+    </CollegeAdminKpiGrid>
   );
 }
 

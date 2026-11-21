@@ -126,6 +126,134 @@ class StudentStatusHistory(Document):
         ]
 
 
+class StudentStatusChangeApproval(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class StudentWithdrawalType(str, Enum):
+    WITHDRAWAL = "withdrawal"
+    DISCONTINUATION = "discontinuation"
+
+
+class StudentWithdrawalWorkflowStatus(str, Enum):
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    COMPLETED = "completed"
+
+
+class StudentWithdrawalRequest(Document):
+    """Controlled student withdrawal or discontinuation workflow."""
+
+    tenant_id: PydanticObjectId
+    student_record_id: PydanticObjectId
+    user_id: PydanticObjectId
+    withdrawal_type: StudentWithdrawalType = StudentWithdrawalType.WITHDRAWAL
+    last_attendance_date: date | None = None
+    reason: str = Field(default="", max_length=500)
+    workflow_status: StudentWithdrawalWorkflowStatus = StudentWithdrawalWorkflowStatus.DRAFT
+    clearance_snapshots: dict[str, str] = Field(default_factory=dict)
+    submitted_at: datetime | None = None
+    approved_at: datetime | None = None
+    approved_by: PydanticObjectId | None = None
+    requested_by: PydanticObjectId
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "student_withdrawal_requests"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("workflow_status", ASCENDING), ("created_at", DESCENDING)],
+                name="student_withdrawal_by_status",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("student_record_id", ASCENDING), ("created_at", DESCENDING)],
+                name="student_withdrawal_by_record",
+            ),
+        ]
+
+
+class StudentStatusChangeRequest(Document):
+    """Queued student lifecycle status change awaiting college approval."""
+
+    tenant_id: PydanticObjectId
+    student_record_id: PydanticObjectId
+    user_id: PydanticObjectId
+    from_status_bucket: str = Field(max_length=32)
+    from_status_label: str = Field(max_length=64)
+    to_status_bucket: str = Field(max_length=32)
+    to_status_label: str = Field(max_length=64)
+    reason: str = Field(max_length=500)
+    approval_status: StudentStatusChangeApproval = StudentStatusChangeApproval.PENDING
+    requested_by: PydanticObjectId
+    decided_by: PydanticObjectId | None = None
+    decided_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "student_status_change_requests"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("approval_status", ASCENDING), ("created_at", DESCENDING)],
+                name="student_status_change_by_status",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("student_record_id", ASCENDING), ("created_at", DESCENDING)],
+                name="student_status_change_by_record",
+            ),
+        ]
+
+
+class StudentIdCardStatus(str, Enum):
+    PENDING_PRINT = "pending_print"
+    ACTIVE = "active"
+    RENEWAL_DUE = "renewal_due"
+    REPRINT_REQUESTED = "reprint_requested"
+    BLOCKED = "blocked"
+
+
+class StudentIdCard(Document):
+    """Institutional student ID card issue and lifecycle."""
+
+    tenant_id: PydanticObjectId
+    student_record_id: PydanticObjectId
+    user_id: PydanticObjectId
+    card_number: str | None = Field(default=None, max_length=32)
+    issued_at: datetime | None = None
+    valid_until: date | None = None
+    status: StudentIdCardStatus = StudentIdCardStatus.PENDING_PRINT
+    reprint_reason: str | None = Field(default=None, max_length=120)
+    blocked_reason: str | None = Field(default=None, max_length=200)
+    print_batch_id: str | None = Field(default=None, max_length=64)
+    issued_by: PydanticObjectId | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "student_id_cards"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("student_record_id", ASCENDING)],
+                unique=True,
+                name="unique_student_id_card_record",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("status", ASCENDING), ("updated_at", DESCENDING)],
+                name="student_id_card_by_status",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("card_number", ASCENDING)],
+                unique=True,
+                name="unique_student_card_number",
+                partialFilterExpression={"card_number": {"$type": "string"}},
+            ),
+        ]
+
+
 class StudentTransfer(Document):
     tenant_id: PydanticObjectId
     user_id: PydanticObjectId
@@ -137,6 +265,7 @@ class StudentTransfer(Document):
     status: TransferStatus = TransferStatus.REQUESTED
     effective_date: date | None = None
     actor_id: PydanticObjectId | None = None
+    metadata: dict = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=utcnow)
     completed_at: datetime | None = None
 
@@ -163,6 +292,28 @@ class StudentPromotionRecord(Document):
         name = "student_promotion_records"
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("user_id", ASCENDING), ("created_at", DESCENDING)], name="promotions_by_user"),
+        ]
+
+
+class StudentNewRegistrationDraft(Document):
+    """Wizard draft for new student registration (CA 06.05)."""
+
+    tenant_id: PydanticObjectId
+    admission_id: PydanticObjectId
+    actor_id: PydanticObjectId
+    step_key: str = Field(default="student_information", max_length=48)
+    values: dict = Field(default_factory=dict)
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "student_new_registration_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("admission_id", ASCENDING)],
+                unique=True,
+                name="unique_registration_draft_per_admission",
+            ),
         ]
 
 

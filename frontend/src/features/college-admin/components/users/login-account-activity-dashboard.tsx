@@ -8,29 +8,13 @@ import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { ListFilterIcon } from "@/components/icons/erp/generated/list-filter";
 import { MapPinIcon } from "@/components/icons/erp/generated/map-pin";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminKpiGrid, CollegeAdminUserDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useDownloadLoginAccountActivity,
   useLoginAccountActivityPage,
 } from "@/features/college-admin/hooks/use-login-account-activity";
-import type { UserDashboardKpi } from "@/features/college-admin/types/user-management-dashboard";
 import { cn } from "@/lib/utils";
-
-function KpiCard({ kpi }: { kpi: UserDashboardKpi }) {
-  const hintTone =
-    kpi.hint_tone === "success"
-      ? "text-[#059669]"
-      : kpi.hint_tone === "warning"
-        ? "text-[#d97706]"
-        : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.5rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[12px] font-medium text-[#6b7280]">{kpi.label}</p>
-      <p className="mt-2 text-[28px] font-bold tabular-nums tracking-tight text-[#111827]">{kpi.value}</p>
-      <p className={cn("mt-auto pt-2 text-[12px]", hintTone)}>{kpi.hint_line}</p>
-    </div>
-  );
-}
 
 function ResultPill({ label, tone }: { label: string; tone: string }) {
   const styles: Record<string, string> = {
@@ -157,11 +141,11 @@ export function LoginAccountActivityDashboard() {
       <QueryState query={pageQuery}>
         {data ? (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {data.kpis.map((kpi) => (
-                <KpiCard key={kpi.key} kpi={kpi} />
+            <CollegeAdminKpiGrid>
+              {data.kpis.map((kpi, index) => (
+                <CollegeAdminUserDashboardKpiCard key={kpi.key} kpi={kpi} index={index} />
               ))}
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-5 lg:grid-cols-3">
               <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-2">

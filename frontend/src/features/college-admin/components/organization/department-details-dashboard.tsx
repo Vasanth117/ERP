@@ -10,9 +10,9 @@ import { MailIcon } from "@/components/icons/erp/generated/mail";
 import { NetworkIcon } from "@/components/icons/erp/generated/network";
 import { PencilIcon } from "@/components/icons/erp/generated/pencil";
 import { PhoneIcon } from "@/components/icons/erp/generated/phone";
+import { CollegeAdminKpiGrid, CollegeAdminUserDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useDepartmentDetailsPage } from "@/features/college-admin/hooks/use-department-details";
-import type { UserDashboardKpi } from "@/features/college-admin/types/user-management-dashboard";
 import { cn } from "@/lib/utils";
 
 function StatusPill({ label, tone }: { label: string; tone: string }) {
@@ -56,22 +56,6 @@ function ProfileBadge({ label, tone }: { label: string; tone: string }) {
       <span className={cn("size-1.5 rounded-full", dot[key])} />
       {label}
     </span>
-  );
-}
-
-function KpiCard({ kpi }: { kpi: UserDashboardKpi }) {
-  const hintTone =
-    kpi.hint_tone === "success"
-      ? "text-[#059669]"
-      : kpi.hint_tone === "warning"
-        ? "text-[#d97706]"
-        : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[12px] font-medium text-[#6b7280]">{kpi.label}</p>
-      <p className="mt-2 text-[26px] font-bold tabular-nums text-[#111827]">{kpi.value}</p>
-      <p className={cn("mt-auto pt-2 text-[12px]", hintTone)}>{kpi.hint_line}</p>
-    </div>
   );
 }
 
@@ -207,11 +191,11 @@ export function DepartmentDetailsDashboard() {
               </div>
             </section>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {data.kpis.map((kpi) => (
-                <KpiCard key={kpi.key} kpi={kpi} />
+            <CollegeAdminKpiGrid>
+              {data.kpis.map((kpi, index) => (
+                <CollegeAdminUserDashboardKpiCard key={kpi.key} kpi={kpi} index={index} />
               ))}
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
               <div className="space-y-5">

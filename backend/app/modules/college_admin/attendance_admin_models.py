@@ -19,6 +19,60 @@ class AttendancePolicyAudience(str, Enum):
     FACULTY = "faculty"
 
 
+class InstitutionAttendanceMarkingConfig(Document):
+    """Session marking windows and operational toggles (CA 08.10)."""
+
+    tenant_id: PydanticObjectId
+    marking_window_key: str = "same_day_18"
+    correction_window_key: str = "3_working_days"
+    late_mark_after_key: str = "15_minutes"
+    session_length_key: str = "60_minutes"
+    allow_substitute_faculty: bool = True
+    lock_after_approval: bool = True
+    biometric_sync: bool = False
+    updated_by: PydanticObjectId | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_attendance_marking_config"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING)],
+                unique=True,
+                name="unique_attendance_marking_config_per_tenant",
+            ),
+        ]
+
+
+class AttendanceInstitutionalPolicyRow(Document):
+    """Display policy catalogue rows for rules & policies (CA 08.11)."""
+
+    tenant_id: PydanticObjectId
+    policy_key: str = Field(max_length=64)
+    title: str = Field(max_length=200)
+    value_label: str = Field(max_length=120)
+    applies_to_label: str = Field(max_length=200)
+    effective_from: date
+    is_active: bool = True
+    sort_order: int = 0
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "attendance_institutional_policy_rows"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("policy_key", ASCENDING)],
+                unique=True,
+                name="unique_attendance_policy_row_per_tenant",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("sort_order", ASCENDING)],
+                name="attendance_policy_rows_by_sort",
+            ),
+        ]
+
+
 class InstitutionAttendancePolicy(Document):
     tenant_id: PydanticObjectId
     policy_code: str = Field(max_length=64)
@@ -79,6 +133,54 @@ class AttendanceCorrectionApproval(Document):
                 [("tenant_id", ASCENDING), ("correction_request_id", ASCENDING)],
                 unique=True,
                 name="unique_correction_approval",
+            ),
+        ]
+
+
+class AttendanceReportDefinition(Document):
+    """Saved / scheduled attendance report catalogue (CA 08.12)."""
+
+    tenant_id: PydanticObjectId
+    report_key: str = Field(max_length=64)
+    title: str = Field(max_length=200)
+    period_label: str = Field(max_length=120)
+    export_formats: list[str] = Field(default_factory=list)
+    schedule_label: str = Field(max_length=64)
+    last_run_at: datetime | None = None
+    sort_order: int = 0
+    is_builtin: bool = True
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "attendance_report_definitions"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("report_key", ASCENDING)],
+                unique=True,
+                name="unique_attendance_report_per_tenant",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("sort_order", ASCENDING)],
+                name="attendance_reports_by_sort",
+            ),
+        ]
+
+
+class AttendanceReportExecution(Document):
+    tenant_id: PydanticObjectId
+    report_key: str = Field(max_length=64)
+    period_label: str = Field(max_length=120)
+    run_at: datetime = Field(default_factory=utcnow)
+    run_by: PydanticObjectId | None = None
+
+    class Settings:
+        name = "attendance_report_executions"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("report_key", ASCENDING), ("run_at", DESCENDING)],
+                name="attendance_report_runs",
             ),
         ]
 

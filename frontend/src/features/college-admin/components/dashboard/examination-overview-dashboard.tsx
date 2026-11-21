@@ -8,6 +8,7 @@ import { MailWarningIcon } from "@/components/icons/erp/generated/mail-warning";
 import {
   CollegeAdminChevronRight,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useExaminationOverview } from "@/features/college-admin/hooks/use-examination-overview";
 import { cn } from "@/lib/utils";
@@ -67,30 +68,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintClassName,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintClassName?: string;
-}) {
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold tabular-nums text-[#111827]">{value}</p>
-      {hint ? (
-        <p className={cn("mt-auto pt-3 text-[12px] text-[#9ca3af]", hintClassName)}>{hint}</p>
-      ) : (
-        <span className="mt-auto block min-h-[1.125rem]" aria-hidden />
-      )}
-    </div>
   );
 }
 
@@ -196,29 +173,29 @@ export function ExaminationOverviewDashboard() {
           <>
             {data.timetable_alert ? <TimetableAlertBanner alert={data.timetable_alert} /> : null}
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Upcoming session"
                 value={upcoming?.session_name ?? "—"}
                 hint={upcomingHint}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Papers scheduled"
                 value={kpis?.papers_scheduled ?? 0}
                 hint={`Across ${kpis?.programmes_count ?? 0} programmes`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Hall tickets issued"
                 value={(kpis?.hall_tickets_issued ?? 0).toLocaleString("en-IN")}
                 hint={hallHint}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Results pending"
                 value={kpis?.results_pending_count ?? 0}
                 hint={pendingHint}
-                hintClassName="text-[#245dd8]"
+                hintTone="info"
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

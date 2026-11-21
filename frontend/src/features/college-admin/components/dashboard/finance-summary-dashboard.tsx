@@ -12,6 +12,7 @@ import {
   CollegeAdminDownload,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchAcademicYears, fetchProgrammes } from "@/features/college-admin/api/academics";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useFinanceOverview } from "@/features/college-admin/hooks/use-finance-overview";
 import { cn } from "@/lib/utils";
@@ -84,28 +85,6 @@ function Panel({
       </div>
       {children}
     </section>
-  );
-}
-
-function KpiCard({
-  label,
-  value,
-  hint,
-  hintTone,
-}: {
-  label: string;
-  value: string | number;
-  hint?: ReactNode;
-  hintTone?: "success" | "warning" | "muted";
-}) {
-  const toneClass =
-    hintTone === "success" ? "text-[#059669]" : hintTone === "warning" ? "text-[#d97706]" : "text-[#9ca3af]";
-  return (
-    <div className="flex min-h-[7.25rem] flex-col rounded-xl border border-[#e8ecf2] bg-white p-5">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p className="mt-3 text-[1.75rem] font-bold tabular-nums text-[#111827]">{value}</p>
-      {hint ? <p className={cn("mt-auto pt-3 text-[12px]", toneClass)}>{hint}</p> : <span className="mt-auto block min-h-[1.125rem]" aria-hidden />}
-    </div>
   );
 }
 
@@ -350,30 +329,30 @@ export function FinanceSummaryDashboard() {
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
+            <CollegeAdminKpiGrid>
+              <CollegeAdminDashboardKpiCard
                 label="Total fee demand"
                 value={formatInrCompact(kpis?.total_demand_inr ?? 0)}
                 hint={`${(kpis?.student_count ?? 0).toLocaleString("en-IN")} students · ${kpis?.fee_head_count ?? 0} fee heads`}
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Collected"
                 value={formatInrCompact(kpis?.collected_inr ?? 0)}
                 hint={kpis?.collected_pct != null ? `${kpis.collected_pct}% of demand` : "No collections recorded"}
                 hintTone="success"
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Outstanding"
                 value={formatInrCompact(kpis?.outstanding_inr ?? 0)}
                 hint={`${(kpis?.students_with_dues ?? 0).toLocaleString("en-IN")} students with dues`}
                 hintTone="warning"
               />
-              <KpiCard
+              <CollegeAdminDashboardKpiCard
                 label="Scholarships & concessions"
                 value={formatInrCompact(kpis?.scholarships_concessions_inr ?? 0)}
                 hint={`${(kpis?.scholarship_beneficiaries ?? 0).toLocaleString("en-IN")} beneficiaries`}
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

@@ -185,12 +185,16 @@ from app.modules.college_admin.schemas import (
     InstitutionSettingsRead,
     OperationalSummariesRead,
     PendingApprovalItem,
+    FacultyEmployeeDashboardPageRead,
 )
 from app.modules.college_admin.settings_registry import InstitutionBrandingUpdate, InstitutionSettingsUpdate
 from app.modules.college_admin.academic_routes import router as academic_config_router
 from app.modules.college_admin.student_admin_routes import router as student_admin_router
 from app.modules.parents.college_admin_routes import router as parent_admin_router
 from app.modules.college_admin.faculty_admin_routes import router as faculty_admin_router
+from app.modules.college_admin.faculty_employee_dashboard_page_service import (
+    get_faculty_employee_dashboard_page,
+)
 from app.modules.college_admin.attendance_admin_routes import router as attendance_admin_router
 from app.modules.college_admin.examination_admin_routes import router as examination_admin_router
 from app.modules.college_admin.finance_admin_routes import router as finance_admin_router
@@ -214,6 +218,33 @@ router.include_router(academic_config_router, prefix="/academic-config", tags=["
 router.include_router(student_admin_router, prefix="/student-administration", tags=["college-admin-student-admin"])
 router.include_router(parent_admin_router, prefix="/parent-administration", tags=["college-admin-parent-admin"])
 router.include_router(faculty_admin_router, prefix="/faculty-administration", tags=["college-admin-faculty-admin"])
+
+
+@router.get(
+    "/faculty-administration/dashboard/page",
+    response_model=ApiResponse[FacultyEmployeeDashboardPageRead],
+    tags=["college-admin-faculty-admin"],
+)
+async def faculty_employee_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    academic_year_code: str | None = None,
+    department_id: str | None = None,
+    page: int = 1,
+    page_size: int = 6,
+) -> ApiResponse[FacultyEmployeeDashboardPageRead]:
+    return success_response(
+        await get_faculty_employee_dashboard_page(
+            scope,
+            academic_year_code=academic_year_code,
+            department_id=department_id or None,
+            page=page,
+            page_size=page_size,
+        ),
+        request_id=get_request_id(),
+    )
+
+
 router.include_router(attendance_admin_router, prefix="/attendance-administration", tags=["college-admin-attendance-admin"])
 router.include_router(examination_admin_router, prefix="/examination-administration", tags=["college-admin-examination-admin"])
 router.include_router(finance_admin_router, prefix="/finance-administration", tags=["college-admin-finance-admin"])

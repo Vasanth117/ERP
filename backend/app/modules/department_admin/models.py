@@ -212,6 +212,7 @@ class DepartmentSection(Document):
     section_code: str = Field(min_length=1, max_length=16)
     name: str = Field(min_length=1, max_length=120)
     capacity: int = Field(default=60, ge=1, le=500)
+    room_label: str | None = Field(default=None, max_length=64)
     coordinator_user_id: PydanticObjectId | None = None
     status: DepartmentSectionStatus = DepartmentSectionStatus.DRAFT
     revision: int = 1

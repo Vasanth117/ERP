@@ -38,16 +38,30 @@ type Props = {
   title: string;
 };
 
+const MODULES_WITH_SECTION_CHROME = new Set([
+  "users",
+  "organization",
+  "academics",
+  "students",
+  "faculty",
+  "attendance",
+  "examinations",
+]);
+
 export function CollegeAdminFigmaScreen({
   moduleKey,
   slug,
   figmaNodeId,
   title,
 }: Props) {
+  const usesSectionChrome = MODULES_WITH_SECTION_CHROME.has(moduleKey);
+
   return (
     <div data-figma-frame={figmaNodeId}>
-      <PageHeading title={title} figmaFrame={figmaNodeId} />
-      {moduleKey !== "users" && moduleKey !== "organization" ? (
+      {!usesSectionChrome ? (
+        <PageHeading title={title} figmaFrame={figmaNodeId} />
+      ) : null}
+      {!usesSectionChrome ? (
         <ModuleScreenTabs moduleKey={moduleKey} />
       ) : null}
       <ScreenBody

@@ -13,7 +13,7 @@ from beanie.odm.operators.find.comparison import Eq, In
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.common.access import AccessScope
-from app.common.time import utcnow
+from app.common.time import as_utc_aware, utcnow
 from app.modules.college_admin.academic_config_models import AcademicProgramme
 from app.modules.college_admin.integrations.operational_reader import OperationalDataReader
 from app.modules.college_admin.policy import require_college_tenant_scope
@@ -142,13 +142,24 @@ def _session_time_label(dt: datetime, session_label: str | None) -> str:
 def _pick_focus_session(sessions: list[ExamSession], *, now: datetime) -> ExamSession | None:
     if not sessions:
         return None
+    reference = as_utc_aware(now)
     active = [s for s in sessions if s.status in _ACTIVE_EXAM_STATUSES]
     if not active:
         active = sessions
-    upcoming = [s for s in active if s.examination_start_at and s.examination_start_at >= now]
+    upcoming = [
+        s
+        for s in active
+        if s.examination_start_at and as_utc_aware(s.examination_start_at) >= reference
+    ]
     if upcoming:
-        return min(upcoming, key=lambda s: s.examination_start_at)
-    ongoing = [s for s in active if s.examination_start_at and s.examination_end_at and s.examination_start_at <= now <= s.examination_end_at]
+        return min(upcoming, key=lambda s: as_utc_aware(s.examination_start_at))
+    ongoing = [
+        s
+        for s in active
+        if s.examination_start_at
+        and s.examination_end_at
+        and as_utc_aware(s.examination_start_at) <= reference <= as_utc_aware(s.examination_end_at)
+    ]
     if ongoing:
         return ongoing[0]
     return max(active, key=lambda s: s.examination_start_at or s.created_at)

@@ -1,164 +1,47 @@
 "use client";
 
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-
-import {
-  fetchAcademicTerms,
-  fetchAcademicYears,
-  fetchConfigHistory,
-  fetchProgrammes,
-} from "@/features/college-admin/api/academics";
-import {
-  DataTable,
-  FormPlaceholder,
-  SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
-  rowsFromApi,
-} from "@/features/college-admin/components/ui/college-admin-screen-ui";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
-
+import { AcademicConfigurationDashboard } from "@/features/college-admin/components/academics/academic-configuration-dashboard";
+import { AcademicConfigurationHistoryDashboard } from "@/features/college-admin/components/academics/academic-configuration-history-dashboard";
+import { AcademicYearManagementDashboard } from "@/features/college-admin/components/academics/academic-year-management-dashboard";
+import { CourseConfigurationDashboard } from "@/features/college-admin/components/academics/course-configuration-dashboard";
+import { CreditConfigurationDashboard } from "@/features/college-admin/components/academics/credit-configuration-dashboard";
+import { GradingSystemConfigurationDashboard } from "@/features/college-admin/components/academics/grading-system-configuration-dashboard";
+import { CurriculumManagementDashboard } from "@/features/college-admin/components/academics/curriculum-management-dashboard";
+import { ProgrammeManagementDashboard } from "@/features/college-admin/components/academics/programme-management-dashboard";
+import { AcademicCalendarConfigurationDashboard } from "@/features/college-admin/components/academics/academic-calendar-configuration-dashboard";
+import { BatchSectionConfigurationDashboard } from "@/features/college-admin/components/academics/batch-section-configuration-dashboard";
+import { RegulationManagementDashboard } from "@/features/college-admin/components/academics/regulation-management-dashboard";
+import { SemesterManagementDashboard } from "@/features/college-admin/components/academics/semester-management-dashboard";
+import { SubjectManagementDashboard } from "@/features/college-admin/components/academics/subject-management-dashboard";
 export function AcademicsScreen({ slug }: { slug: string }) {
   switch (slug) {
     case "academic-configuration-dashboard":
-      return <AcademicsDashboard />;
+      return <AcademicConfigurationDashboard />;
     case "academic-year-management":
-      return <YearsList />;
+      return <AcademicYearManagementDashboard />;
     case "semester-management":
-      return <TermsList />;
+      return <SemesterManagementDashboard />;
     case "programme-management":
-      return <ProgrammesList />;
+      return <ProgrammeManagementDashboard />;
     case "academic-configuration-history":
-      return <ConfigHistory />;
+      return <AcademicConfigurationHistoryDashboard />;
     case "course-configuration":
+      return <CourseConfigurationDashboard />;
     case "curriculum-management":
+      return <CurriculumManagementDashboard />;
     case "subject-management":
+      return <SubjectManagementDashboard />;
     case "credit-configuration":
-    case "regulation-management":
+      return <CreditConfigurationDashboard />;
     case "grading-system-configuration":
+      return <GradingSystemConfigurationDashboard />;
+    case "regulation-management":
+      return <RegulationManagementDashboard />;
     case "academic-calendar-configuration":
+      return <AcademicCalendarConfigurationDashboard />;
     case "batch-section-configuration":
-      return (
-        <FormPlaceholder
-          title={slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-          description="Academic configuration form aligned with the Figma frame layout. API publish endpoints are wired on the backend."
-        />
-      );
+      return <BatchSectionConfigurationDashboard />;
     default:
-      return <AcademicsDashboard />;
+      return <AcademicConfigurationDashboard />;
   }
-}
-
-function AcademicsDashboard() {
-  const years = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-years"],
-    queryFn: fetchAcademicYears,
-  });
-  const programmes = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "programmes"],
-    queryFn: fetchProgrammes,
-  });
-
-  const loading = years.isLoading || programmes.isLoading;
-  const error = years.error ?? programmes.error;
-
-  return (
-    <QueryState
-      isLoading={loading}
-      isError={Boolean(error)}
-      error={error as Error}
-      onRetry={() => {
-        void years.refetch();
-        void programmes.refetch();
-      }}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Academic years" value={years.data?.length ?? 0} />
-        <StatCard label="Programmes" value={programmes.data?.length ?? 0} />
-        <StatCard
-          label="Current year"
-          value={
-            years.data?.find((y) => y.is_current)?.label ??
-            years.data?.[0]?.label ??
-            "—"
-          }
-        />
-        <Link
-          href="/college-admin/academics/academic-year-management"
-          className="flex items-center rounded-xl border border-[#dce3ec] bg-white p-4 text-sm font-medium text-[#245dd8] shadow-[0px_1px_1px_rgba(23,43,69,0.04)]"
-        >
-          Manage academic years →
-        </Link>
-      </div>
-    </QueryState>
-  );
-}
-
-function YearsList() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-years-list"],
-    queryFn: fetchAcademicYears,
-  });
-  const rows = rowsFromApi(q.data);
-  return (
-    <ListSection title="Academic years" q={q} rows={rows} />
-  );
-}
-
-function TermsList() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-terms"],
-    queryFn: () => fetchAcademicTerms(),
-  });
-  const rows = rowsFromApi(q.data);
-  return <ListSection title="Semesters & terms" q={q} rows={rows} />;
-}
-
-function ProgrammesList() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "programmes-list"],
-    queryFn: fetchProgrammes,
-  });
-  const rows = rowsFromApi(q.data);
-  return <ListSection title="Programmes" q={q} rows={rows} />;
-}
-
-function ConfigHistory() {
-  const q = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "academic-config-history"],
-    queryFn: fetchConfigHistory,
-  });
-  const rows = rowsFromApi(q.data);
-  return <ListSection title="Configuration history" q={q} rows={rows} />;
-}
-
-function ListSection({
-  title,
-  q,
-  rows,
-}: {
-  title: string;
-  q: { isLoading: boolean; isError: boolean; error: Error | null; refetch: () => void };
-  rows: Record<string, unknown>[];
-}) {
-  const cols = columnsFromRows(rows);
-  return (
-    <QueryState
-      isLoading={q.isLoading}
-      isError={q.isError}
-      error={q.error}
-      isEmpty={!q.isLoading && rows.length === 0}
-      onRetry={() => void q.refetch()}
-    >
-      <SectionPanel title={title}>
-        <ToolbarRow onRefresh={() => void q.refetch()} />
-        <DataTable columns={cols} rows={rows} />
-      </SectionPanel>
-    </QueryState>
-  );
 }

@@ -6,6 +6,16 @@ import { AUTH_SESSION_COOKIE } from "@/lib/auth/cookies";
 /** Public routes — no auth required (Figma main landing at `/`). */
 const PUBLIC_PATHS = ["/", "/login", "/under-construction"];
 
+function loginPortalForPath(pathname: string): string | null {
+  if (pathname === "/college-admin" || pathname.startsWith("/college-admin/")) {
+    return "institution";
+  }
+  if (pathname === "/student" || pathname.startsWith("/student/")) {
+    return "student-performance";
+  }
+  return null;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -26,15 +36,14 @@ export function middleware(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
+    const portal = loginPortalForPath(pathname);
+    if (portal) {
+      loginUrl.searchParams.set("portal", portal);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
-  if (hasSession && pathname === "/login") {
-    const dash = request.nextUrl.clone();
-    dash.pathname = "/dashboard";
-    dash.search = "";
-    return NextResponse.redirect(dash);
-  }
+  /* Do not skip /login when a session cookie exists — user may switch accounts. */
 
   return NextResponse.next();
 }

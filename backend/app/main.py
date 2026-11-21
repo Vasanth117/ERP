@@ -1,5 +1,6 @@
 """FastAPI application."""
 
+import logging
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
@@ -21,6 +22,8 @@ from app.core.redis import close_redis, connect_redis, ping_redis
 from app.middleware.demo_mutation_guard import DemoMutationGuardMiddleware
 from app.middleware.rate_limit import LoginRateLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -111,6 +114,17 @@ def create_app() -> FastAPI:
             request_id=request_id,
         )
         return JSONResponse(status_code=status.HTTP_409_CONFLICT, content=body.model_dump())
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+        request_id = request.headers.get("x-request-id")
+        body = error_response(
+            code="INTERNAL_ERROR",
+            message="An unexpected error occurred",
+            request_id=request_id,
+        )
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=body.model_dump())
 
     @app.get("/health", tags=["health"])
     def health() -> dict[str, str]:

@@ -1,5 +1,5 @@
 import type { InstitutionFieldOption } from "@/features/college-admin/types/institution";
-import type { PoliciesPagination } from "@/features/college-admin/types/all-departments-list";
+import type { PoliciesPagination } from "@/features/college-admin/types/institution";
 
 export type DepartmentStatusHistoryEventRow = {
   event_id: string;

@@ -35,7 +35,19 @@ export async function POST() {
     body: JSON.stringify({ refresh_token: refreshToken }),
   });
 
-  const envelope = (await upstream.json()) as ApiResponse<TokenPair>;
+  const raw = await upstream.text();
+  let envelope: ApiResponse<TokenPair>;
+  try {
+    envelope = JSON.parse(raw) as ApiResponse<TokenPair>;
+  } catch {
+    return NextResponse.json(
+      {
+        message:
+          raw.trim().slice(0, 120) || "Authentication service unavailable",
+      },
+      { status: upstream.status >= 400 ? upstream.status : 502 },
+    );
+  }
 
   if (!upstream.ok) {
     const response = NextResponse.json(

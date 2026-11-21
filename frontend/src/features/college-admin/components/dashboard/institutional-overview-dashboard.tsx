@@ -5,10 +5,8 @@ import { useCallback, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
+import { CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
+import { QueryState, StatCard } from "@/features/college-admin/components/ui/query-state";
 import { useInstitutionalOverview } from "@/features/college-admin/hooks/use-institution";
 import type { ComplianceStatusItem } from "@/features/college-admin/types/institution";
 import { cn } from "@/lib/utils";
@@ -174,28 +172,40 @@ export function InstitutionalOverviewDashboard() {
       >
         {data ? (
           <>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <CollegeAdminKpiGrid>
               <StatCard
                 label="Campuses"
                 value={data.campuses.length}
                 hint={campusSummary}
+                kpiKey="campuses"
+                index={0}
+                iconSlug="landmark"
               />
               <StatCard
                 label="Departments"
                 value={stats?.department_count ?? 0}
                 hint={`${stats?.programme_count ?? 0} active programmes`}
+                kpiKey="departments"
+                index={1}
+                iconSlug="building-2"
               />
               <StatCard
                 label="Programmes"
                 value={stats?.programme_count ?? 0}
                 hint={`${stats?.total_students ?? 0} enrolled students`}
+                kpiKey="programmes"
+                index={2}
+                iconSlug="book-open"
               />
               <StatCard
                 label="Accreditation"
                 value={data.accreditation_summary ?? "Not configured"}
                 hint={data.accreditation_detail ?? "Set affiliation in institution profile"}
+                kpiKey="accreditation"
+                index={3}
+                iconSlug="award"
               />
-            </div>
+            </CollegeAdminKpiGrid>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <div className="space-y-4 xl:col-span-2">

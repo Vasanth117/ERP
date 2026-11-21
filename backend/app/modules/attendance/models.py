@@ -111,6 +111,8 @@ class AttendanceCorrectionRequest(Document):
     reason: str = Field(max_length=1000)
     status: AttendanceCorrectionStatus = AttendanceCorrectionStatus.PENDING
     reviewer_note: str | None = None
+    department_endorsed_at: datetime | None = None
+    department_endorsed_by: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
     resolved_at: datetime | None = None
 

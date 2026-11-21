@@ -227,6 +227,22 @@ async def decide_correction(scope: AccessScope, payload: CorrectionDecision) -> 
         raise AppError(code="NOT_FOUND", message="Correction request not found", status_code=404)
     if request.status != AttendanceCorrectionStatus.PENDING:
         raise AppError(code="CONFLICT", message="Correction request is already resolved", status_code=409)
+    from app.modules.college_admin.faculty_admin_models import FacultyRecord
+    from app.modules.college_admin.models import InstitutionSettings
+
+    inst_settings = await InstitutionSettings.find_one(Eq(InstitutionSettings.tenant_id, tenant_id))
+    requires_college = bool((inst_settings.settings or {}).get("attendance_correction_requires_college_approval", False))
+    if requires_college:
+        faculty_rec = await FacultyRecord.find_one(
+            Eq(FacultyRecord.tenant_id, tenant_id),
+            Eq(FacultyRecord.user_id, request.faculty_user_id),
+        )
+        if faculty_rec and faculty_rec.department_id and not request.department_endorsed_at:
+            raise AppError(
+                code="VALIDATION_ERROR",
+                message="Department head endorsement is required before college approval",
+                status_code=422,
+            )
     if await AttendanceCorrectionApproval.find_one(
         Eq(AttendanceCorrectionApproval.tenant_id, tenant_id),
         Eq(AttendanceCorrectionApproval.correction_request_id, request_id),

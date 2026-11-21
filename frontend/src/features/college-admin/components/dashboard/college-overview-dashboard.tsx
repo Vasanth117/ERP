@@ -16,6 +16,7 @@ import {
   usePendingApprovals,
 } from "@/features/college-admin/hooks/use-dashboard";
 import { useCampuses } from "@/features/college-admin/hooks/use-institution";
+import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import type { DashboardDateRange } from "@/features/college-admin/types/dashboard";
 import { cn } from "@/lib/utils";
@@ -222,50 +223,74 @@ export function CollegeOverviewDashboard() {
         error={error}
         onRetry={() => void refetch()}
       >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <OverviewKpi
+        <CollegeAdminKpiGrid>
+          <CollegeAdminDashboardKpiCard
             label="Total students"
             value={(stats?.total_students ?? 0).toLocaleString("en-IN")}
             hint={`${stats?.active_students ?? 0} active enrolled`}
+            kpiKey="total_students"
+            index={0}
+            iconSlug="graduation-cap"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Total faculty"
             value={(stats?.faculty_count ?? 0).toLocaleString("en-IN")}
             hint={`${stats?.employee_count ?? 0} total employees`}
+            kpiKey="total_faculty"
+            index={1}
+            iconSlug="users-round"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Departments"
             value={stats?.department_count ?? 0}
             hint={`${stats?.programme_count ?? 0} active programmes`}
+            kpiKey="departments"
+            index={2}
+            iconSlug="building-2"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Attendance compliance"
             value={attendancePct != null ? `${attendancePct}%` : "—"}
             hint={`${attendance?.pending_submissions ?? 0} sessions pending`}
-            hintWarn={(attendance?.pending_submissions ?? 0) > 0}
+            hintTone={(attendance?.pending_submissions ?? 0) > 0 ? "warning" : undefined}
+            kpiKey="attendance_compliance"
+            index={3}
+            iconSlug="clipboard-check"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Fee collected"
             value={formatMoneyCompact(finance?.collected_amount ?? 0)}
             hint={`${feePct}% of ${formatMoneyCompact(feeTotalDemand)} demand`}
+            kpiKey="fee_collected"
+            index={4}
+            iconSlug="wallet"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Pending approvals"
             value={data?.pending_approval_count ?? 0}
             hint={`${data?.unresolved_support_count ?? 0} open support items`}
-            hintWarn={(data?.pending_approval_count ?? 0) > 0}
+            hintTone={(data?.pending_approval_count ?? 0) > 0 ? "warning" : undefined}
+            kpiKey="pending_approvals"
+            index={5}
+            iconSlug="square-check"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Scheduled exams"
             value={exams?.scheduled_exams ?? 0}
             hint={`${exams?.pending_evaluations ?? 0} pending evaluations`}
+            kpiKey="scheduled_exams"
+            index={6}
+            iconSlug="file-text"
           />
-          <OverviewKpi
+          <CollegeAdminDashboardKpiCard
             label="Current semester"
             value={term?.semester_label?.replace(/^./, (c) => c.toUpperCase()) ?? "—"}
             hint={term?.academic_year_label ?? "Academic year"}
+            kpiKey="current_semester"
+            index={7}
+            iconSlug="calendar-days"
           />
-        </div>
+        </CollegeAdminKpiGrid>
 
         {alert ? (
           <div className="flex flex-col gap-3 rounded-xl border border-[#fcd9b8] bg-[#fff7ed] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -390,35 +415,6 @@ function FilterSelect({
         )}
         aria-hidden
       />
-    </div>
-  );
-}
-
-function OverviewKpi({
-  label,
-  value,
-  hint,
-  hintWarn,
-}: {
-  label: string;
-  value: string | number;
-  hint: string;
-  hintWarn?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[12px] font-medium text-[#6b7280]">{label}</p>
-      <p className="mt-2 text-[1.65rem] font-bold leading-none tracking-tight text-[#111827] tabular-nums">
-        {value}
-      </p>
-      <p
-        className={cn(
-          "mt-3 text-[11px] leading-snug",
-          hintWarn ? "text-[#ea580c]" : "text-[#9ca3af]",
-        )}
-      >
-        {hint}
-      </p>
     </div>
   );
 }

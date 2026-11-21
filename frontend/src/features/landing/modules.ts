@@ -6,18 +6,32 @@ export type LandingModule = {
   variant?: "default" | "featured";
 };
 
-const moduleWorkspaces: Record<string, string> = {
-  institution: "/college-admin/dashboard",
-  "student-academic": "/student/home",
-  performance: "/student/home",
+const moduleLoginTargets: Record<string, { portal: string; next: string }> = {
+  institution: {
+    portal: "institution",
+    next: "/college-admin/dashboard",
+  },
+  "student-academic": {
+    portal: "student-performance",
+    next: "/student/home",
+  },
+  performance: {
+    portal: "student-performance",
+    next: "/student/home",
+  },
 };
 
-/** Module cards route to workspaces when implemented; otherwise Figma “Page Under Construction”. */
+/** Module cards route to module login when a workspace exists; otherwise under construction. */
 export function landingModuleHref(moduleId: string): string {
-  return (
-    moduleWorkspaces[moduleId] ??
-    `/under-construction?module=${encodeURIComponent(moduleId)}`
-  );
+  const login = moduleLoginTargets[moduleId];
+  if (login) {
+    const params = new URLSearchParams({
+      portal: login.portal,
+      next: login.next,
+    });
+    return `/login?${params.toString()}`;
+  }
+  return `/under-construction?module=${encodeURIComponent(moduleId)}`;
 }
 
 /** Figma frame 338:279 — module grid + System Control & Security. */
