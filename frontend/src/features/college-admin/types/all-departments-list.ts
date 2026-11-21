@@ -1,4 +1,4 @@
-import type { PoliciesPagination } from "@/features/college-admin/types/user-management-dashboard";
+import type { PoliciesPagination } from "@/features/college-admin/types/institution";
 
 export type DepartmentListFilterOption = {
   value: string;

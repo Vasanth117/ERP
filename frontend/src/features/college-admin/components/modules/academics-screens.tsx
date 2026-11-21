@@ -4,8 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AcademicConfigurationDashboard } from "@/features/college-admin/components/academics/academic-configuration-dashboard";
 import { AcademicYearManagementDashboard } from "@/features/college-admin/components/academics/academic-year-management-dashboard";
+import { CourseConfigurationDashboard } from "@/features/college-admin/components/academics/course-configuration-dashboard";
+import { CurriculumManagementDashboard } from "@/features/college-admin/components/academics/curriculum-management-dashboard";
 import { ProgrammeManagementDashboard } from "@/features/college-admin/components/academics/programme-management-dashboard";
 import { SemesterManagementDashboard } from "@/features/college-admin/components/academics/semester-management-dashboard";
+import { SubjectManagementDashboard } from "@/features/college-admin/components/academics/subject-management-dashboard";
 import {
   fetchAcademicTerms,
   fetchAcademicYears,
@@ -35,8 +38,11 @@ export function AcademicsScreen({ slug }: { slug: string }) {
     case "academic-configuration-history":
       return <ConfigHistory />;
     case "course-configuration":
+      return <CourseConfigurationDashboard />;
     case "curriculum-management":
+      return <CurriculumManagementDashboard />;
     case "subject-management":
+      return <SubjectManagementDashboard />;
     case "credit-configuration":
     case "regulation-management":
     case "grading-system-configuration":

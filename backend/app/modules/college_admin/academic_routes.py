@@ -36,6 +36,12 @@ from app.modules.college_admin.academic_year_management_page_service import (
     get_academic_year_management_page,
     save_academic_year_management_rules,
 )
+from app.modules.college_admin.course_curriculum_page_service import (
+    get_course_configuration_page,
+    get_curriculum_management_page,
+    get_subject_management_page,
+    save_course_configuration,
+)
 from app.modules.college_admin.programme_management_page_service import (
     create_programme_management,
     get_programme_management_page,
@@ -67,8 +73,12 @@ from app.modules.college_admin.schemas import (
     AcademicYearManagementCreate,
     AcademicYearManagementPageRead,
     AcademicYearManagementRulesSave,
+    CourseConfigurationPageRead,
+    CourseConfigurationSave,
+    CurriculumManagementPageRead,
     ProgrammeManagementCreate,
     ProgrammeManagementPageRead,
+    SubjectManagementPageRead,
     SemesterManagementCreate,
     SemesterManagementPageRead,
     SemesterManagementSettingsSave,
@@ -213,6 +223,81 @@ async def programme_management_create_route(
 ) -> ApiResponse[ProgrammeManagementPageRead]:
     return success_response(
         await create_programme_management(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/subjects/management/page",
+    response_model=ApiResponse[SubjectManagementPageRead],
+)
+async def subject_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    search: Annotated[str | None, Query()] = None,
+    department_id: Annotated[str | None, Query()] = None,
+    type_filter: Annotated[str | None, Query()] = None,
+    regulation_filter: Annotated[str | None, Query()] = None,
+    semester_filter: Annotated[str | None, Query()] = None,
+) -> ApiResponse[SubjectManagementPageRead]:
+    return success_response(
+        await get_subject_management_page(
+            scope,
+            page=page,
+            search=search,
+            department_id=department_id,
+            type_filter=type_filter,
+            regulation_filter=regulation_filter,
+            semester_filter=semester_filter,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/curriculum/management/page",
+    response_model=ApiResponse[CurriculumManagementPageRead],
+)
+async def curriculum_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    programme_id: Annotated[str | None, Query()] = None,
+    semester: Annotated[int, Query(ge=1, le=12)] = 4,
+) -> ApiResponse[CurriculumManagementPageRead]:
+    return success_response(
+        await get_curriculum_management_page(scope, programme_id=programme_id, semester=semester),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/courses/configuration/page",
+    response_model=ApiResponse[CourseConfigurationPageRead],
+)
+async def course_configuration_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    course_id: Annotated[str | None, Query()] = None,
+    mode: Annotated[str | None, Query()] = None,
+) -> ApiResponse[CourseConfigurationPageRead]:
+    return success_response(
+        await get_course_configuration_page(scope, course_id=course_id, mode=mode),
+        request_id=get_request_id(),
+    )
+
+
+@router.put(
+    "/courses/configuration/save",
+    response_model=ApiResponse[CourseConfigurationPageRead],
+)
+async def course_configuration_save_route(
+    payload: CourseConfigurationSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CourseConfigurationPageRead]:
+    return success_response(
+        await save_course_configuration(scope, payload),
         request_id=get_request_id(),
     )
 

@@ -193,7 +193,7 @@ export function ExaminationOverviewDashboard() {
                 label="Results pending"
                 value={kpis?.results_pending_count ?? 0}
                 hint={pendingHint}
-                hintClassName="text-[#245dd8]"
+                hintTone="info"
               />
             </CollegeAdminKpiGrid>
 

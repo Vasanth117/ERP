@@ -268,24 +268,40 @@ export function PendingApprovalsDashboard() {
         {data ? (
           <>
             <CollegeAdminKpiGrid>
-              <CollegeAdminDashboardKpiCard label="Awaiting your action" value={kpis?.awaiting_action ?? 0} hint={awaitingHint} />
+              <CollegeAdminDashboardKpiCard
+                label="Awaiting your action"
+                value={kpis?.awaiting_action ?? 0}
+                hint={awaitingHint}
+                index={0}
+                kpiKey="awaiting_action"
+                iconSlug="clock"
+              />
               <CollegeAdminDashboardKpiCard
                 label="Overdue"
                 value={kpis?.overdue_count ?? 0}
                 hint={overdueHint}
                 hintTone={kpis?.overdue_count ? "danger" : "muted"}
+                index={1}
+                kpiKey="overdue"
+                iconSlug="triangle-alert"
               />
               <CollegeAdminDashboardKpiCard
                 label="Approved this week"
                 value={kpis?.approved_this_week ?? 0}
                 hint={approvedHint}
                 hintTone="success"
+                index={2}
+                kpiKey="approved_week"
+                iconSlug="circle-check-big"
               />
               <CollegeAdminDashboardKpiCard
                 label="Escalated to you"
                 value={kpis?.escalated_to_college_admin ?? 0}
                 hint={escalatedHint}
                 hintTone={kpis?.escalated_to_college_admin ? "warning" : "muted"}
+                index={3}
+                kpiKey="escalated"
+                iconSlug="megaphone"
               />
             </CollegeAdminKpiGrid>
 

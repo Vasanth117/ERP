@@ -6,6 +6,12 @@ import type {
   AcademicYearManagementRulesPayload,
 } from "@/features/college-admin/types/academic-year-management";
 import type {
+  CourseConfigurationPage,
+  CourseConfigurationSavePayload,
+  CurriculumManagementPage,
+  SubjectManagementPage,
+} from "@/features/college-admin/types/course-curriculum";
+import type {
   ProgrammeManagementCreatePayload,
   ProgrammeManagementPage,
 } from "@/features/college-admin/types/programme-management";
@@ -145,5 +151,53 @@ export function createProgrammeManagement(payload: ProgrammeManagementCreatePayl
       ...payload,
       department_id: payload.department_id || null,
     }),
+  });
+}
+
+export function fetchSubjectManagementPage(params?: {
+  page?: number;
+  search?: string;
+  department_id?: string;
+  type_filter?: string;
+  regulation_filter?: string;
+  semester_filter?: string;
+}) {
+  const search = new URLSearchParams();
+  if (params?.page && params.page > 1) search.set("page", String(params.page));
+  if (params?.search) search.set("search", params.search);
+  if (params?.department_id) search.set("department_id", params.department_id);
+  if (params?.type_filter) search.set("type_filter", params.type_filter);
+  if (params?.regulation_filter) search.set("regulation_filter", params.regulation_filter);
+  if (params?.semester_filter) search.set("semester_filter", params.semester_filter);
+  const q = search.toString();
+  return apiRequest<SubjectManagementPage>(
+    `/college-admin/academic-config/subjects/management/page${q ? `?${q}` : ""}`,
+  );
+}
+
+export function fetchCurriculumManagementPage(params?: { programme_id?: string; semester?: number }) {
+  const search = new URLSearchParams();
+  if (params?.programme_id) search.set("programme_id", params.programme_id);
+  if (params?.semester) search.set("semester", String(params.semester));
+  const q = search.toString();
+  return apiRequest<CurriculumManagementPage>(
+    `/college-admin/academic-config/curriculum/management/page${q ? `?${q}` : ""}`,
+  );
+}
+
+export function fetchCourseConfigurationPage(params?: { course_id?: string; mode?: string }) {
+  const search = new URLSearchParams();
+  if (params?.course_id) search.set("course_id", params.course_id);
+  if (params?.mode) search.set("mode", params.mode);
+  const q = search.toString();
+  return apiRequest<CourseConfigurationPage>(
+    `/college-admin/academic-config/courses/configuration/page${q ? `?${q}` : ""}`,
+  );
+}
+
+export function saveCourseConfiguration(payload: CourseConfigurationSavePayload) {
+  return apiRequest<CourseConfigurationPage>("/college-admin/academic-config/courses/configuration/save", {
+    method: "PUT",
+    body: JSON.stringify(payload),
   });
 }

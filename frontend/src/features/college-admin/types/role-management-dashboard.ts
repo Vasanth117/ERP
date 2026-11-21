@@ -1,4 +1,5 @@
-import type { PoliciesPagination, UserDashboardKpi } from "@/features/college-admin/types/user-management-dashboard";
+import type { PoliciesPagination } from "@/features/college-admin/types/institution";
+import type { UserDashboardKpi } from "@/features/college-admin/types/user-management-dashboard";
 
 export type RoleManagementTableRow = {
   role_id: string;

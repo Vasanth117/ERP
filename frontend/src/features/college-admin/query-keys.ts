@@ -122,6 +122,12 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "semester-management", params ?? {}] as const,
   programmeManagement: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "programme-management", params ?? {}] as const,
+  subjectManagement: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "subject-management", params ?? {}] as const,
+  curriculumManagement: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "curriculum-management", params ?? {}] as const,
+  courseConfiguration: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "course-configuration", params ?? {}] as const,
   allDepartmentsListPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "all-departments-list-page", params ?? {}] as const,
   createEditDepartmentPage: (departmentId: string | null) =>

@@ -898,6 +898,181 @@ class ProgrammeManagementPageRead(BaseModel):
     generated_at: datetime
 
 
+class SubjectManagementTableRow(BaseModel):
+    course_id: str
+    subject_name: str
+    subject_code: str
+    department_label: str
+    type_label: str
+    credits_label: str
+    semester_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+    configuration_href: str
+
+
+class SubjectManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    import_label: str
+    add_subject_label: str
+    add_subject_href: str
+    search_placeholder: str
+    department_filter_label: str
+    type_filter_label: str
+    regulation_filter_label: str
+    semester_filter_label: str
+    department_options: list[InstitutionPolicyFilterOption]
+    type_options: list[InstitutionPolicyFilterOption]
+    regulation_options: list[InstitutionPolicyFilterOption]
+    semester_options: list[InstitutionPolicyFilterOption]
+    subjects_section_title: str
+    subjects_count_label: str
+    table_headers: list[str]
+    subjects: list[SubjectManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    sub_nav: list[YearsSemestersSubNavItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class CurriculumSemesterTab(BaseModel):
+    semester_number: int
+    tab_label: str
+    is_selected: bool = False
+
+
+class CurriculumManagementCourseRow(BaseModel):
+    course_id: str
+    course_code: str
+    course_name: str
+    type_label: str
+    ltp_label: str
+    credits_label: str
+    status_code: str
+    status_label: str
+    status_tone: str
+    configuration_href: str
+
+
+class CurriculumCreditCategoryRow(BaseModel):
+    category_key: str
+    category_label: str
+    credits: float
+    share_pct: float | None = None
+
+
+class CurriculumSummaryField(BaseModel):
+    key: str
+    label: str
+    value: str
+
+
+class CurriculumManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    download_pdf_label: str
+    subjects_button_label: str
+    subjects_button_href: str
+    edit_curriculum_label: str
+    edit_curriculum_href: str
+    programme_options: list[AcademicYearCreateFormOption]
+    selected_programme_id: str | None
+    selected_programme_label: str
+    regulation_label: str
+    semester_tabs: list[CurriculumSemesterTab]
+    selected_semester: int
+    courses_panel_title: str
+    courses_panel_meta: str
+    table_headers: list[str]
+    courses: list[CurriculumManagementCourseRow]
+    approval_footer_label: str
+    version_history_label: str
+    version_history_href: str
+    credits_panel_title: str
+    credit_categories: list[CurriculumCreditCategoryRow]
+    summary_panel_title: str
+    summary_fields: list[CurriculumSummaryField]
+    sub_nav: list[YearsSemestersSubNavItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class CourseConfigurationPrerequisiteRow(BaseModel):
+    prerequisite_id: str
+    title: str
+    semester_hint: str | None = None
+    requirement_type: str
+    requirement_label: str
+    requirement_tone: str
+
+
+class CourseConfigurationOfferedRow(BaseModel):
+    programme_label: str
+    detail_label: str
+
+
+class CourseConfigurationForm(BaseModel):
+    course_id: str | None = None
+    course_code: str
+    course_title: str
+    department_id: str | None = None
+    course_type: str | None = None
+    semester_number: int | None = None
+    regulation_label: str | None = None
+    description: str | None = None
+    lecture_hours: int = 0
+    tutorial_hours: int = 0
+    practical_hours: int = 0
+    credit_units: float = 0
+    internal_assessment_label: str | None = None
+    end_semester_exam_label: str | None = None
+    exam_duration_label: str | None = None
+    exam_type_label: str | None = None
+
+
+class CourseConfigurationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    status_label: str
+    status_tone: str
+    cancel_label: str
+    save_label: str
+    form_note: str
+    details_section_title: str
+    hours_section_title: str
+    assessment_section_title: str
+    prerequisites_section_title: str
+    offered_section_title: str
+    outcomes_section_title: str
+    outcomes_edit_label: str
+    outcomes_edit_href: str
+    field_meta: list[AcademicYearCreateFormField]
+    department_options: list[AcademicYearCreateFormOption]
+    course_type_options: list[AcademicYearCreateFormOption]
+    semester_options: list[AcademicYearCreateFormOption]
+    regulation_options: list[AcademicYearCreateFormOption]
+    exam_duration_options: list[AcademicYearCreateFormOption]
+    exam_type_options: list[AcademicYearCreateFormOption]
+    form: CourseConfigurationForm
+    prerequisites: list[CourseConfigurationPrerequisiteRow]
+    offered_to: list[CourseConfigurationOfferedRow]
+    outcomes_text: str | None = None
+    sub_nav: list[YearsSemestersSubNavItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class CourseConfigurationSave(BaseModel):
+    course_id: str | None = None
+    form: CourseConfigurationForm
+
+
 class InstitutionCalendarHolidayRow(BaseModel):
     holiday_id: str
     title: str
