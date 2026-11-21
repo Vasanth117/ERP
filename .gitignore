@@ -1,9 +1,16 @@
-# Local workflow / prompt docs (do not commit)
+# Root workflow / prompt guides only (docs/ and other README.md files stay tracked)
+/BACKEND_MODULE_COMPLETION_AUDIT_GUIDE.md
+/BUG_FIXING_GUIDE.md
+/ENGINEERING_GUIDE.md
+/FIGMA_TO_FRONTEND_IMPLEMENTATION_GUIDE.md
+/FRONTEND_BACKEND_INTEGRATION_GUIDE.md
+/FRONTEND_DEVELOPMENT_GUIDE.md
+/README.md
+# Legacy local doc names (same intent)
 backend_and_frontend.md
 bug_fixing.md
 figma_to_frontend.md
 intergration_frontend_backend.md
-BACKEND_MODULE_COMPLETION_AUDIT_GUIDE.md
 
 .venv/
 venv/
