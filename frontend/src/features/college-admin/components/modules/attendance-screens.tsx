@@ -1,39 +1,53 @@
 "use client";
 
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-
-import { apiRequest } from "@/lib/api/client";
-import {
-  DataTable,
-  FormPlaceholder,
-  SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
-  rowsFromApi,
-} from "@/features/college-admin/components/ui/college-admin-screen-ui";
+import { AttendanceDashboardDashboard } from "@/features/college-admin/components/attendance/attendance-dashboard-dashboard";
+import { AttendanceApprovalDashboard } from "@/features/college-admin/components/attendance/attendance-approval-dashboard";
+import { AttendanceConfigurationDashboard } from "@/features/college-admin/components/attendance/attendance-configuration-dashboard";
+import { AttendanceCorrectionRequestsDashboard } from "@/features/college-admin/components/attendance/attendance-correction-requests-dashboard";
+import { AttendanceMonitoringDashboard } from "@/features/college-admin/components/attendance/attendance-monitoring-dashboard";
+import { AttendanceReportsDashboard } from "@/features/college-admin/components/attendance/attendance-reports-dashboard";
+import { AttendanceRulesPoliciesDashboard } from "@/features/college-admin/components/attendance/attendance-rules-policies-dashboard";
+import { DepartmentWiseAttendanceDashboard } from "@/features/college-admin/components/attendance/department-wise-attendance-dashboard";
+import { FacultyAttendanceOverviewDashboard } from "@/features/college-admin/components/attendance/faculty-attendance-overview-dashboard";
+import { StudentAttendanceOverviewDashboard } from "@/features/college-admin/components/attendance/student-attendance-overview-dashboard";
+import { SubjectWiseAttendanceDashboard } from "@/features/college-admin/components/attendance/subject-wise-attendance-dashboard";
 import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
 import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
-
-const FORM_SLUGS = new Set([
-  "attendance-configuration",
-  "attendance-approval",
-]);
 
 export function AttendanceScreen({ slug, title }: { slug: string; title: string }) {
   const { apiPath, viewType } = resolveModuleEndpoint("attendance", slug);
   if (slug === "attendance-dashboard") {
-    return <AttendanceDashboard />;
+    return <AttendanceDashboardDashboard />;
   }
-  if (FORM_SLUGS.has(slug)) {
-    return (
-      <FormPlaceholder title={title} description="Attendance configuration aligned with Figma CA 08." />
-    );
+  if (slug === "student-attendance-overview") {
+    return <StudentAttendanceOverviewDashboard />;
+  }
+  if (slug === "faculty-attendance-overview") {
+    return <FacultyAttendanceOverviewDashboard />;
+  }
+  if (slug === "department-wise-attendance") {
+    return <DepartmentWiseAttendanceDashboard />;
+  }
+  if (slug === "subject-wise-attendance") {
+    return <SubjectWiseAttendanceDashboard />;
+  }
+  if (slug === "attendance-monitoring") {
+    return <AttendanceMonitoringDashboard />;
+  }
+  if (slug === "attendance-correction-requests" || slug === "correction-requests") {
+    return <AttendanceCorrectionRequestsDashboard />;
+  }
+  if (slug === "attendance-approval") {
+    return <AttendanceApprovalDashboard />;
+  }
+  if (slug === "attendance-configuration") {
+    return <AttendanceConfigurationDashboard />;
+  }
+  if (slug === "attendance-rules-policies" || slug === "attendance-policies") {
+    return <AttendanceRulesPoliciesDashboard />;
+  }
+  if (slug === "attendance-reports" || slug === "compliance-reports") {
+    return <AttendanceReportsDashboard />;
   }
   return (
     <GenericModuleScreen
@@ -43,52 +57,5 @@ export function AttendanceScreen({ slug, title }: { slug: string; title: string 
       apiPath={apiPath}
       viewType={viewType}
     />
-  );
-}
-
-function AttendanceDashboard() {
-  const dept = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "attendance-dept-summary"],
-    queryFn: () =>
-      apiRequest<unknown[]>("/college-admin/attendance-administration/summaries/departments"),
-  });
-  const missing = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "attendance-missing"],
-    queryFn: () =>
-      apiRequest<{ total?: number }>(
-        "/college-admin/attendance-administration/submissions/missing?limit=1&offset=0",
-      ),
-  });
-  return (
-    <QueryState
-      isLoading={dept.isLoading}
-      isError={dept.isError}
-      error={dept.error}
-      onRetry={() => void dept.refetch()}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Departments tracked" value={rowsFromApi(dept.data).length} />
-        <StatCard label="Missing submissions" value={missing.data?.total ?? 0} />
-        <Link
-          href="/college-admin/attendance/attendance-correction-requests"
-          className="flex items-center text-sm font-medium text-[#245dd8]"
-        >
-          Correction requests →
-        </Link>
-        <Link
-          href="/college-admin/attendance/attendance-rules-policies"
-          className="flex items-center text-sm font-medium text-[#245dd8]"
-        >
-          Rules & policies →
-        </Link>
-      </div>
-      <SectionPanel title="Department summaries" className="mt-6">
-        <ToolbarRow onRefresh={() => void dept.refetch()} />
-        <DataTable
-          columns={columnsFromRows(rowsFromApi(dept.data))}
-          rows={rowsFromApi(dept.data)}
-        />
-      </SectionPanel>
-    </QueryState>
   );
 }

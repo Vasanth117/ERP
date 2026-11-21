@@ -5277,6 +5277,371 @@ class FacultyEmployeeHistoryPageRead(BaseModel):
     generated_at: datetime
 
 
+class AttendanceDashboardTrendPoint(BaseModel):
+    date_label: str
+    attendance_pct: float | None = None
+
+
+class AttendanceDashboardDepartmentRow(BaseModel):
+    department_id: str
+    department_name: str
+    student_count: int
+    average_pct: float | None = None
+    below_minimum_count: int = 0
+    trend_direction: str = "flat"
+    trend_label: str = "—"
+    trend_tone: str = "muted"
+
+
+class StudentAttendanceProgrammeRow(BaseModel):
+    programme_code: str
+    programme_label: str
+    student_count: int
+    average_pct: float | None = None
+    below_minimum_count: int = 0
+
+
+class StudentAttendanceDistributionBar(BaseModel):
+    bucket_key: str
+    label: str
+    student_count: int
+    share_pct: float = 0.0
+    bar_tone: str = "info"
+
+
+class StudentAttendanceOverviewPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    term_filter_label: str
+    programme_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    term_options: list[StudentAdminDashboardFilterOption]
+    programme_options: list[StudentAdminDashboardFilterOption]
+    selected_term_key: str
+    selected_programme_code: str
+    kpis: list[UserDashboardKpi]
+    programme_table_title: str
+    programme_table_headers: list[str]
+    programme_rows: list[StudentAttendanceProgrammeRow]
+    programme_table_footer_label: str
+    distribution_title: str
+    distribution_bars: list[StudentAttendanceDistributionBar]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class DepartmentWiseAttendanceBarItem(BaseModel):
+    department_code: str
+    department_name: str
+    average_pct: float | None = None
+
+
+class DepartmentWiseAttendancePageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    term_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    term_options: list[StudentAdminDashboardFilterOption]
+    selected_term_key: str
+    department_table_title: str
+    department_table_headers: list[str]
+    department_rows: list[AttendanceDashboardDepartmentRow]
+    department_table_footer_label: str
+    bars_section_title: str
+    department_bars: list[DepartmentWiseAttendanceBarItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class SubjectWiseAttendanceRow(BaseModel):
+    subject_name: str
+    subject_code: str
+    faculty_label: str
+    classes_held: int
+    average_pct: float | None = None
+    below_minimum_count: int = 0
+
+
+class FacultyAttendanceTableRow(BaseModel):
+    faculty_user_id: str
+    faculty_name: str
+    department_label: str
+    present_count: int
+    leave_count: int
+    absent_count: int
+    attendance_rate_pct: float | None = None
+
+
+class FacultyAttendanceOverviewPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    late_arrivals_hint: str
+    kpis: list[UserDashboardKpi]
+    faculty_table_title: str
+    faculty_table_headers: list[str]
+    faculty_rows: list[FacultyAttendanceTableRow]
+    table_footer_label: str
+    table_pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceMonitoringTableRow(BaseModel):
+    row_key: str
+    class_label: str
+    faculty_label: str
+    time_label: str
+    room_label: str
+    delay_label: str
+    action_label: str
+    action_tone: str
+
+
+class AttendanceMonitoringPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    notify_faculty_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    not_marked_after_label: str
+    kpis: list[UserDashboardKpi]
+    not_marked_table_title: str
+    not_marked_table_headers: list[str]
+    not_marked_rows: list[AttendanceMonitoringTableRow]
+    not_marked_table_footer_label: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceCorrectionApprovalStep(BaseModel):
+    key: str
+    label: str
+    status_label: str
+    tone: str
+
+
+class AttendanceCorrectionRequestTableRow(BaseModel):
+    row_key: str
+    request_code: str
+    faculty_label: str
+    class_label: str
+    session_date_label: str
+    change_summary: str
+    status_label: str
+    status_tone: str
+    review_href: str
+    review_label: str
+
+
+class AttendanceCorrectionRequestsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    updated_at_label: str
+    kpis: list[UserDashboardKpi]
+    requests_table_title: str
+    requests_table_headers: list[str]
+    request_rows: list[AttendanceCorrectionRequestTableRow]
+    requests_table_footer_label: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceConfigurationFieldMeta(BaseModel):
+    key: str
+    label: str
+    field_type: str = "select"
+
+
+class AttendanceConfigurationToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str
+    enabled: bool = False
+
+
+class AttendanceConfigurationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    rules_policies_href: str
+    rules_policies_link_label: str
+    marking_section_title: str
+    behaviour_section_title: str
+    marking_window_key: str
+    correction_window_key: str
+    late_mark_after_key: str
+    session_length_key: str
+    marking_window_options: list[InstitutionFieldOption]
+    correction_window_options: list[InstitutionFieldOption]
+    late_mark_after_options: list[InstitutionFieldOption]
+    session_length_options: list[InstitutionFieldOption]
+    field_meta: list[AttendanceConfigurationFieldMeta]
+    toggle_rules: list[AttendanceConfigurationToggleRule]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceConfigurationSave(BaseModel):
+    marking_window_key: str
+    correction_window_key: str
+    late_mark_after_key: str
+    session_length_key: str
+    toggle_rules: dict[str, bool] = Field(default_factory=dict)
+
+
+class AttendanceRulesPolicyTableRow(BaseModel):
+    row_key: str
+    policy_title: str
+    value_label: str
+    applies_to_label: str
+    effective_label: str
+    status_label: str
+    status_tone: str
+
+
+class AttendanceReportsTableRow(BaseModel):
+    row_key: str
+    report_title: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+
+
+class AttendanceReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    reports_section_title: str
+    reports_table_headers: list[str]
+    report_rows: list[AttendanceReportsTableRow]
+    reports_table_footer_label: str
+    create_report_templates: list[InstitutionFieldOption]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceReportCreate(BaseModel):
+    template_key: str
+    title: str | None = Field(default=None, max_length=200)
+
+
+class AttendanceRulesPoliciesPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    configuration_href: str
+    back_label: str
+    cancel_label: str
+    save_label: str
+    policies_section_title: str
+    policies_table_headers: list[str]
+    policy_rows: list[AttendanceRulesPolicyTableRow]
+    policies_table_footer_label: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceApprovalPageRead(BaseModel):
+    page_title: str
+    selected_request_id: str | None = None
+    request_code: str
+    back_href: str
+    back_label: str
+    reject_label: str
+    approve_label: str
+    request_card_title: str
+    faculty_field_label: str
+    faculty_label: str
+    class_field_label: str
+    class_label: str
+    date_field_label: str
+    session_date_label: str
+    change_field_label: str
+    change_summary: str
+    reason_field_label: str
+    reason_text: str
+    decision_card_title: str
+    decision_field_label: str
+    decision_required: bool
+    decision_options: list[InstitutionFieldOption]
+    selected_decision: str
+    remarks_field_label: str
+    remarks_placeholder: str
+    remarks_value: str
+    approval_route_title: str
+    approval_steps: list[AttendanceCorrectionApprovalStep]
+    can_decide: bool
+    decide_blocked_message: str | None = None
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class SubjectWiseAttendancePageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    term_filter_label: str
+    scope_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    term_options: list[StudentAdminDashboardFilterOption]
+    scope_options: list[StudentAdminDashboardFilterOption]
+    selected_term_key: str
+    selected_scope_key: str
+    subjects_table_title: str
+    subjects_table_headers: list[str]
+    subject_rows: list[SubjectWiseAttendanceRow]
+    subjects_footer_label: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AttendanceDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    open_reports_label: str
+    open_reports_href: str
+    term_filter_label: str
+    department_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    term_options: list[StudentAdminDashboardFilterOption]
+    department_options: list[StudentAdminDashboardFilterOption]
+    selected_term_key: str
+    selected_department_id: str
+    kpis: list[UserDashboardKpi]
+    department_table_title: str
+    department_table_headers: list[str]
+    department_rows: list[AttendanceDashboardDepartmentRow]
+    department_table_footer_label: str
+    trend_chart_title: str
+    trend_series: list[AttendanceDashboardTrendPoint]
+    needs_attention_title: str
+    needs_attention_items: list[StudentAdminWorkQueueItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
 class FacultyEmployeeDashboardPageRead(BaseModel):
     page_title: str
     page_subtitle: str
@@ -5734,6 +6099,14 @@ class StudentAcademicHistoryPageRead(BaseModel):
     generated_at: datetime
 
 
+class ExaminationRegistrationSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    active_slug: str
+    active: bool = False
+
+
 class ExamRegistrationManagementTableRow(BaseModel):
     registration_id: str
     student_name: str
@@ -5742,6 +6115,8 @@ class ExamRegistrationManagementTableRow(BaseModel):
     subjects_count: int
     fee_status_label: str
     fee_status_tone: str
+    eligibility_status_label: str
+    eligibility_status_tone: str
     registration_status_label: str
     registration_status_tone: str
     submitted_at_label: str
@@ -5754,6 +6129,8 @@ class ExamRegistrationManagementPageRead(BaseModel):
     page_subtitle: str
     export_label: str
     confirm_selected_label: str
+    search_placeholder: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
     session_filter_label: str
     status_filter_label: str
     programme_filter_label: str
@@ -5787,4 +6164,544 @@ class ExamRegistrationBulkConfirmPayload(BaseModel):
     session_id: str
     status: str | None = None
     programme_code: str | None = None
+    page: int = 1
+
+
+class ExaminationDashboardSessionRow(BaseModel):
+    session_id: str
+    session_label: str
+    type_label: str
+    period_label: str
+    programmes_label: str
+    students_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class ExaminationDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    create_examination_label: str
+    create_examination_href: str
+    scope_indicator_label: str
+    updated_at_label: str
+    workflow_steps: list[FacultyAssignmentWorkflowStep]
+    kpis: list[UserDashboardKpi]
+    sessions_section_title: str
+    sessions_count_label: str
+    table_headers: list[str]
+    session_rows: list[ExaminationDashboardSessionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    pending_title: str
+    pending_items: list[StudentAdminWorkQueueItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ExaminationSessionManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_session_label: str
+    create_session_href: str
+    sessions_section_title: str
+    sessions_count_label: str
+    table_headers: list[str]
+    session_rows: list[ExaminationDashboardSessionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ExaminationSetupFormValues(BaseModel):
+    session_name: str = ""
+    examination_type: str = "regular"
+    academic_year_label: str = ""
+    semester_label: str = ""
+    examination_start_at: str = ""
+    examination_end_at: str = ""
+    registration_end_at: str = ""
+    result_target_at: str = ""
+
+
+class ExaminationSetupFieldMeta(BaseModel):
+    key: str
+    label: str
+    required: bool = False
+    field_type: str = "text"
+
+
+class ExaminationSetupToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str
+    enabled: bool = False
+
+
+class ExaminationConfigurationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    save_draft_label: str
+    continue_label: str
+    continue_href: str
+    setup_section_title: str
+    rules_section_title: str
+    form: ExaminationSetupFormValues
+    field_meta: list[ExaminationSetupFieldMeta]
+    type_options: list[StudentAdminDashboardFilterOption]
+    academic_year_options: list[StudentAdminDashboardFilterOption]
+    semester_options: list[StudentAdminDashboardFilterOption]
+    toggle_rules: list[ExaminationSetupToggleRule]
+    is_new: bool
+    session_id: str | None = None
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ExaminationConfigurationSave(BaseModel):
+    session_id: str | None = None
+    form: ExaminationSetupFormValues
+    toggle_rules: dict[str, bool] = Field(default_factory=dict)
+    advance_workflow: bool = False
+
+
+class ExamTimetableClashBanner(BaseModel):
+    visible: bool
+    headline: str
+    description: str
+    tone: str = "warning"
+
+
+class ExamTimetableManagementRow(BaseModel):
+    entry_code: str
+    date_label: str
+    session_label: str
+    subject_label: str
+    code_label: str
+    programme_sem_label: str
+    hall_label: str
+
+
+class ExamTimetableManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    regenerate_label: str
+    publish_label: str
+    session_filter_label: str
+    programme_filter_label: str
+    scope_indicator_label: str
+    updated_at_label: str
+    session_options: list[StudentAdminDashboardFilterOption]
+    programme_options: list[StudentAdminDashboardFilterOption]
+    selected_session_id: str
+    selected_programme_code: str
+    clash_banner: ExamTimetableClashBanner
+    timetable_section_title: str
+    papers_count_label: str
+    table_headers: list[str]
+    rows: list[ExamTimetableManagementRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    timetable_status_label: str
+    publish_enabled: bool
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ExamTimetableManagementActionPayload(BaseModel):
+    session_id: str
+    programme_code: str | None = None
+    page: int = 1
+
+
+class StudentExamEligibilityTableRow(BaseModel):
+    student_name: str
+    register_number: str
+    reason_label: str
+    attendance_label: str
+    fee_status_label: str
+    fee_status_tone: str
+    decision_label: str
+    decision_tone: str
+
+
+class StudentExamEligibilityPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    rerun_check_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    scope_indicator_label: str
+    updated_at_label: str
+    kpis: list[UserDashboardKpi]
+    ineligible_section_title: str
+    ineligible_count_label: str
+    table_headers: list[str]
+    ineligible_rows: list[StudentExamEligibilityTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class StudentExamEligibilityRerunPayload(BaseModel):
+    session_id: str
+    page: int = 1
+
+
+class HallTicketAdministrationRow(BaseModel):
+    hall_ticket_id: str
+    student_name: str
+    register_number: str
+    papers_count: int
+    generated_at_label: str
+    released_at_label: str
+    status_label: str
+    status_tone: str
+
+
+class HallTicketAdministrationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    generate_all_label: str
+    release_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    scope_indicator_label: str
+    updated_at_label: str
+    kpis: list[UserDashboardKpi]
+    hall_tickets_section_title: str
+    hall_tickets_count_label: str
+    table_headers: list[str]
+    ticket_rows: list[HallTicketAdministrationRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HallTicketAdministrationActionPayload(BaseModel):
+    session_id: str
+    page: int = 1
+
+
+class ExaminationHallSeatingHallRow(BaseModel):
+    room_id: str
+    hall_label: str
+    capacity: int
+    allocated_count: int
+    papers_count: int
+    status_label: str
+    status_tone: str
+
+
+class ExaminationHallSeatingSeatUsageItem(BaseModel):
+    hall_label: str
+    allocated_count: int
+    capacity: int
+    usage_label: str
+    usage_percent: float
+
+
+class ExaminationHallSeatingManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    auto_allocate_label: str
+    confirm_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    halls_section_title: str
+    seat_usage_section_title: str
+    table_headers: list[str]
+    hall_rows: list[ExaminationHallSeatingHallRow]
+    seat_usage_items: list[ExaminationHallSeatingSeatUsageItem]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ExaminationHallSeatingActionPayload(BaseModel):
+    session_id: str
+    page: int = 1
+
+
+class InvigilatorAllocationDutyRow(BaseModel):
+    duty_key: str
+    date_label: str
+    session_label: str
+    hall_label: str
+    invigilator_label: str
+    substitute_label: str
+    status_label: str
+    status_tone: str
+
+
+class InvigilatorAllocationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    auto_assign_label: str
+    publish_roster_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    duties_section_title: str
+    table_headers: list[str]
+    duty_rows: list[InvigilatorAllocationDutyRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class InvigilatorAllocationActionPayload(BaseModel):
+    session_id: str
+    page: int = 1
+
+
+class MarksEntryManagementProgressRow(BaseModel):
+    course_code: str
+    subject_label: str
+    faculty_label: str
+    scripts_count: int
+    entered_count: int
+    verified_count: int
+    status_label: str
+    status_tone: str
+
+
+class MarksEntryManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    send_reminders_label: str
+    lock_entry_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    progress_section_title: str
+    table_headers: list[str]
+    progress_rows: list[MarksEntryManagementProgressRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    workflow_steps: list[FacultyAssignmentWorkflowStep]
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class MarksEntryManagementActionPayload(BaseModel):
+    session_id: str
+    page: int = 1
+
+
+class InternalExternalAssessmentComponentRow(BaseModel):
+    component_id: str
+    component_label: str
+    weight_label: str
+    max_marks_label: str
+    source_label: str
+
+
+class InternalExternalAssessmentPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    save_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    assessment_pattern_section_title: str
+    moderation_section_title: str
+    table_headers: list[str]
+    component_rows: list[InternalExternalAssessmentComponentRow]
+    total_weight_label: str
+    moderation_range_label: str
+    pass_mark_label: str
+    selected_moderation_range: str
+    selected_pass_mark_percent: str
+    moderation_range_options: list[StudentAdminDashboardFilterOption]
+    pass_mark_options: list[StudentAdminDashboardFilterOption]
+    selected_config_id: str
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class InternalExternalAssessmentSavePayload(BaseModel):
+    session_id: str
+    config_id: str
+    moderation_range: str
+    pass_mark_percent: str
+
+
+class ResultProcessingPassBarRow(BaseModel):
+    programme_code: str
+    programme_label: str
+    pass_percent: float
+    pass_percent_label: str
+    bar_tone: str
+
+
+class ResultProcessingPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    process_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    pass_chart_section_title: str
+    kpis: list[UserDashboardKpi]
+    pass_by_programme: list[ResultProcessingPassBarRow]
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ResultProcessingActionPayload(BaseModel):
+    session_id: str
+
+
+class ResultApprovalProgrammeRow(BaseModel):
+    programme_code: str
+    programme_label: str
+    students_count: int
+    pass_count: int
+    pass_percent_label: str
+
+
+class ResultApprovalRouteStep(BaseModel):
+    key: str
+    title: str
+    status_label: str
+    status_tone: str
+
+
+class ResultApprovalPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    return_label: str
+    approve_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    summary_section_title: str
+    route_section_title: str
+    table_headers: list[str]
+    programme_rows: list[ResultApprovalProgrammeRow]
+    approval_route_steps: list[ResultApprovalRouteStep]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    selected_workflow_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ResultApprovalActionPayload(BaseModel):
+    session_id: str
+    page: int = 1
+    workflow_id: str | None = None
+
+
+class ResultPublicationProgrammeRow(BaseModel):
+    programme_code: str
+    programme_label: str
+    students_count: int
+    approved_label: str
+    publish_at_label: str
+    notify_label: str
+    notify_tone: str
+    ready_to_publish: bool
+    publication_id: str
+
+
+class ResultPublicationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    schedule_label: str
+    publish_now_label: str
+    warning_title: str
+    warning_message: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    ready_section_title: str
+    table_headers: list[str]
+    programme_rows: list[ResultPublicationProgrammeRow]
+    ready_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    selected_workflow_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class ResultPublicationActionPayload(BaseModel):
+    session_id: str
+    page: int = 1
+    publish_at: datetime | None = None
+
+
+class RevaluationManagementTableRow(BaseModel):
+    application_id: str
+    request_label: str
+    student_label: str
+    subject_label: str
+    fee_label: str
+    result_label: str
+    status_label: str
+    status_tone: str
+
+
+class RevaluationManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    requests_section_title: str
+    table_headers: list[str]
+    request_rows: list[RevaluationManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class SupplementaryArrearSubjectRow(BaseModel):
+    course_code: str
+    subject_label: str
+    students_count: int
+    date_label: str
+    hall_label: str
+
+
+class SupplementaryExaminationManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_session_label: str
+    create_session_href: str
+    sub_nav: list[ExaminationRegistrationSubNavItem]
+    eligible_hint_label: str
+    arrear_subjects_section_title: str
+    table_headers: list[str]
+    arrear_subject_rows: list[SupplementaryArrearSubjectRow]
+    kpis: list[UserDashboardKpi]
+    showing_label: str
+    pagination: PoliciesPagination
+    selected_session_id: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class SupplementaryExaminationCreateSessionPayload(BaseModel):
+    session_id: str | None = None
     page: int = 1

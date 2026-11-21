@@ -26,7 +26,9 @@ from app.modules.college_admin.schemas import (
     StudentAdminDashboardFilterOption,
     UserDashboardKpi,
 )
+from app.modules.college_admin.examination_registration_nav import examination_registration_sub_nav
 from app.modules.college_admin.student_administration_dashboard_page_service import _fmt_time_label
+from app.modules.examinations.exam_cell_registration_models import ExamEligibilityRecord
 from app.modules.college_admin.student_admin_models import StudentRecord
 from app.modules.students.models import StudentProfile
 from app.modules.examinations.exam_cell_models import ExamSession
@@ -45,13 +47,30 @@ _IST = ZoneInfo("Asia/Kolkata")
 _PAGE_SIZE = 10
 
 _STATUS_LABELS: dict[ExamRegistrationStatus, tuple[str, str]] = {
-    ExamRegistrationStatus.DRAFT: ("Draft", "muted"),
-    ExamRegistrationStatus.SUBMITTED: ("Submitted", "info"),
-    ExamRegistrationStatus.CONFIRMED: ("Confirmed", "success"),
-    ExamRegistrationStatus.CORRECTION_PENDING: ("Correction", "warning"),
-    ExamRegistrationStatus.CANCELLED: ("Cancelled", "muted"),
-    ExamRegistrationStatus.REJECTED: ("Rejected", "error"),
+    ExamRegistrationStatus.DRAFT: ("On hold", "warning"),
+    ExamRegistrationStatus.SUBMITTED: ("On hold", "warning"),
+    ExamRegistrationStatus.CONFIRMED: ("Registered", "success"),
+    ExamRegistrationStatus.CORRECTION_PENDING: ("On hold", "warning"),
+    ExamRegistrationStatus.CANCELLED: ("Not eligible", "error"),
+    ExamRegistrationStatus.REJECTED: ("Not eligible", "error"),
 }
+
+
+def _fee_label(verified: bool) -> tuple[str, str]:
+    return ("Paid", "success") if verified else ("Due", "error")
+
+
+def _eligibility_label(record: ExamEligibilityRecord | None) -> tuple[str, str]:
+    if record is None:
+        return ("Review", "warning")
+    if record.overall_eligible:
+        return ("Eligible", "success")
+    reasons = [r.lower() for r in record.summary_reasons]
+    if any("attendance" in r for r in reasons):
+        return ("Attendance", "error")
+    if any("fee" in r for r in reasons):
+        return ("Review", "warning")
+    return ("Review", "warning")
 
 _STATUS_FILTER_OPTIONS: list[tuple[str, str]] = [
     ("", "All statuses"),
@@ -110,9 +129,11 @@ def _empty_page(now, subtitle: str = "Exam registrations for active sessions") -
     )
     return ExamRegistrationManagementPageRead(
         page_title="Exam Registration Management",
-        page_subtitle=subtitle,
+        page_subtitle="Student registrations for the session",
         export_label="Export",
         confirm_selected_label="Confirm selected",
+        search_placeholder="Search student or register number",
+        sub_nav=examination_registration_sub_nav("exam-registration-management"),
         session_filter_label="Exam session",
         status_filter_label="Status",
         programme_filter_label="Programme",
@@ -140,7 +161,7 @@ def _empty_page(now, subtitle: str = "Exam registrations for active sessions") -
         ],
         registrations_section_title="Registrations",
         registration_count_label="0 registrations",
-        table_headers=["Student", "Register no.", "Programme", "Subjects", "Fee", "Status", "Submitted"],
+        table_headers=["Student", "Register no.", "Subjects", "Fee", "Eligibility", "Status"],
         registration_rows=[],
         showing_label="Showing 0 of 0",
         pagination=empty_pagination,
@@ -157,6 +178,7 @@ async def get_exam_registration_management_page(
     session_id: str | None = None,
     status: str | None = None,
     programme_code: str | None = None,
+    search: str | None = None,
 ) -> ExamRegistrationManagementPageRead:
     authorize(scope, Permission.EXAMINATION_ADMIN_READ)
     tenant_id = require_college_tenant_scope(scope)
@@ -172,6 +194,7 @@ async def get_exam_registration_management_page(
 
     programme_filter = (programme_code or "").strip().upper()
     status_filter = (status or "").strip().lower()
+    search_term = (search or "").strip().lower()
 
     session_options = [
         StudentAdminDashboardFilterOption(
@@ -241,6 +264,12 @@ async def get_exam_registration_management_page(
     for subj in subjects:
         subject_counts[subj.registration_id] += 1
 
+    eligibility_rows = await ExamEligibilityRecord.find(
+        Eq(ExamEligibilityRecord.tenant_id, tenant_id),
+        Eq(ExamEligibilityRecord.exam_session_id, session.id),
+    ).to_list()
+    eligibility_by_user = {row.student_user_id: row for row in eligibility_rows}
+
     filtered: list[ExamRegistration] = []
     for reg in registrations:
         if status_filter and reg.status.value != status_filter:
@@ -249,6 +278,13 @@ async def get_exam_registration_management_page(
         code = (record.programme_code if record else "").upper()
         if programme_filter and code != programme_filter:
             continue
+        if search_term:
+            user = user_by_id.get(reg.student_user_id)
+            profile = profiles_map.get(reg.student_user_id)
+            register_no = _register_number(record, profile) if record else ""
+            name = (user.full_name if user else "").lower()
+            if search_term not in name and search_term not in register_no.lower():
+                continue
         filtered.append(reg)
 
     total = len(filtered)
@@ -263,8 +299,8 @@ async def get_exam_registration_management_page(
         record = record_by_user.get(reg.student_user_id)
         profile = profiles_map.get(reg.student_user_id)
         status_label, status_tone = _STATUS_LABELS.get(reg.status, ("—", "muted"))
-        fee_label = "Cleared" if reg.fee_verified else "Pending"
-        fee_tone = "success" if reg.fee_verified else "warning"
+        fee_label, fee_tone = _fee_label(reg.fee_verified)
+        elig_label, elig_tone = _eligibility_label(eligibility_by_user.get(reg.student_user_id))
         student_name = user.full_name.strip() if user and user.full_name else "—"
         register_no = _register_number(record, profile) if record else "—"
         programme = _programme_label(record.programme_code if record else None, profile, programme_by_code)
@@ -280,6 +316,8 @@ async def get_exam_registration_management_page(
                 subjects_count=subject_counts.get(reg.registration_id, 0),
                 fee_status_label=fee_label,
                 fee_status_tone=fee_tone,
+                eligibility_status_label=elig_label,
+                eligibility_status_tone=elig_tone,
                 registration_status_label=status_label,
                 registration_status_tone=status_tone,
                 submitted_at_label=submitted_label,
@@ -293,9 +331,11 @@ async def get_exam_registration_management_page(
 
     return ExamRegistrationManagementPageRead(
         page_title="Exam Registration Management",
-        page_subtitle=f"{session.name or session.session_code} · {session.semester_label} {session.academic_year_label}",
+        page_subtitle="Student registrations for the session",
         export_label="Export",
         confirm_selected_label="Confirm selected",
+        search_placeholder="Search student or register number",
+        sub_nav=examination_registration_sub_nav("exam-registration-management"),
         session_filter_label="Exam session",
         status_filter_label="Status",
         programme_filter_label="Programme",
@@ -351,7 +391,7 @@ async def get_exam_registration_management_page(
         ],
         registrations_section_title="Registrations",
         registration_count_label=f"{total:,} registrations" if total else "0 registrations",
-        table_headers=["Student", "Register no.", "Programme", "Subjects", "Fee", "Status", "Submitted"],
+        table_headers=["Student", "Register no.", "Subjects", "Fee", "Eligibility", "Status"],
         registration_rows=rows,
         showing_label=f"Showing {showing_from}–{showing_to} of {total:,}" if total else "Showing 0 of 0",
         pagination=PoliciesPagination(

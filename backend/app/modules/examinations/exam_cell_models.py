@@ -108,6 +108,27 @@ class ExamSessionStatusHistory(Document):
         ]
 
 
+class ExamSessionRegistrationRules(Document):
+    """Per-session registration eligibility toggles (college admin setup)."""
+
+    tenant_id: PydanticObjectId
+    exam_session_id: PydanticObjectId
+    block_unpaid_students: bool = True
+    block_below_attendance: bool = True
+    allow_late_registration: bool = False
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "exam_session_registration_rules"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("exam_session_id", ASCENDING)],
+                unique=True,
+                name="unique_exam_session_registration_rules",
+            ),
+        ]
+
+
 class ExamActivityLog(Document):
     tenant_id: PydanticObjectId
     event_id: str

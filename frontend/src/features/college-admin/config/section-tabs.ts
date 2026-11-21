@@ -1,5 +1,6 @@
 import { academicsTabs as academicsSectionTabs } from "@/features/college-admin/config/academics-section-tabs";
 import { attendanceSectionTabs } from "@/features/college-admin/config/attendance-section-tabs";
+import { examinationsSectionTabs } from "@/features/college-admin/config/examinations-section-tabs";
 import { facultySectionTabs } from "@/features/college-admin/config/faculty-section-tabs";
 import { studentsSectionTabs } from "@/features/college-admin/config/students-section-tabs";
 
@@ -237,6 +238,8 @@ export const facultyTabs: CollegeAdminTab[] = [...facultySectionTabs];
 
 export const attendanceTabs: CollegeAdminTab[] = [...attendanceSectionTabs];
 
+export const examinationsTabs: CollegeAdminTab[] = [...examinationsSectionTabs];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -263,6 +266,9 @@ export function resolveSectionTabs(
   }
   if (pathname.startsWith("/college-admin/attendance")) {
     return { section: "Attendance", tabs: attendanceTabs };
+  }
+  if (pathname.startsWith("/college-admin/examinations")) {
+    return { section: "Examinations", tabs: examinationsTabs };
   }
   return null;
 }

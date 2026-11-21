@@ -1,8 +1,11 @@
+import type { ExaminationRegistrationSubNavItem } from "@/features/college-admin/types/examination-registration-shared";
+
 export type ExamRegistrationManagementPageQuery = {
   page?: number;
   session_id?: string;
   status?: string;
   programme_code?: string;
+  search?: string;
 };
 
 export type ExamRegistrationManagementFilterOption = {
@@ -18,6 +21,8 @@ export type ExamRegistrationManagementTableRow = {
   subjects_count: number;
   fee_status_label: string;
   fee_status_tone: string;
+  eligibility_status_label: string;
+  eligibility_status_tone: string;
   registration_status_label: string;
   registration_status_tone: string;
   submitted_at_label: string;
@@ -30,6 +35,8 @@ export type ExamRegistrationManagementPage = {
   page_subtitle: string;
   export_label: string;
   confirm_selected_label: string;
+  search_placeholder: string;
+  sub_nav: ExaminationRegistrationSubNavItem[];
   session_filter_label: string;
   status_filter_label: string;
   programme_filter_label: string;

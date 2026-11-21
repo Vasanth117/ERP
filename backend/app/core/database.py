@@ -161,7 +161,11 @@ def document_models() -> list[type]:
     from app.modules.college_admin.attendance_admin_models import (
         AttendanceComplianceSnapshot,
         AttendanceCorrectionApproval,
+        AttendanceInstitutionalPolicyRow,
+        AttendanceReportDefinition,
+        AttendanceReportExecution,
         AttendanceSubmissionMonitoring,
+        InstitutionAttendanceMarkingConfig,
         InstitutionAttendancePolicy,
     )
     from app.modules.college_admin.examination_admin_models import (
@@ -695,6 +699,7 @@ def document_models() -> list[type]:
         ExamActivityLog,
         ExamSession,
         ExamSessionAcademicScope,
+        ExamSessionRegistrationRules,
         ExamSessionStatusHistory,
     )
     from app.modules.examinations.exam_cell_assessment_models import (
@@ -1302,10 +1307,14 @@ def document_models() -> list[type]:
         FacultyWorkloadRecord,
         FacultyDocumentReference,
         FacultyNewHireDraft,
+        InstitutionAttendanceMarkingConfig,
+        AttendanceInstitutionalPolicyRow,
         InstitutionAttendancePolicy,
         AttendanceSubmissionMonitoring,
         AttendanceCorrectionApproval,
         AttendanceComplianceSnapshot,
+        AttendanceReportDefinition,
+        AttendanceReportExecution,
         ExaminationConfiguration,
         ExaminationSessionRecord,
         InstitutionExaminationSchedule,
@@ -1751,6 +1760,7 @@ def document_models() -> list[type]:
         ExaminationReviewFeePayment,
         ExamSession,
         ExamSessionAcademicScope,
+        ExamSessionRegistrationRules,
         ExamSessionStatusHistory,
         ExamActivityLog,
         ExamAssessmentConfig,

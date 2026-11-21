@@ -6,8 +6,6 @@ export const attendanceSectionTabs = [
     figmaFrame: "159:6844",
     activePrefixes: [
       "/college-admin/attendance/attendance-dashboard",
-      "/college-admin/attendance/department-wise-attendance",
-      "/college-admin/attendance/subject-wise-attendance",
       "/college-admin/attendance/department-summaries",
       "/college-admin/attendance/session-history",
     ],
@@ -16,6 +14,11 @@ export const attendanceSectionTabs = [
     label: "Student attendance",
     href: "/college-admin/attendance/student-attendance-overview",
     figmaFrame: "159:7247",
+    activePrefixes: [
+      "/college-admin/attendance/student-attendance-overview",
+      "/college-admin/attendance/department-wise-attendance",
+      "/college-admin/attendance/subject-wise-attendance",
+    ],
   },
   {
     label: "Faculty attendance",

@@ -513,7 +513,25 @@ async def review_correction_request(
         Eq(AttendanceCorrectionApproval.correction_request_id, doc.id),
     ):
         raise AppError(code="CONFLICT", message="Correction already reviewed", status_code=409)
+    from app.modules.college_admin.models import InstitutionSettings
+
+    inst_settings = await InstitutionSettings.find_one({"tenant_id": tenant_id})
+    requires_college = bool((inst_settings.settings or {}).get("attendance_correction_requires_college_approval", False))
     decision = AttendanceCorrectionStatus.APPROVED if payload.decision == "approve" else AttendanceCorrectionStatus.REJECTED
+    if requires_college and decision == AttendanceCorrectionStatus.APPROVED:
+        doc.department_endorsed_at = utcnow()
+        doc.department_endorsed_by = user.id
+        await doc.save()
+        await record_department_audit(
+            actor_id=user.id,
+            action="department.attendance.correction_endorsed",
+            resource_type="attendance_correction_request",
+            resource_id=str(doc.id),
+            tenant_id=tenant_id,
+            central_department_id=central_id,
+            metadata={"decision": decision.value, "requires_college_approval": True},
+        )
+        return await get_correction_request(scope, user, request_id)
     session = await AttendanceSession.get(doc.session_id)
     if session is None or session.tenant_id != tenant_id:
         raise AppError(code="NOT_FOUND", message="Attendance session not found", status_code=404)

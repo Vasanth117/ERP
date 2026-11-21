@@ -63,6 +63,8 @@ async def test_exam_registration_management_page_empty_sessions(db_ready):
     page = await get_exam_registration_management_page(scope)
     assert page.page_title == "Exam Registration Management"
     assert page.registration_rows == []
+    assert page.search_placeholder
+    assert any(item.active for item in page.sub_nav)
 
 
 @pytest.mark.anyio
@@ -123,4 +125,6 @@ async def test_exam_registration_management_page_lists_registration(db_ready):
     )
     page = await get_exam_registration_management_page(scope, session_id=session.session_id)
     assert page.kpis[0].key == "total"
-    assert any(row.registration_id == reg.registration_id for row in page.registration_rows)
+    matched = next(row for row in page.registration_rows if row.registration_id == reg.registration_id)
+    assert matched.eligibility_status_label
+    assert matched.fee_status_label == "Paid"

@@ -120,6 +120,27 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "student-administration-dashboard", params ?? {}] as const,
   facultyEmployeeDashboard: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "faculty-employee-dashboard", params ?? {}] as const,
+  attendanceDashboard: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "attendance-dashboard", params ?? {}] as const,
+  studentAttendanceOverview: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-attendance-overview", params ?? {}] as const,
+  departmentWiseAttendance: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "department-wise-attendance", params ?? {}] as const,
+  subjectWiseAttendance: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "subject-wise-attendance", params ?? {}] as const,
+  facultyAttendanceOverview: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "faculty-attendance-overview", params ?? {}] as const,
+  attendanceMonitoring: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "attendance-monitoring", params ?? {}] as const,
+  attendanceCorrectionRequests: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "attendance-correction-requests", params ?? {}] as const,
+  attendanceApproval: (requestId?: string) =>
+    [...collegeAdminQueryKeys.all, "attendance-approval", requestId ?? "default"] as const,
+  attendanceConfiguration: [...collegeAdminQueryKeys.all, "attendance-configuration"] as const,
+  attendanceRulesPolicies: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "attendance-rules-policies", params ?? {}] as const,
+  attendanceReports: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "attendance-reports", params ?? {}] as const,
   facultyDirectoryPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "faculty-directory-page", params ?? {}] as const,
   employeeDirectoryPage: (params?: Record<string, string | number | undefined>) =>
@@ -160,6 +181,36 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "student-enrollment-management-page", params ?? {}] as const,
   examRegistrationManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "exam-registration-management-page", params ?? {}] as const,
+  examinationDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "examination-dashboard-page", params ?? {}] as const,
+  examinationSessionManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "examination-session-management-page", params ?? {}] as const,
+  examinationConfigurationPage: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "examination-configuration-page", params ?? {}] as const,
+  examTimetableManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "exam-timetable-management-page", params ?? {}] as const,
+  studentExamEligibilityPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-exam-eligibility-page", params ?? {}] as const,
+  hallTicketAdministrationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hall-ticket-administration-page", params ?? {}] as const,
+  examinationHallSeatingManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "examination-hall-seating-management-page", params ?? {}] as const,
+  invigilatorAllocationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "invigilator-allocation-page", params ?? {}] as const,
+  marksEntryManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "marks-entry-management-page", params ?? {}] as const,
+  internalExternalAssessmentPage: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "internal-external-assessment-page", params ?? {}] as const,
+  resultProcessingPage: (params?: Record<string, string | undefined>) =>
+    [...collegeAdminQueryKeys.all, "result-processing-page", params ?? {}] as const,
+  resultApprovalPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "result-approval-page", params ?? {}] as const,
+  resultPublicationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "result-publication-page", params ?? {}] as const,
+  revaluationManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "revaluation-management-page", params ?? {}] as const,
+  supplementaryExaminationManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "supplementary-examination-management-page", params ?? {}] as const,
   batchSectionAllocationPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "batch-section-allocation-page", params ?? {}] as const,
   studentTransferManagementPage: (params?: Record<string, string | number | undefined>) =>

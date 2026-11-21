@@ -11,6 +11,34 @@ from app.common.context import get_request_id
 from app.common.envelope import ApiResponse, success_response
 from app.common.schemas import Page, Pagination
 from app.modules.auth.models import User
+from app.modules.college_admin.schemas import (
+    AttendanceApprovalPageRead,
+    AttendanceConfigurationPageRead,
+    AttendanceConfigurationSave,
+    AttendanceCorrectionRequestsPageRead,
+    AttendanceDashboardPageRead,
+    AttendanceReportCreate,
+    AttendanceReportsPageRead,
+    AttendanceRulesPoliciesPageRead,
+    AttendanceMonitoringPageRead,
+    DepartmentWiseAttendancePageRead,
+    FacultyAttendanceOverviewPageRead,
+    StudentAttendanceOverviewPageRead,
+    SubjectWiseAttendancePageRead,
+)
+from app.modules.college_admin.attendance_configuration_page_service import (
+    get_attendance_configuration_page,
+    get_attendance_rules_policies_page,
+    save_attendance_configuration,
+)
+from app.modules.college_admin.attendance_reports_page_service import (
+    create_attendance_report,
+    get_attendance_reports_page,
+)
+from app.modules.college_admin.attendance_corrections_page_service import (
+    get_attendance_approval_page,
+    get_attendance_correction_requests_page,
+)
 from app.modules.college_admin.attendance_admin_schemas import (
     AttendancePolicyRead,
     AttendancePolicyUpsert,
@@ -19,6 +47,23 @@ from app.modules.college_admin.attendance_admin_schemas import (
     CorrectionDecision,
     CorrectionRequestRead,
     DepartmentAttendanceSummary,
+)
+from app.modules.college_admin.attendance_dashboard_page_service import get_attendance_dashboard_page
+from app.modules.college_admin.department_wise_attendance_page_service import (
+    get_department_wise_attendance_page,
+)
+from app.modules.college_admin.attendance_monitoring_page_service import (
+    get_attendance_monitoring_page,
+    notify_faculty_for_missing_attendance,
+)
+from app.modules.college_admin.faculty_attendance_overview_page_service import (
+    get_faculty_attendance_overview_page,
+)
+from app.modules.college_admin.student_attendance_overview_page_service import (
+    get_student_attendance_overview_page,
+)
+from app.modules.college_admin.subject_wise_attendance_page_service import (
+    get_subject_wise_attendance_page,
 )
 from app.modules.college_admin.attendance_admin_service import (
     attendance_history,
@@ -35,6 +80,147 @@ from app.modules.college_admin.attendance_admin_service import (
 from app.modules.college_admin.deps import college_admin_user
 
 router = APIRouter()
+
+
+@router.get("/configuration/page", response_model=ApiResponse[AttendanceConfigurationPageRead])
+async def attendance_configuration_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AttendanceConfigurationPageRead]:
+    return success_response(await get_attendance_configuration_page(scope), request_id=get_request_id())
+
+
+@router.post("/configuration/save", response_model=ApiResponse[AttendanceConfigurationPageRead])
+async def attendance_configuration_save_route(
+    payload: AttendanceConfigurationSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AttendanceConfigurationPageRead]:
+    return success_response(await save_attendance_configuration(scope, payload), request_id=get_request_id())
+
+
+@router.get("/rules-policies/page", response_model=ApiResponse[AttendanceRulesPoliciesPageRead])
+async def attendance_rules_policies_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: int = 1,
+    page_size: int = 4,
+) -> ApiResponse[AttendanceRulesPoliciesPageRead]:
+    return success_response(
+        await get_attendance_rules_policies_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/monitoring/page", response_model=ApiResponse[AttendanceMonitoringPageRead])
+async def attendance_monitoring_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: int = 1,
+    page_size: int = 10,
+) -> ApiResponse[AttendanceMonitoringPageRead]:
+    return success_response(
+        await get_attendance_monitoring_page(scope, page_num=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.post("/monitoring/notify-faculty", response_model=ApiResponse[dict])
+async def attendance_monitoring_notify_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(await notify_faculty_for_missing_attendance(scope), request_id=get_request_id())
+
+
+@router.get(
+    "/faculty-attendance/page",
+    response_model=ApiResponse[FacultyAttendanceOverviewPageRead],
+)
+async def faculty_attendance_overview_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    department_id: str | None = None,
+    page: int = 1,
+    page_size: int = 4,
+) -> ApiResponse[FacultyAttendanceOverviewPageRead]:
+    return success_response(
+        await get_faculty_attendance_overview_page(
+            scope,
+            department_id=department_id or None,
+            page=page,
+            page_size=page_size,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/department-wise/page",
+    response_model=ApiResponse[DepartmentWiseAttendancePageRead],
+)
+async def department_wise_attendance_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    term_key: str | None = None,
+) -> ApiResponse[DepartmentWiseAttendancePageRead]:
+    return success_response(
+        await get_department_wise_attendance_page(scope, term_key=term_key),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/subject-wise/page",
+    response_model=ApiResponse[SubjectWiseAttendancePageRead],
+)
+async def subject_wise_attendance_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    term_key: str | None = None,
+    scope_key: str | None = None,
+) -> ApiResponse[SubjectWiseAttendancePageRead]:
+    return success_response(
+        await get_subject_wise_attendance_page(
+            scope,
+            term_key=term_key,
+            scope_key=scope_key or None,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/student-attendance/page",
+    response_model=ApiResponse[StudentAttendanceOverviewPageRead],
+)
+async def student_attendance_overview_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    term_key: str | None = None,
+    programme_code: str | None = None,
+) -> ApiResponse[StudentAttendanceOverviewPageRead]:
+    return success_response(
+        await get_student_attendance_overview_page(
+            scope,
+            term_key=term_key,
+            programme_code=programme_code or None,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/dashboard/page", response_model=ApiResponse[AttendanceDashboardPageRead])
+async def attendance_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    term_key: str | None = None,
+    department_id: str | None = None,
+) -> ApiResponse[AttendanceDashboardPageRead]:
+    return success_response(
+        await get_attendance_dashboard_page(scope, term_key=term_key, department_id=department_id or None),
+        request_id=get_request_id(),
+    )
 
 
 @router.put("/policies", response_model=ApiResponse[AttendancePolicyRead])
@@ -79,6 +265,31 @@ async def missing_submissions_route(
     return success_response(await missing_submissions(scope, pagination), request_id=get_request_id())
 
 
+@router.get("/corrections/requests/page", response_model=ApiResponse[AttendanceCorrectionRequestsPageRead])
+async def attendance_correction_requests_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: int = 1,
+    page_size: int = 10,
+) -> ApiResponse[AttendanceCorrectionRequestsPageRead]:
+    return success_response(
+        await get_attendance_correction_requests_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/corrections/approval/page", response_model=ApiResponse[AttendanceApprovalPageRead])
+async def attendance_approval_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    request_id: str | None = None,
+) -> ApiResponse[AttendanceApprovalPageRead]:
+    return success_response(
+        await get_attendance_approval_page(scope, request_id=request_id or None),
+        request_id=get_request_id(),
+    )
+
+
 @router.get("/corrections", response_model=ApiResponse[Page[CorrectionRequestRead]])
 async def list_corrections_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
@@ -119,6 +330,28 @@ async def attendance_history_route(
         await attendance_history(scope, faculty_user_id=faculty_user_id, session_date=session_date, pagination=pagination),
         request_id=get_request_id(),
     )
+
+
+@router.get("/reports/page", response_model=ApiResponse[AttendanceReportsPageRead])
+async def attendance_reports_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: int = 1,
+    page_size: int = 4,
+) -> ApiResponse[AttendanceReportsPageRead]:
+    return success_response(
+        await get_attendance_reports_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.post("/reports/create", response_model=ApiResponse[AttendanceReportsPageRead])
+async def attendance_reports_create_route(
+    payload: AttendanceReportCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[AttendanceReportsPageRead]:
+    return success_response(await create_attendance_report(scope, payload), request_id=get_request_id())
 
 
 @router.post("/reports/compliance", response_model=ApiResponse[ComplianceSnapshotRead], status_code=status.HTTP_201_CREATED)

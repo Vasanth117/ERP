@@ -1,41 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-
-import { apiRequest } from "@/lib/api/client";
-import {
-  DataTable,
-  FormPlaceholder,
-  SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
-  rowsFromApi,
-} from "@/features/college-admin/components/ui/college-admin-screen-ui";
+import { FormPlaceholder } from "@/features/college-admin/components/ui/college-admin-screen-ui";
 import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
+import { ExaminationConfigurationDashboard } from "@/features/college-admin/components/examinations/examination-configuration-dashboard";
+import { ExaminationDashboard } from "@/features/college-admin/components/examinations/examination-dashboard";
+import { ExaminationSessionManagementDashboard } from "@/features/college-admin/components/examinations/examination-session-management-dashboard";
 import { ExamRegistrationManagementDashboard } from "@/features/college-admin/components/examinations/exam-registration-management-dashboard";
+import { ExamTimetableManagementDashboard } from "@/features/college-admin/components/examinations/exam-timetable-management-dashboard";
+import { ExaminationHallSeatingManagementDashboard } from "@/features/college-admin/components/examinations/examination-hall-seating-management-dashboard";
+import { HallTicketAdministrationDashboard } from "@/features/college-admin/components/examinations/hall-ticket-administration-dashboard";
+import { InternalExternalAssessmentDashboard } from "@/features/college-admin/components/examinations/internal-external-assessment-dashboard";
+import { InvigilatorAllocationDashboard } from "@/features/college-admin/components/examinations/invigilator-allocation-dashboard";
+import { MarksEntryManagementDashboard } from "@/features/college-admin/components/examinations/marks-entry-management-dashboard";
+import { ResultApprovalDashboard } from "@/features/college-admin/components/examinations/result-approval-dashboard";
+import { ResultProcessingDashboard } from "@/features/college-admin/components/examinations/result-processing-dashboard";
+import { ResultPublicationDashboard } from "@/features/college-admin/components/examinations/result-publication-dashboard";
+import { RevaluationManagementDashboard } from "@/features/college-admin/components/examinations/revaluation-management-dashboard";
+import { SupplementaryExaminationManagementDashboard } from "@/features/college-admin/components/examinations/supplementary-examination-management-dashboard";
+import { StudentExamEligibilityDashboard } from "@/features/college-admin/components/examinations/student-exam-eligibility-dashboard";
 import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 
-const FORM_SLUGS = new Set([
-  "examination-session-management",
-  "examination-configuration",
-  "exam-timetable-management",
-  "examination-hall-seating-management",
-  "invigilator-allocation",
-  "marks-entry-management",
-  "internal-external-assessment",
-  "result-processing",
-  "result-approval",
-  "result-publication",
-  "revaluation-management",
-  "supplementary-examination-management",
-  "hall-ticket-administration",
-]);
+const FORM_SLUGS = new Set<string>([]);
 
 export function ExaminationsScreen({ slug, title }: { slug: string; title: string }) {
   const { apiPath, viewType } = resolveModuleEndpoint("examinations", slug);
@@ -44,6 +29,48 @@ export function ExaminationsScreen({ slug, title }: { slug: string; title: strin
   }
   if (slug === "exam-registration-management") {
     return <ExamRegistrationManagementDashboard />;
+  }
+  if (slug === "examination-session-management") {
+    return <ExaminationSessionManagementDashboard />;
+  }
+  if (slug === "examination-configuration") {
+    return <ExaminationConfigurationDashboard />;
+  }
+  if (slug === "exam-timetable-management") {
+    return <ExamTimetableManagementDashboard />;
+  }
+  if (slug === "student-exam-eligibility") {
+    return <StudentExamEligibilityDashboard />;
+  }
+  if (slug === "hall-ticket-administration") {
+    return <HallTicketAdministrationDashboard />;
+  }
+  if (slug === "examination-hall-seating-management") {
+    return <ExaminationHallSeatingManagementDashboard />;
+  }
+  if (slug === "invigilator-allocation") {
+    return <InvigilatorAllocationDashboard />;
+  }
+  if (slug === "marks-entry-management") {
+    return <MarksEntryManagementDashboard />;
+  }
+  if (slug === "internal-external-assessment") {
+    return <InternalExternalAssessmentDashboard />;
+  }
+  if (slug === "result-processing") {
+    return <ResultProcessingDashboard />;
+  }
+  if (slug === "result-approval") {
+    return <ResultApprovalDashboard />;
+  }
+  if (slug === "result-publication") {
+    return <ResultPublicationDashboard />;
+  }
+  if (slug === "revaluation-management") {
+    return <RevaluationManagementDashboard />;
+  }
+  if (slug === "supplementary-examination-management") {
+    return <SupplementaryExaminationManagementDashboard />;
   }
   if (FORM_SLUGS.has(slug)) {
     return (
@@ -58,44 +85,5 @@ export function ExaminationsScreen({ slug, title }: { slug: string; title: strin
       apiPath={apiPath}
       viewType={viewType}
     />
-  );
-}
-
-function ExaminationDashboard() {
-  const pending = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "exam-pending-marks"],
-    queryFn: () =>
-      apiRequest<{ total?: number; items?: unknown[] }>(
-        "/college-admin/examination-administration/marks/pending?limit=50&offset=0",
-      ),
-  });
-  const rows = rowsFromApi(pending.data?.items);
-  return (
-    <QueryState
-      isLoading={pending.isLoading}
-      isError={pending.isError}
-      error={pending.error}
-      onRetry={() => void pending.refetch()}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Pending mark reviews" value={pending.data?.total ?? rows.length} />
-        <Link
-          href="/college-admin/examinations/student-exam-eligibility"
-          className="flex items-center text-sm font-medium text-[#245dd8]"
-        >
-          Eligibility registry →
-        </Link>
-        <Link
-          href="/college-admin/examinations/examination-reports"
-          className="flex items-center text-sm font-medium text-[#245dd8]"
-        >
-          Reports →
-        </Link>
-      </div>
-      <SectionPanel title="Pending evaluations" className="mt-6">
-        <ToolbarRow onRefresh={() => void pending.refetch()} />
-        <DataTable columns={columnsFromRows(rows)} rows={rows} />
-      </SectionPanel>
-    </QueryState>
   );
 }
