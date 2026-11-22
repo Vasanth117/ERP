@@ -107,6 +107,20 @@ class SupportRequestSummary(BaseModel):
     created_at: datetime
 
 
+class CollegeDashboardAttendanceTrendPoint(BaseModel):
+    label: str
+    students_pct: float | None = None
+    faculty_pct: float | None = None
+
+
+class CollegeDashboardFeeMonthPoint(BaseModel):
+    year: int
+    month: int
+    label: str
+    amount_inr: float = 0
+    is_month_to_date: bool = False
+
+
 class CollegeDashboardOverview(BaseModel):
     filters: DashboardFilterParams
     academic_term: AcademicTermSummary
@@ -120,6 +134,8 @@ class CollegeDashboardOverview(BaseModel):
     upcoming_events: list[dict[str, Any]] = Field(default_factory=list)
     notifications: list[NotificationSummary] = Field(default_factory=list)
     integration_health: list[IntegrationHealthSummary] = Field(default_factory=list)
+    attendance_trend: list[CollegeDashboardAttendanceTrendPoint] = Field(default_factory=list)
+    fee_monthly_collection: list[CollegeDashboardFeeMonthPoint] = Field(default_factory=list)
 
 
 class CollegeDashboardStatsRead(BaseModel):

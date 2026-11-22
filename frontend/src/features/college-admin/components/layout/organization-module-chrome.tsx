@@ -2,24 +2,18 @@
 
 import type { ReactNode } from "react";
 
-import { CollegeAdminPageTabs } from "@/features/college-admin/components/layout/college-admin-page-tabs";
+import { CollegeAdminSectionChrome } from "@/features/college-admin/components/layout/college-admin-section-chrome";
 import { organizationTabs } from "@/features/college-admin/config/section-tabs";
 
 export function OrganizationModuleChrome({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1440px]">
-      <header className="mb-5">
-        <h1 className="text-[26px] font-bold leading-tight tracking-[-0.02em] text-[#111827]">
-          Organization
-        </h1>
-        <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-[#6b7280]">
-          Departments, hierarchy, programmes, and faculty allocation across your institution.
-        </p>
-      </header>
-
-      <CollegeAdminPageTabs tabs={organizationTabs} className="mb-8" />
-
+    <CollegeAdminSectionChrome
+      moduleTitle="Organization"
+      moduleDescription="Departments, hierarchy, programmes, and faculty allocation across your institution."
+      landingHref={organizationTabs[0]!.href}
+      tabs={organizationTabs}
+    >
       {children}
-    </div>
+    </CollegeAdminSectionChrome>
   );
 }

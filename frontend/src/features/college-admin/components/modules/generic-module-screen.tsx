@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/api/client";
@@ -17,6 +18,7 @@ import {
   rowsFromApi,
 } from "@/features/college-admin/components/ui/college-admin-screen-ui";
 import {
+  CollegeAdminKpiGrid,
   QueryState,
   StatCard,
 } from "@/features/college-admin/components/ui/query-state";
@@ -84,7 +86,7 @@ export function GenericModuleScreen({
   const [search, setSearch] = useState("");
 
   const q = useQuery({
-    queryKey: ["college-admin-module", moduleKey, slug, endpoint?.path],
+    queryKey: ["college-admin-module", moduleKey, slug, endpoint?.path ?? ""],
     queryFn: async () => {
       if (!endpoint) return null;
       return await apiRequest<unknown>(endpoint.path);
@@ -135,11 +137,11 @@ export function GenericModuleScreen({
     >
       <div className="space-y-4">
         {viewType === "dashboard" ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Records" value={count} hint={title} />
-            <StatCard label="Module" value={moduleKey} hint="College Admin" />
-            <StatCard label="View" value="Overview" hint="CA screen" />
-            <div className="flex items-center rounded-xl border border-[#dce3ec] bg-white p-4 shadow-[0px_1px_1px_rgba(23,43,69,0.04)]">
+          <CollegeAdminKpiGrid columns={4}>
+            <StatCard label="Records" value={count} hint={title} kpiKey="records" />
+            <StatCard label="Module" value={moduleKey} hint="College Admin" kpiKey="module" />
+            <StatCard label="View" value="Overview" hint="CA screen" kpiKey="view" />
+            <div className="flex min-h-[7.75rem] items-center rounded-[18px] border border-[#dce3ec] bg-white p-4 shadow-[0_2px_8px_rgba(15,23,42,0.04)]">
               <Button
                 type="button"
                 className="h-9 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
@@ -148,7 +150,7 @@ export function GenericModuleScreen({
                 Refresh dashboard
               </Button>
             </div>
-          </div>
+          </CollegeAdminKpiGrid>
         ) : null}
 
         <SectionPanel

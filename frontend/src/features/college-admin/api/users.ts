@@ -13,7 +13,7 @@ import type {
   BulkUserInvitationSendResult,
 } from "@/features/college-admin/types/bulk-user-invitation";
 import { apiBaseUrl } from "@/lib/env";
-import { getAccessToken, getTenantOverrideId } from "@/lib/auth/token-store";
+import { applyAuthHeaders } from "@/lib/api/auth-headers";
 import type {
   AllUsersListPage,
   UserDetailsPage,
@@ -158,10 +158,7 @@ export async function downloadLoginAccountActivityExport(params: {
   if (params.location_filter) qs.set("location_filter", params.location_filter);
   const suffix = qs.toString() ? `?${qs.toString()}` : "";
   const headers = new Headers();
-  const token = getAccessToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  const tenantId = getTenantOverrideId();
-  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  applyAuthHeaders(headers);
   const response = await fetch(`${apiBaseUrl()}/college-admin/users/login-account-activity/export${suffix}`, {
     headers,
   });
@@ -199,10 +196,7 @@ export async function submitAccountSuspension(
 
 export async function downloadAccountStatusExport(tab: string): Promise<void> {
   const headers = new Headers();
-  const token = getAccessToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  const tenantId = getTenantOverrideId();
-  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  applyAuthHeaders(headers);
   const response = await fetch(
     `${apiBaseUrl()}/college-admin/users/account-status/export?tab=${encodeURIComponent(tab)}`,
     { headers },
@@ -240,10 +234,7 @@ export async function submitRoleAssignment(
 
 export async function downloadPermissionManagementMatrix(): Promise<void> {
   const headers = new Headers();
-  const token = getAccessToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  const tenantId = getTenantOverrideId();
-  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  applyAuthHeaders(headers);
   const response = await fetch(`${apiBaseUrl()}/college-admin/permissions/management-matrix/export`, {
     headers,
   });
@@ -293,10 +284,7 @@ export async function sendBulkUserInvitations(): Promise<BulkUserInvitationSendR
 
 export async function downloadBulkInviteTemplate(): Promise<void> {
   const headers = new Headers();
-  const token = getAccessToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  const tenantId = getTenantOverrideId();
-  if (tenantId) headers.set("X-Tenant-Id", tenantId);
+  applyAuthHeaders(headers);
   const response = await fetch(`${apiBaseUrl()}/college-admin/users/bulk-user-invitation/template`, { headers });
   if (!response.ok) throw new Error("Could not download template");
   const text = await response.text();

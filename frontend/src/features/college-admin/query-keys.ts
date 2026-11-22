@@ -136,7 +136,8 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "attendance-correction-requests", params ?? {}] as const,
   attendanceApproval: (requestId?: string) =>
     [...collegeAdminQueryKeys.all, "attendance-approval", requestId ?? "default"] as const,
-  attendanceConfiguration: [...collegeAdminQueryKeys.all, "attendance-configuration"] as const,
+  attendanceConfiguration: () =>
+    [...collegeAdminQueryKeys.all, "attendance-configuration"] as const,
   attendanceRulesPolicies: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "attendance-rules-policies", params ?? {}] as const,
   attendanceReports: (params?: Record<string, string | number | undefined>) =>

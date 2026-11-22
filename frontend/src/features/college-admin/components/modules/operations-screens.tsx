@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { apiRequest } from "@/lib/api/client";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/features/college-admin/components/ui/college-admin-screen-ui";
 import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
 import {
+  CollegeAdminKpiGrid,
   QueryState,
   StatCard,
 } from "@/features/college-admin/components/ui/query-state";
@@ -88,20 +89,29 @@ function OperationsDashboard() {
       error={summary.error}
       onRetry={() => void summary.refetch()}
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Open maintenance" value={String(summary.data?.open_maintenance ?? "—")} />
-        <StatCard label="Assets tracked" value={String(summary.data?.asset_count ?? "—")} />
+      <CollegeAdminKpiGrid columns={4}>
+        <StatCard
+          label="Open maintenance"
+          value={String(summary.data?.open_maintenance ?? "—")}
+          kpiKey="open_maintenance"
+        />
+        <StatCard
+          label="Assets tracked"
+          value={String(summary.data?.asset_count ?? "—")}
+          kpiKey="assets_tracked"
+        />
         <StatCard
           label="Facilities"
           value={String(opsDash.data?.facility_bookings ?? summary.data?.facility_count ?? "—")}
+          kpiKey="facilities"
         />
         <Link
           href="/college-admin/operations/maintenance-requests"
-          className="flex items-center text-sm font-medium text-[#245dd8]"
+          className="flex min-h-[7.75rem] items-center rounded-[18px] border border-[#dce3ec] bg-white px-4 text-sm font-semibold text-[#245dd8] shadow-[0_2px_8px_rgba(15,23,42,0.04)] hover:bg-[#f4f8ff]"
         >
           Maintenance →
         </Link>
-      </div>
+      </CollegeAdminKpiGrid>
       <SectionPanel title="Operations overview" className="mt-6">
         <ToolbarRow onRefresh={() => void summary.refetch()} />
         <p className="text-sm text-[#607086]">

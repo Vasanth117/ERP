@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { fetchFacultyEmployeeDashboardPage } from "@/features/college-admin/api/faculty";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";

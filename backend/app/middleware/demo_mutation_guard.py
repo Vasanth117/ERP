@@ -72,7 +72,11 @@ class DemoMutationGuardMiddleware:
             await self.app(scope, receive, send)
             return
 
-        tenant_id = await resolve_effective_tenant_id(user, request.headers.get("x-tenant-id"))
+        tenant_id = await resolve_effective_tenant_id(
+            user,
+            request.headers.get("x-tenant-id"),
+            x_demo_college_view=request.headers.get("x-demo-college-view"),
+        )
         seed_header = request.headers.get("x-demo-seed-secret")
         blocked = await demo_blocks_mutation(user, tenant_id, demo_seed_header=seed_header)
         if not blocked:

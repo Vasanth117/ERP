@@ -1190,6 +1190,7 @@ def document_models() -> list[type]:
         DepartmentProjectReview,
     )
     from app.modules.messaging.outbox_models import DomainOutboxEvent
+    from app.modules.demo.models import DemoGenerationRun
 
     return [
         User,
@@ -2134,6 +2135,7 @@ def document_models() -> list[type]:
         StudentProfileCorrectionRequest,
         StudentReportExport,
         StudentReportDownloadLog,
+        DemoGenerationRun,
     ]
 
 

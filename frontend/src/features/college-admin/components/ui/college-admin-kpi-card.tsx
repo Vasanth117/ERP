@@ -1,15 +1,38 @@
 "use client";
 
-import type { ReactNode } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
 import type { ErpIconName } from "@/components/icons/erp/names";
 import { erpIconRegistry } from "@/components/icons/erp/registry";
 import { LayoutGridIcon } from "@/components/icons/erp/generated/layout-grid";
 import { cn } from "@/lib/utils";
 
-export type CollegeAdminKpiTone = "blue" | "purple" | "green" | "amber";
+export type CollegeAdminKpiTone =
+  | "blue"
+  | "purple"
+  | "green"
+  | "amber"
+  | "rose"
+  | "cyan"
+  | "indigo"
+  | "teal";
 
-export const COLLEGE_ADMIN_KPI_TONES: CollegeAdminKpiTone[] = ["blue", "purple", "green", "amber"];
+export const COLLEGE_ADMIN_KPI_TONES: CollegeAdminKpiTone[] = [
+  "blue",
+  "purple",
+  "green",
+  "amber",
+  "rose",
+  "cyan",
+  "indigo",
+  "teal",
+];
 
 const TONE_STYLES: Record<
   CollegeAdminKpiTone,
@@ -54,6 +77,38 @@ const TONE_STYLES: Record<
     hint: "text-[#d97706]",
     watermark: "text-[#fbbf24]",
   },
+  rose: {
+    surface: "border-[#fda4af]/55 bg-gradient-to-br from-[#ffe4e6] via-[#fff1f2] to-[#fffafb]",
+    glow: "bg-[#f43f5e]",
+    icon: "text-[#be123c]",
+    iconTile: "shadow-[0_8px_20px_rgba(244,63,94,0.2)] ring-[#fecdd3]/80",
+    hint: "text-[#e11d48]",
+    watermark: "text-[#fb7185]",
+  },
+  cyan: {
+    surface: "border-[#67e8f9]/55 bg-gradient-to-br from-[#cffafe] via-[#e6fffe] to-[#f4ffff]",
+    glow: "bg-[#06b6d4]",
+    icon: "text-[#0e7490]",
+    iconTile: "shadow-[0_8px_20px_rgba(6,182,212,0.22)] ring-[#a5f3fc]/80",
+    hint: "text-[#0891b2]",
+    watermark: "text-[#22d3ee]",
+  },
+  indigo: {
+    surface: "border-[#a5b4fc]/55 bg-gradient-to-br from-[#e0e7ff] via-[#eef2ff] to-[#f8f9ff]",
+    glow: "bg-[#6366f1]",
+    icon: "text-[#4338ca]",
+    iconTile: "shadow-[0_8px_20px_rgba(99,102,241,0.22)] ring-[#c7d2fe]/80",
+    hint: "text-[#4f46e5]",
+    watermark: "text-[#818cf8]",
+  },
+  teal: {
+    surface: "border-[#5eead4]/55 bg-gradient-to-br from-[#ccfbf1] via-[#e6faf5] to-[#f4fffc]",
+    glow: "bg-[#14b8a6]",
+    icon: "text-[#0f766e]",
+    iconTile: "shadow-[0_8px_20px_rgba(20,184,166,0.22)] ring-[#99f6e4]/80",
+    hint: "text-[#0d9488]",
+    watermark: "text-[#2dd4bf]",
+  },
 };
 
 export function collegeAdminKpiToneForIndex(index: number): CollegeAdminKpiTone {
@@ -68,12 +123,20 @@ export function collegeAdminKpiToneForKey(key: string): CollegeAdminKpiTone {
   return collegeAdminKpiToneForIndex(hash);
 }
 
-function defaultIndexFromKey(key: string): number {
-  let hash = 0;
-  for (let i = 0; i < key.length; i += 1) {
-    hash = (hash + key.charCodeAt(i) * (i + 1)) % 997;
-  }
-  return hash;
+export function resolveCollegeAdminKpiCardTone({
+  tone,
+  index,
+  kpiKey,
+  label,
+}: {
+  tone?: CollegeAdminKpiTone;
+  index?: number;
+  kpiKey?: string;
+  label: string;
+}): CollegeAdminKpiTone {
+  if (tone) return tone;
+  if (index !== undefined) return collegeAdminKpiToneForIndex(index);
+  return collegeAdminKpiToneForKey(kpiKey ?? label);
 }
 
 const KPI_KEY_ICON: Array<{ test: (key: string, label: string) => boolean; icon: ErpIconName }> = [
@@ -165,8 +228,7 @@ export function CollegeAdminKpiCard({
   className,
 }: CollegeAdminKpiCardProps) {
   const key = kpiKey ?? label;
-  const resolvedIndex = index ?? defaultIndexFromKey(key);
-  const cardTone = tone ?? collegeAdminKpiToneForIndex(resolvedIndex);
+  const cardTone = resolveCollegeAdminKpiCardTone({ tone, index, kpiKey: key, label });
   const styles = TONE_STYLES[cardTone];
   const slug = iconSlug ?? resolveCollegeAdminKpiIconSlug(key, label);
   const hintClass = hintToneClass(hintTone) ?? styles.hint;
@@ -224,6 +286,7 @@ export function CollegeAdminKpiCard({
     </article>
   );
 }
+CollegeAdminKpiCard.isCollegeAdminKpiCard = true;
 
 export function StatCard({
   label,
@@ -254,26 +317,14 @@ export function StatCard({
     />
   );
 }
+StatCard.isCollegeAdminKpiCard = true;
 
-export function CollegeAdminKpiGrid({
-  children,
-  className,
-  columns = 4,
-}: {
-  children: ReactNode;
-  className?: string;
-  columns?: 2 | 3 | 4;
-}) {
-  const colClass =
-    columns === 2
-      ? "sm:grid-cols-2"
-      : columns === 3
-        ? "sm:grid-cols-2 lg:grid-cols-3"
-        : "sm:grid-cols-2 xl:grid-cols-4";
-  return (
-    <div className={cn("grid grid-cols-1 gap-4", colClass, className)} data-college-admin-kpi-grid="">
-      {children}
-    </div>
+function isCollegeAdminKpiGridChild(
+  child: ReactNode,
+): child is ReactElement<Partial<CollegeAdminKpiCardProps>> {
+  if (!isValidElement(child) || typeof child.type !== "function") return false;
+  return Boolean(
+    (child.type as { isCollegeAdminKpiCard?: boolean }).isCollegeAdminKpiCard,
   );
 }
 
@@ -298,10 +349,10 @@ export function CollegeAdminUserDashboardKpiCard({
       hint={kpi.hint_line}
       hintTone={kpi.hint_tone}
       index={index}
-      tone={collegeAdminKpiToneForIndex(index)}
     />
   );
 }
+CollegeAdminUserDashboardKpiCard.isCollegeAdminKpiCard = true;
 
 export function CollegeAdminDashboardKpiCard({
   label,
@@ -310,7 +361,7 @@ export function CollegeAdminDashboardKpiCard({
   hintTone,
   valueTone,
   kpiKey,
-  index = 0,
+  index,
   iconSlug,
   tone,
 }: {
@@ -334,7 +385,49 @@ export function CollegeAdminDashboardKpiCard({
       kpiKey={kpiKey ?? label}
       index={index}
       iconSlug={iconSlug}
-      tone={tone ?? collegeAdminKpiToneForIndex(index)}
+      tone={tone}
     />
+  );
+}
+CollegeAdminDashboardKpiCard.isCollegeAdminKpiCard = true;
+
+export function CollegeAdminKpiGrid({
+  children,
+  className,
+  columns = 4,
+}: {
+  children: ReactNode;
+  className?: string;
+  columns?: 2 | 3 | 4;
+}) {
+  const colClass =
+    columns === 2
+      ? "sm:grid-cols-2"
+      : columns === 3
+        ? "sm:grid-cols-2 lg:grid-cols-3"
+        : "sm:grid-cols-2 xl:grid-cols-4";
+
+  const items = Children.toArray(children);
+
+  return (
+    <div
+      className={cn("grid grid-cols-1 gap-4", colClass, className)}
+      data-college-admin-kpi-grid=""
+    >
+      {items.map((child, position) => {
+        if (!isCollegeAdminKpiGridChild(child)) return child;
+        const props = child.props;
+        if (props.tone !== undefined) return child;
+        const nextIndex = props.index ?? position;
+        return cloneElement(child, {
+          index: nextIndex,
+          tone: resolveCollegeAdminKpiCardTone({
+            index: nextIndex,
+            kpiKey: props.kpiKey,
+            label: props.label ?? "",
+          }),
+        });
+      })}
+    </div>
   );
 }

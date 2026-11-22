@@ -20,7 +20,12 @@ async def college_admin_user(
     require_college_tenant_scope(scope)
     if user.role not in (Role.COLLEGE_ADMIN, Role.SUPER_ADMIN):
         raise AppError(code="FORBIDDEN", message="College administrator access required", status_code=403)
-    if user.tenant_id is not None and str(user.tenant_id) != str(scope.tenant_id):
+    if (
+        user.tenant_id is not None
+        and str(user.tenant_id) != str(scope.tenant_id)
+        and not scope.viewing_demo_college
+        and user.role is not Role.SUPER_ADMIN
+    ):
         raise AppError(code="FORBIDDEN", message="College context mismatch", status_code=403)
     return user
 

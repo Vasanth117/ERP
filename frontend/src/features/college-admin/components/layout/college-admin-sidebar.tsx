@@ -13,11 +13,11 @@ import {
   collegeAdminNavGroups,
 } from "@/features/college-admin/config/navigation";
 import { BenchlogoNameIcon } from "@/components/icons/erp/generated/benchlogo_name";
+import { useCollegeAdminDemoMode } from "@/features/college-admin/context/college-admin-demo-mode-context";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { cn } from "@/lib/utils";
 
 const STORAGE_COLLAPSED = "college-admin-sidebar-collapsed";
-const STORAGE_DEMO = "college-admin-demo-mode";
 const WIDTH_EXPANDED = 264;
 const WIDTH_COLLAPSED = 72;
 
@@ -86,7 +86,7 @@ export function CollegeAdminSidebar() {
   const { data: user } = useCurrentUser();
   const [profileOpen, setProfileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
+  const { demoMode, setDemoMode } = useCollegeAdminDemoMode();
   const [canScrollMore, setCanScrollMore] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -97,7 +97,6 @@ export function CollegeAdminSidebar() {
   useEffect(() => {
     try {
       if (localStorage.getItem(STORAGE_COLLAPSED) === "1") setCollapsed(true);
-      if (localStorage.getItem(STORAGE_DEMO) === "1") setDemoMode(true);
     } catch {
       /* ignore */
     }
@@ -146,16 +145,6 @@ export function CollegeAdminSidebar() {
   const toggleCollapsed = useCallback(() => {
     setSidebarCollapsed(!collapsed);
   }, [collapsed, setSidebarCollapsed]);
-
-  const setDemoModePersisted = useCallback((next: boolean) => {
-    setDemoMode(next);
-    try {
-      localStorage.setItem(STORAGE_DEMO, next ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
-    window.dispatchEvent(new CustomEvent("college-admin-demo-mode", { detail: next }));
-  }, []);
 
   const scrollNavFurther = useCallback(() => {
     navRef.current?.scrollBy({ top: 160, behavior: "smooth" });
@@ -296,7 +285,7 @@ export function CollegeAdminSidebar() {
             <span className="text-[13px] font-medium text-[#374151]">Demo mode</span>
             <SidebarToggle
               checked={demoMode}
-              onChange={setDemoModePersisted}
+              onChange={setDemoMode}
               label="Demo mode"
             />
           </div>
@@ -306,7 +295,7 @@ export function CollegeAdminSidebar() {
           <div className="flex flex-col items-center gap-2">
             <SidebarToggle
               checked={demoMode}
-              onChange={setDemoModePersisted}
+              onChange={setDemoMode}
               label="Demo mode"
             />
             <button

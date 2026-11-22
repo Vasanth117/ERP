@@ -3,21 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { isCollegeAdminTabActive } from "@/features/college-admin/config/college-admin-tab-utils";
 import type { CollegeAdminTab } from "@/features/college-admin/config/section-tabs";
 import { cn } from "@/lib/utils";
-
-function isTabActive(pathname: string, tab: CollegeAdminTab): boolean {
-  const { href, activePrefixes } = tab;
-  if (activePrefixes?.length) {
-    return activePrefixes.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-    );
-  }
-  if (href === "/college-admin/dashboard") {
-    return pathname === href;
-  }
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function CollegeAdminPageTabs({
   tabs,
@@ -40,7 +28,7 @@ export function CollegeAdminPageTabs({
     >
       <div className="scrollbar-thin -mb-px flex flex-nowrap items-end gap-x-5 overflow-x-auto">
         {items.map((tab) => {
-          const active = isTabActive(pathname, tab);
+          const active = isCollegeAdminTabActive(pathname, tab);
           return (
             <Link
               key={tab.href}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { fetchFaculty, fetchFacultyHistory } from "@/features/college-admin/api/faculty";
 import { AddNewFacultyEmployeeDashboard } from "@/features/college-admin/components/faculty/add-new-faculty-employee-dashboard";

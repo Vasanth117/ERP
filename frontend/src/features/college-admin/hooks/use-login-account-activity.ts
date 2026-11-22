@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation } from "@tanstack/react-query";
 
 import {
   downloadLoginAccountActivityExport,

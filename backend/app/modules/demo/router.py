@@ -11,6 +11,7 @@ from app.common.envelope import ApiResponse, success_response
 from app.common.roles import Role
 from app.core.config import get_settings
 from app.core.exceptions import AppError
+from app.modules.demo.constants import DEFAULT_FACULTY_COUNT, DEFAULT_STUDENT_COUNT
 from app.modules.demo.seed.orchestrator import seed_demo_college
 
 router = APIRouter(prefix="/demo-college", tags=["demo-college"])
@@ -20,8 +21,12 @@ router = APIRouter(prefix="/demo-college", tags=["demo-college"])
 async def seed_demo_college_route(
     scope: Annotated[AccessScope, Depends(require_permission(Permission.PLATFORM_TENANT_MANAGE))],
     reset: Annotated[bool, Query(description="Delete existing demo tenant data before seeding")] = False,
-    students: Annotated[int, Query(ge=20, le=5000)] = 180,
-    faculty: Annotated[int, Query(ge=5, le=500)] = 36,
+    profile: Annotated[
+        str | None,
+        Query(description="Scale profile: quick, standard, enterprise"),
+    ] = None,
+    students: Annotated[int | None, Query(ge=20, le=15000)] = None,
+    faculty: Annotated[int | None, Query(ge=5, le=1200)] = None,
     x_demo_seed_secret: Annotated[str | None, Header(alias="X-Demo-Seed-Secret")] = None,
 ) -> ApiResponse[dict]:
     if scope.role not in {Role.SUPER_ADMIN, Role.PLATFORM_ADMIN}:
@@ -29,7 +34,12 @@ async def seed_demo_college_route(
     settings = get_settings()
     if settings.demo_seed_secret and x_demo_seed_secret != settings.demo_seed_secret:
         raise AppError(code="FORBIDDEN", message="Invalid demo seed secret", status_code=403)
-    summary = await seed_demo_college(student_count=students, faculty_count=faculty, reset=reset)
+    summary = await seed_demo_college(
+        student_count=students,
+        faculty_count=faculty,
+        reset=reset,
+        profile=profile,
+    )
     return success_response(summary, request_id=get_request_id())
 
 

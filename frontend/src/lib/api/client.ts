@@ -1,9 +1,6 @@
 import { apiBaseUrl } from "@/lib/env";
 import { type ApiResponse, unwrapApiData } from "@/lib/api/envelope";
-import {
-  getAccessToken,
-  getTenantOverrideId,
-} from "@/lib/auth/token-store";
+import { applyAuthHeaders } from "@/lib/api/auth-headers";
 
 export type ApiRequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -36,14 +33,7 @@ export async function apiRequest<T>(
   }
 
   if (auth) {
-    const token = getAccessToken();
-    if (token) {
-      requestHeaders.set("Authorization", `Bearer ${token}`);
-    }
-    const tenantId = getTenantOverrideId();
-    if (tenantId) {
-      requestHeaders.set("X-Tenant-Id", tenantId);
-    }
+    applyAuthHeaders(requestHeaders);
   }
 
   const response = await fetch(url, {

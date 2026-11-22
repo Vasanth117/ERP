@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CollegeAdminDashboardPanel as Panel } from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -54,31 +55,6 @@ function reviewHref(row: PendingApprovalQueueRow): string {
   return `/college-admin/approvals/approval-request-details?${params.toString()}`;
 }
 
-function Panel({
-  title,
-  children,
-  actionHref,
-  actionLabel,
-}: {
-  title: string;
-  children: ReactNode;
-  actionHref?: string;
-  actionLabel?: string;
-}) {
-  return (
-    <section className="rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-5">
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
-        {actionHref && actionLabel ? (
-          <Link href={actionHref} className="text-[12px] font-medium text-[#245dd8] hover:underline">
-            {actionLabel}
-          </Link>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 function SlaPill({ slaKey, label }: { slaKey: string; label: string }) {
   const tone =

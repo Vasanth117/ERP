@@ -18,6 +18,7 @@ class AccessScope:
     support_session_id: PydanticObjectId | None = None
     support_scopes: frozenset[str] = field(default_factory=frozenset)
     support_tenant_id: PydanticObjectId | None = None
+    viewing_demo_college: bool = False
 
     @property
     def is_super_admin(self) -> bool:

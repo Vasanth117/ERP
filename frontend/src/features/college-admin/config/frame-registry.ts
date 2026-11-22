@@ -29,6 +29,12 @@ export function frameBySlug(moduleKey: string, slug: string): CollegeAdminFrame 
 export function frameByPath(pathname: string): CollegeAdminFrame | undefined {
   const exact = collegeAdminFrames.find((f) => f.route === pathname);
   if (exact) return exact;
+
+  const nested = collegeAdminFrames
+    .filter((f) => pathname.startsWith(`${f.route}/`))
+    .sort((a, b) => b.route.length - a.route.length);
+  if (nested[0]) return nested[0];
+
   return collegeAdminFrames.find(
     (f) => pathname.startsWith(f.route) && f.route.includes("["),
   );

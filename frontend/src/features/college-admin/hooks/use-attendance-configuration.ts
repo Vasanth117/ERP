@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   fetchAttendanceConfigurationPage,
@@ -13,7 +14,7 @@ import type {
 
 export function useAttendanceConfigurationPage() {
   return useQuery({
-    queryKey: collegeAdminQueryKeys.attendanceConfiguration,
+    queryKey: collegeAdminQueryKeys.attendanceConfiguration(),
     queryFn: () => fetchAttendanceConfigurationPage(),
   });
 }
@@ -23,7 +24,7 @@ export function useSaveAttendanceConfiguration() {
   return useMutation({
     mutationFn: (payload: AttendanceConfigurationSavePayload) => saveAttendanceConfiguration(payload),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.attendanceConfiguration });
+      await queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.attendanceConfiguration() });
       await queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.attendanceRulesPolicies() });
     },
   });

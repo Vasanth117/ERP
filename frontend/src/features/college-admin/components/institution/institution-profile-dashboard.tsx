@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CollegeAdminDashboardPanel as Panel } from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { useCallback, type ReactNode } from "react";
 
 import { GlobeIcon } from "@/components/icons/erp/generated/globe";
@@ -58,34 +59,6 @@ function StatusBadge({ badge }: { badge: InstitutionStatusBadge }) {
   );
 }
 
-function Panel({
-  title,
-  children,
-  actionHref,
-  actionLabel,
-}: {
-  title: string;
-  children: ReactNode;
-  actionHref?: string;
-  actionLabel?: string;
-}) {
-  return (
-    <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center justify-between gap-2 border-b border-[#f1f5f9] px-5 py-3.5">
-        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
-        {actionHref && actionLabel ? (
-          <Link
-            href={actionHref}
-            className="text-[12px] font-medium text-[#245dd8] hover:underline"
-          >
-            {actionLabel}
-          </Link>
-        ) : null}
-      </div>
-      <div className="px-5 py-1">{children}</div>
-    </section>
-  );
-}
 
 function AboutDetail({
   label,

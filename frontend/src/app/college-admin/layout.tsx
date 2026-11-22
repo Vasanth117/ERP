@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
 
 import { CollegeAdminAuthGate } from "@/features/college-admin/components/layout/college-admin-auth-gate";
+import { CollegeAdminProviders } from "@/features/college-admin/components/layout/college-admin-providers";
 import { CollegeAdminShell } from "@/features/college-admin/components/layout/college-admin-shell";
 
 const inter = Inter({
@@ -16,9 +17,11 @@ export default function CollegeAdminLayout({ children }: { children: ReactNode }
       className={`${inter.className} ${inter.variable} text-[#172b45] antialiased`}
       data-college-admin-font=""
     >
-      <CollegeAdminShell>
-        <CollegeAdminAuthGate>{children}</CollegeAdminAuthGate>
-      </CollegeAdminShell>
+      <CollegeAdminProviders>
+        <CollegeAdminShell>
+          <CollegeAdminAuthGate>{children}</CollegeAdminAuthGate>
+        </CollegeAdminShell>
+      </CollegeAdminProviders>
     </div>
   );
 }

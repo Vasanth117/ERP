@@ -36,27 +36,6 @@ export function DashboardOverviewView() {
   return <CollegeOverviewDashboard />;
 }
 
-function SectionPanel({
-  title,
-  className,
-  children,
-}: {
-  title: string;
-  className?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      className={`rounded-xl border border-[#e8ecf2] bg-[#fafbfc] p-4 shadow-none sm:p-5 ${className ?? ""}`}
-    >
-      <h2 className="px-1 text-[15px] font-semibold tracking-[-0.01em] text-[#111827]">
-        {title}
-      </h2>
-      <div className="mt-3">{children}</div>
-    </section>
-  );
-}
-
 function OperationsGrid({
   attendance,
   exams,
@@ -97,7 +76,6 @@ function OperationsGrid({
         label="Attendance sessions"
         value={attendance?.sessions_submitted ?? 0}
         hint={`${attendance?.pending_submissions ?? 0} pending`}
-        index={0}
         kpiKey="attendance_sessions"
         iconSlug="clipboard-check"
       />
@@ -105,7 +83,6 @@ function OperationsGrid({
         label="Scheduled exams"
         value={exams?.scheduled_exams ?? 0}
         hint={`${exams?.pending_evaluations ?? 0} pending evaluations`}
-        index={1}
         kpiKey="scheduled_exams"
         iconSlug="file-text"
       />
@@ -113,7 +90,6 @@ function OperationsGrid({
         label="Fees collected"
         value={formatMoney(finance?.collected_amount ?? 0)}
         hint={`Outstanding ${formatMoney(finance?.outstanding_amount ?? 0)}`}
-        index={2}
         kpiKey="fees_collected"
         iconSlug="wallet"
       />
@@ -121,7 +97,6 @@ function OperationsGrid({
         label="Pending approvals"
         value={pending ?? 0}
         hint={`${support ?? 0} open support items`}
-        index={3}
         kpiKey="pending_approvals"
         iconSlug="square-check"
       />
@@ -129,7 +104,6 @@ function OperationsGrid({
         label="Library circulation"
         value={library?.active_circulation ?? 0}
         hint={`${library?.catalog_items ?? 0} catalogue items`}
-        index={0}
         kpiKey="library_circulation"
         iconSlug="library-big"
       />
@@ -137,7 +111,6 @@ function OperationsGrid({
         label="Hostel allocations"
         value={library?.hostel_allocations ?? 0}
         hint={`${library?.pending_hostel_applications ?? 0} applications`}
-        index={1}
         kpiKey="hostel_allocations"
         iconSlug="hotel"
       />
@@ -229,15 +202,16 @@ function DashboardStatsShell({
         error={query.error}
         onRetry={() => void query.refetch()}
       >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <CollegeAdminKpiGrid columns={3}>
           {cards.map(([label, value]) => (
             <StatCard
               key={String(label)}
               label={String(label)}
               value={value ?? 0}
+              kpiKey={String(label)}
             />
           ))}
-        </div>
+        </CollegeAdminKpiGrid>
       </QueryState>
     </div>
   );
@@ -264,7 +238,7 @@ function OperationalView({
         error={query.error}
         onRetry={() => void query.refetch()}
       >
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <CollegeAdminKpiGrid columns={3}>
           {section === "attendance" || !section ? (
             <>
               <StatCard
@@ -304,10 +278,14 @@ function OperationalView({
                 label="Outstanding"
                 value={formatMoney(d?.finance.outstanding_amount ?? 0)}
               />
-              <StatCard label="Open demands" value={d?.finance.open_demands ?? 0} />
+              <StatCard
+                label="Open demands"
+                value={d?.finance.open_demands ?? 0}
+                kpiKey="open_demands"
+              />
             </>
           ) : null}
-        </div>
+        </CollegeAdminKpiGrid>
       </QueryState>
     </div>
   );

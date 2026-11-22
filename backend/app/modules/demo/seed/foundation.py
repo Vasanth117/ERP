@@ -25,10 +25,13 @@ from app.modules.college_admin.rbac_service import seed_tenant_permission_catalo
 from app.modules.college_admin.schemas import CampusCreate, InstitutionProfileUpdate
 from app.modules.configuration.models import TenantConfiguration, TenantFeatureFlags
 from app.modules.demo.constants import (
+    CAMPUSES,
     DEMO_ACADEMIC_YEAR,
+    DEMO_INSTITUTION_CODE,
     DEMO_INSTITUTION_EMAIL,
     DEMO_PASSWORD,
     DEMO_SEMESTER,
+    DEMO_SHORT_NAME,
     DEMO_TENANT_CODE,
     DEMO_TENANT_NAME,
     DEPARTMENTS,
@@ -127,57 +130,51 @@ async def seed_foundation(*, student_target: int, reset: bool) -> DemoSeedContex
         await update_institution_profile(
             admin_scope,
             InstitutionProfileUpdate(
-                legal_name="Sri Venkateswara Institute of Engineering & Technology",
+                legal_name="Grand Horizon Institute of Technology",
                 display_name=DEMO_TENANT_NAME,
-                short_name="SVIET",
-                institution_code="SVIET-DEMO",
+                short_name=DEMO_SHORT_NAME,
+                institution_code=DEMO_INSTITUTION_CODE,
                 institution_email=DEMO_INSTITUTION_EMAIL,
-                contact_phone="+91-416-290-1000",
-                official_website="https://sviet-demo.edu",
+                contact_phone="+91-422-450-2000",
+                official_website="https://ghit-demo.edu",
                 description=(
-                    "A fully populated demo college for client presentations — academics, "
-                    "finance, HR, hostel, library, and examinations."
+                    "Large-scale fictional autonomous engineering institution for ERP demonstrations. "
+                    "All records are synthetic demo data."
                 ),
-                institution_type="autonomous_engineering_college",
-                affiliation_name="Anna University",
-                year_established=1998,
-                accreditation_display="NAAC A+ | NBA Accredited Programmes",
+                institution_type="autonomous_engineering_institution",
+                affiliation_name="Fictional State Technical University (demo)",
+                year_established=1987,
+                accreditation_display="NAAC A++ | NBA (demo labels only)",
                 address=InstitutionAddress(
-                    line1="SVIET Campus, Chennai–Bangalore Highway",
-                    city="Vellore",
+                    line1="GHIT Main Campus, Avinashi Road",
+                    city="Coimbatore",
                     state="Tamil Nadu",
                     country="India",
-                    postal_code="632001",
+                    postal_code="641006",
                 ),
             ),
         )
 
     campuses = await InstitutionCampus.find(Eq(InstitutionCampus.tenant_id, tenant.id)).to_list()
     if not campuses:
-        main = await create_campus(
-            admin_scope,
-            CampusCreate(
-                campus_code="MAIN",
-                name="Main Campus — Vellore",
-                is_main=True,
-                contact_email="main@sviet-demo.edu",
-                contact_phone="+91-416-290-1001",
-                area_acres=85,
-                buildings_count=24,
-                address=InstitutionAddress(city="Vellore", state="Tamil Nadu", country="India"),
-            ),
-        )
-        await create_campus(
-            admin_scope,
-            CampusCreate(
-                campus_code="CITY",
-                name="City Learning Centre",
-                is_main=False,
-                contact_email="city@sviet-demo.edu",
-                address=InstitutionAddress(city="Chennai", state="Tamil Nadu", country="India"),
-            ),
-        )
-        main_campus_id = to_object_id(main.campus_id, "campus_id")
+        main = None
+        for code, name, is_main, city in CAMPUSES:
+            created = await create_campus(
+                admin_scope,
+                CampusCreate(
+                    campus_code=code,
+                    name=name,
+                    is_main=is_main,
+                    contact_email=f"{code.lower()}@ghit-demo.edu",
+                    contact_phone="+91-422-450-2100",
+                    area_acres=120 if is_main else 45,
+                    buildings_count=32 if is_main else 12,
+                    address=InstitutionAddress(city=city, state="Tamil Nadu", country="India"),
+                ),
+            )
+            if is_main:
+                main = created
+        main_campus_id = to_object_id(main.campus_id, "campus_id") if main else None
     else:
         main_campus = next((c for c in campuses if c.is_main), campuses[0])
         main_campus_id = main_campus.id
