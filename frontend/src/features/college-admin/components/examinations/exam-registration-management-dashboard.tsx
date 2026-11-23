@@ -204,7 +204,7 @@ export function ExamRegistrationManagementDashboard() {
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                 <span>{data.showing_label}</span>
                 {data.pagination.total_pages > 0 ? (
-                  <motionPagination page={page} setPage={setPage} data={data} />
+                  <MotionPagination page={page} setPage={setPage} data={data} />
                 ) : null}
               </div>
             </section>
@@ -216,7 +216,7 @@ export function ExamRegistrationManagementDashboard() {
   );
 }
 
-function motionPagination({
+function MotionPagination({
   data,
   page,
   setPage,
