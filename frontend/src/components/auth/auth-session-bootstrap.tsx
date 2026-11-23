@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+import { refreshSessionFromStoredToken } from "@/features/auth/api";
+import { useBffAuth } from "@/lib/env";
 import { notifySessionRestored } from "@/lib/auth/session-ready";
 import { getAccessToken, setAccessToken } from "@/lib/auth/token-store";
 
@@ -16,16 +18,24 @@ export function AuthSessionBootstrap() {
     }
     void (async () => {
       try {
-        const res = await fetch("/api/auth/refresh", {
-          method: "POST",
-          credentials: "include",
-        });
-        if (!res.ok) {
+        if (useBffAuth()) {
+          const res = await fetch("/api/auth/refresh", {
+            method: "POST",
+            credentials: "include",
+          });
+          if (!res.ok) {
+            return;
+          }
+          const body = (await res.json()) as { access_token?: string };
+          if (body.access_token) {
+            setAccessToken(body.access_token);
+            notifySessionRestored();
+          }
           return;
         }
-        const body = (await res.json()) as { access_token?: string };
-        if (body.access_token) {
-          setAccessToken(body.access_token);
+        const access = await refreshSessionFromStoredToken();
+        if (access) {
+          setAccessToken(access);
           notifySessionRestored();
         }
       } catch {

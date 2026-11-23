@@ -1,6 +1,7 @@
 "use client";
 
 const ACCESS_KEY = "erp.access_token";
+const REFRESH_KEY = "erp.refresh_token";
 const TENANT_OVERRIDE_KEY = "erp.tenant_override_id";
 
 let inMemoryAccessToken: string | null = null;
@@ -30,6 +31,25 @@ export function clearAccessToken(): void {
   inMemoryAccessToken = null;
   if (canUseSessionStorage()) {
     sessionStorage.removeItem(ACCESS_KEY);
+  }
+}
+
+export function getRefreshToken(): string | null {
+  if (!canUseSessionStorage()) {
+    return null;
+  }
+  return sessionStorage.getItem(REFRESH_KEY);
+}
+
+export function setRefreshToken(token: string): void {
+  if (canUseSessionStorage()) {
+    sessionStorage.setItem(REFRESH_KEY, token);
+  }
+}
+
+export function clearRefreshToken(): void {
+  if (canUseSessionStorage()) {
+    sessionStorage.removeItem(REFRESH_KEY);
   }
 }
 
