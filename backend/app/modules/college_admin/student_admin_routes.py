@@ -56,7 +56,10 @@ from app.modules.college_admin.schemas import (
     StudentWithdrawalDiscontinuationPageRead,
     StudentWithdrawalSavePayload,
     StudentWithdrawalSubmitPayload,
+    StudentTransferCreatePageRead,
     StudentTransferManagementPageRead,
+    StudentTransferRequestCreate,
+    StudentTransferRequestCreateResult,
     StudentTransferReviewSavePayload,
     StudentProfileManagementPageRead,
     StudentProfileManagementSavePayload,
@@ -107,6 +110,8 @@ from app.modules.college_admin.student_id_card_management_page_service import (
     issue_student_id_card,
 )
 from app.modules.college_admin.student_transfer_management_page_service import (
+    create_student_transfer_request,
+    get_student_transfer_create_page,
     get_student_transfer_management_page,
     save_student_transfer_review,
 )
@@ -456,6 +461,30 @@ async def student_transfer_management_page_route(
             page=page,
             selected_request_key=selected_request_key or None,
         ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/students/transfers/create/page", response_model=ApiResponse[StudentTransferCreatePageRead])
+async def student_transfer_create_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[StudentTransferCreatePageRead]:
+    return success_response(await get_student_transfer_create_page(scope), request_id=get_request_id())
+
+
+@router.post(
+    "/students/transfers",
+    response_model=ApiResponse[StudentTransferRequestCreateResult],
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_student_transfer_route(
+    payload: StudentTransferRequestCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[StudentTransferRequestCreateResult]:
+    return success_response(
+        await create_student_transfer_request(scope, payload),
         request_id=get_request_id(),
     )
 

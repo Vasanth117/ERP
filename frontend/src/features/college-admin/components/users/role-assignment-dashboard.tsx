@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +10,6 @@ import { toast } from "sonner";
 
 import { ClockIcon } from "@/components/icons/erp/generated/clock";
 import { InfoIcon } from "@/components/icons/erp/generated/info";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
@@ -150,8 +150,7 @@ export function RoleAssignmentDashboard() {
             onClick={focusForm}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1d4ed8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.assign_role_label ?? "Assign role"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.assign_role_label ?? "Assign role" } />
           </button>
         </div>
       </div>

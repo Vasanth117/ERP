@@ -1,10 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminDownload,
@@ -169,8 +169,7 @@ export function ExaminationDashboard() {
             href={data?.create_examination_href ?? "/college-admin/examinations/examination-session-management"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_examination_label ?? "Create examination"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_examination_label ?? "Create examination" } />
           </Link>
         </div>
       </div>

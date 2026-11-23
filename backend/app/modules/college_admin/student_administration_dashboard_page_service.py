@@ -39,6 +39,7 @@ from app.modules.college_admin.student_admin_models import (
 from app.modules.college_admin.student_statistics_overview_service import (
     _CATEGORY_LABELS,
     _ENROLLED_LIFECYCLE,
+    _academic_year_start,
     _meta_lookup,
     _normalize_meta_key,
     _previous_academic_year_label,
@@ -145,13 +146,31 @@ def _record_matches_filters(
     return True
 
 
+def _display_academic_year(code: str, year_by_code: dict[str, AcademicYear]) -> str:
+    doc = year_by_code.get(code)
+    raw = doc.label if doc and doc.label else code
+    return raw.replace("-", "–")
+
+
+def _prior_academic_year_code(years: list[AcademicYear], selected: str) -> str | None:
+    if not selected:
+        return None
+    parsed = _previous_academic_year_label(selected)
+    if parsed and any(y.year_code == parsed for y in years):
+        return parsed
+    for index, year in enumerate(years):
+        if year.year_code == selected and index + 1 < len(years):
+            return years[index + 1].year_code
+    return None
+
+
 def _admission_anchor(academic_year: AcademicYear | None, ay_label: str) -> date:
     if academic_year:
         if academic_year.admission_intake_opens:
             return academic_year.admission_intake_opens
         if academic_year.start_date:
             return academic_year.start_date
-    start_year = int(ay_label.split("-")[0]) if "-" in ay_label else utcnow().year
+    start_year = _academic_year_start(ay_label) or utcnow().year
     return date(start_year, 6, 1)
 
 
@@ -204,7 +223,7 @@ async def get_student_administration_dashboard_page(
     ]
     total_enrolled = len(enrolled_records)
 
-    prev_label = _previous_academic_year_label(selected_ay) if selected_ay else None
+    prev_label = _prior_academic_year_code(years, selected_ay) if selected_ay else None
     prev_enrolled = 0
     if prev_label:
         prev_enrolled = sum(
@@ -314,7 +333,7 @@ async def get_student_administration_dashboard_page(
         for key, label, _lo, _hi in _YEAR_BUCKETS
     ]
 
-    prev_ay = prev_label or selected_ay
+    prev_ay = prev_label
     current_anchor = _admission_anchor(academic_year_doc, selected_ay)
     prev_year_doc = year_by_code.get(prev_ay) if prev_ay else None
     prev_anchor = _admission_anchor(prev_year_doc, prev_ay) if prev_ay else current_anchor
@@ -459,7 +478,7 @@ async def get_student_administration_dashboard_page(
         ),
         UserDashboardKpi(
             key="admissions_year",
-            label=f"Admissions {selected_ay.split('-')[0] if selected_ay and '-' in selected_ay else 'year'}",
+            label=f"Admissions {_display_academic_year(selected_ay, year_by_code)}" if selected_ay else "Admissions",
             value=f"{admissions_count:,}",
             hint_line=admissions_hint,
             hint_tone="neutral",
@@ -480,16 +499,23 @@ async def get_student_administration_dashboard_page(
         ),
     ]
 
-    current_chart_label = f"{selected_ay.split('-')[0] if selected_ay and '-' in selected_ay else 'Current'} admissions"
-    prev_chart_year = prev_ay.split("-")[0] if prev_ay and "-" in prev_ay else "Previous"
-    prev_chart_label = f"{prev_chart_year} admissions"
+    current_chart_label = (
+        f"{_display_academic_year(selected_ay, year_by_code)} admissions"
+        if selected_ay
+        else "Current year admissions"
+    )
+    prev_chart_label = (
+        f"{_display_academic_year(prev_ay, year_by_code)} admissions"
+        if prev_ay
+        else "Previous year admissions"
+    )
 
     return StudentAdministrationDashboardPageRead(
         page_title="Student Administration Dashboard",
         page_subtitle=page_subtitle,
         export_label="Export",
         new_admission_label="New admission",
-        new_admission_href="/college-admin/students/student-admission",
+        new_admission_href="/college-admin/students/new-student-registration",
         academic_year_filter_label="Academic year",
         programme_filter_label="Programme",
         study_year_filter_label="Study year",

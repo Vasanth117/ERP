@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { ShuffleIcon } from "@/components/icons/erp/generated/shuffle";
 import { Input } from "@/components/ui/input";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
@@ -84,8 +84,7 @@ export function RegulationManagementDashboard() {
             onClick={() => setShowCreate((v) => !v)}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.new_regulation_label ?? "New regulation"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_regulation_label ?? "New regulation" } />
           </button>
         </div>
       </div>

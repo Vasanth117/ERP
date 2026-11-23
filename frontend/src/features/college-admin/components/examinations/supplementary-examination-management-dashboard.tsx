@@ -1,10 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { ExaminationRegistrationSubNav } from "@/features/college-admin/components/examinations/examination-registration-sub-nav";
 import {
@@ -85,8 +85,7 @@ export function SupplementaryExaminationManagementDashboard() {
           disabled={createSession.isPending}
           onClick={handleCreate}
         >
-          <PlusIcon className="size-3.5" aria-hidden />
-          {data?.create_session_label ?? "Create session"}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_session_label ?? "Create session" } />
         </Button>
       </div>
 

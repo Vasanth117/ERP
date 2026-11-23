@@ -125,7 +125,7 @@ export function NewStudentRegistrationDashboard() {
     values: defaults,
   });
 
-  const [activeStep, setActiveStep] = useState("student_information");
+  const [activeStep, setActiveStep] = useState("admission");
 
   useEffect(() => {
     if (data?.current_step_key) {
@@ -229,7 +229,56 @@ export function NewStudentRegistrationDashboard() {
           <>
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
               <div className="space-y-5">
-                {activeStep === "student_information" ? (
+                {activeStep === "admission" ? (
+                  <Section title="Admission details">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <FormField meta={{ key: "programme_code", label: "Programme", required: true }}>
+                        <select
+                          className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                          {...form.register("programme_code")}
+                        >
+                          {(data.programme_options ?? []).map((opt) => (
+                            <option key={opt.value || opt.label} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                      <FormField meta={{ key: "academic_year_code", label: "Academic year", required: true }}>
+                        <select
+                          className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                          {...form.register("academic_year_code")}
+                        >
+                          {(data.academic_year_options ?? []).map((opt) => (
+                            <option key={opt.value || opt.label} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                      <FormField meta={metaFor(fieldMeta, "community")}>
+                        <select
+                          className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                          {...form.register("community")}
+                        >
+                          {data.community_options.map((opt) => (
+                            <option key={opt.value || opt.label} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                      <FormField meta={{ key: "marks_percentage", label: "Marks / percentage", required: false }}>
+                        <Input
+                          className="h-9"
+                          inputMode="decimal"
+                          placeholder="e.g. 96.4"
+                          {...form.register("marks_percentage")}
+                        />
+                      </FormField>
+                    </div>
+                  </Section>
+                ) : activeStep === "student_information" ? (
                   <>
                     <Section
                       title={data.sections.find((s) => s.key === "personal_details")?.title ?? "Personal details"}

@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { SendIcon } from "@/components/icons/erp/generated/send";
 import { YearsSemestersSubNav } from "@/features/college-admin/components/academics/years-semesters-sub-nav";
 import {
@@ -115,8 +115,7 @@ export function AcademicCalendarConfigurationDashboard() {
             {data?.publish_button_label ?? "Publish calendar"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={addEventHref}>
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_event_button_label ?? "Add event"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_event_button_label ?? "Add event" } />
           </CollegeAdminPrimaryLink>
         </div>
       </div>
@@ -190,8 +189,7 @@ export function AcademicCalendarConfigurationDashboard() {
                   description="Add an event or configure semester milestones so students and staff see the right dates on the academic calendar."
                   action={
                     <CollegeAdminPrimaryLink href={addEventHref}>
-                      <PlusIcon className="size-3.5" aria-hidden />
-                      {data.add_event_button_label}
+                      <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.add_event_button_label } />
                     </CollegeAdminPrimaryLink>
                   }
                 />
@@ -287,8 +285,7 @@ function CalendarTypeStatsSidebar({
         description="Use the guided wizard — same flow as semester and academic year setup."
       >
         <CollegeAdminPrimaryLink href={addEventHref} className="w-full justify-center">
-          <PlusIcon className="size-3.5" aria-hidden />
-          {addEventLabel}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={addEventLabel } />
         </CollegeAdminPrimaryLink>
       </CollegeAdminSidePanel>
 

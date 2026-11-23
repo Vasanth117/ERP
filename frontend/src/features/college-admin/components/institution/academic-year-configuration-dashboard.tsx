@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -6,7 +7,6 @@ import { useForm } from "react-hook-form";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { CopyIcon } from "@/components/icons/erp/generated/copy";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -386,8 +386,7 @@ export function AcademicYearConfigurationDashboard() {
                   })
                 }
               >
-                <PlusIcon className="size-3.5" aria-hidden />
-                {data.new_academic_year_label}
+                <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.new_academic_year_label } />
               </Button>
               <Button
                 type="button"

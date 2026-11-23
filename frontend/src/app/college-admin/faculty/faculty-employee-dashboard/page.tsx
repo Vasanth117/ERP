@@ -6,7 +6,7 @@ export default function Page() {
       moduleKey="faculty"
       slug="faculty-employee-dashboard"
       figmaNodeId="159:2199"
-      title='Faculty & Employee Dashboard'
+      title="Faculty & Employee Dashboard"
     />
   );
 }

@@ -1,11 +1,11 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { CollegeAdminDashboardPanel as Panel } from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { useCallback, type ReactNode } from "react";
 
 import { LandmarkIcon } from "@/components/icons/erp/generated/landmark";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminDownload,
@@ -147,8 +147,7 @@ export function CampusManagementDashboard() {
               !data && "pointer-events-none opacity-50",
             )}
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_campus_label ?? "Add campus"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_campus_label ?? "Add campus" } />
           </Link>
         </div>
       </div>

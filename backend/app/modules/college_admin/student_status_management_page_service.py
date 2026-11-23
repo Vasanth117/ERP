@@ -212,7 +212,7 @@ async def get_student_status_management_page(
     return StudentStatusManagementPageRead(
         page_title="Student Status Management",
         page_subtitle="Active, on hold, suspended and alumni",
-        change_status_label="Change status",
+        change_status_label="Withdrawal / discontinue",
         change_status_href="/college-admin/students/student-withdrawal-discontinuation",
         status_changes_section_title="Status changes",
         table_headers=["Student", "Register no.", "Current", "New status", "Reason", "Approval"],

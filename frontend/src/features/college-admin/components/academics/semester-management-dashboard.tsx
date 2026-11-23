@@ -1,11 +1,11 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { YearsSemestersSubNav } from "@/features/college-admin/components/academics/years-semesters-sub-nav";
 import {
   CollegeAdminPrimaryLink,
@@ -90,8 +90,7 @@ export function SemesterManagementDashboard() {
             {data?.export_label ?? "Export"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={createHref}>
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.new_semester_label ?? "New semester"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_semester_label ?? "New semester" } />
           </CollegeAdminPrimaryLink>
         </div>
       </div>
@@ -179,8 +178,7 @@ function SemesterTable({
           description="Create odd and even semesters for this academic year, then set teaching dates, exams, and registration windows."
           action={
             <CollegeAdminPrimaryLink href={createHref}>
-              <PlusIcon className="size-3.5" aria-hidden />
-              {newSemesterLabel}
+              <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={newSemesterLabel } />
             </CollegeAdminPrimaryLink>
           }
         />

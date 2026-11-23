@@ -4758,6 +4758,9 @@ class NewStudentRegistrationNextStep(BaseModel):
 
 
 class NewStudentRegistrationFormValues(BaseModel):
+    programme_code: str = ""
+    academic_year_code: str = ""
+    marks_percentage: str = ""
     full_name: str = ""
     date_of_birth: str | None = None
     gender: str | None = None
@@ -4790,6 +4793,8 @@ class NewStudentRegistrationPageRead(BaseModel):
     nationality_options: list[InstitutionFieldOption]
     community_options: list[InstitutionFieldOption]
     relationship_options: list[InstitutionFieldOption]
+    programme_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    academic_year_options: list[InstitutionFieldOption] = Field(default_factory=list)
     form: NewStudentRegistrationFormValues
     admission_summary_title: str
     admission_summary: list[NewStudentRegistrationSummaryItem]
@@ -6242,6 +6247,41 @@ class StudentTransferReviewSavePayload(BaseModel):
     page: int = 1
 
 
+class StudentTransferCreatePageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    submit_label: str
+    student_field_label: str
+    transfer_type_field_label: str
+    programme_field_label: str
+    section_field_label: str
+    institution_field_label: str
+    effective_field_label: str
+    reason_field_label: str
+    student_options: list[InstitutionFieldOption]
+    transfer_type_options: list[InstitutionFieldOption]
+    programme_options: list[InstitutionFieldOption]
+    effective_options: list[InstitutionFieldOption]
+    generated_at: datetime
+
+
+class StudentTransferRequestCreate(BaseModel):
+    student_record_id: str
+    transfer_type: str = Field(pattern=r"^(programme|section|outgoing)$")
+    to_programme_code: str | None = None
+    to_section_code: str | None = Field(default=None, max_length=32)
+    to_institution_label: str | None = Field(default=None, max_length=200)
+    effective_semester: str | None = Field(default=None, max_length=64)
+    reason: str = Field(min_length=3, max_length=1000)
+
+
+class StudentTransferRequestCreateResult(BaseModel):
+    request_key: str
+    transfer_href: str
+
+
 class StudentPromotionRuleRow(BaseModel):
     rule_key: str
     rule_label: str
@@ -6597,6 +6637,438 @@ class ExaminationDashboardPageRead(BaseModel):
     footer_disclaimer: str
     footer_snapshot_label: str
     generated_at: datetime
+
+
+class FinanceDashboardTransactionRow(BaseModel):
+    transaction_id: str
+    student_name: str
+    invoice_label: str
+    method_label: str
+    amount_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceProgrammeCollectionItem(BaseModel):
+    key: str
+    label: str
+    collection_percent: float
+    bar_tone: str
+
+
+class FeeStructureManagementTableRow(BaseModel):
+    structure_id: str
+    structure_label: str
+    year_label: str
+    programme_label: str
+    total_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FeeStructureManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_fee_structure_label: str
+    create_fee_structure_href: str
+    structures_section_title: str
+    structures_count_label: str
+    table_headers: list[str]
+    structures: list[FeeStructureManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    info_notice_title: str
+    info_notice_body: str
+    generated_at: datetime
+
+
+class StudentFeeManagementTableRow(BaseModel):
+    assessment_id: str
+    student_name: str
+    register_number: str
+    programme_label: str
+    assessed_label: str
+    concession_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class StudentFeeManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    bulk_assign_label: str
+    bulk_assign_href: str
+    kpis: list[UserDashboardKpi]
+    student_fees_section_title: str
+    student_fees_count_label: str
+    table_headers: list[str]
+    student_fees: list[StudentFeeManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FeeDemandInvoiceManagementTableRow(BaseModel):
+    invoice_id: str
+    invoice_label: str
+    student_name: str
+    due_label: str
+    total_label: str
+    paid_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FeeDemandInvoiceManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    generate_demands_label: str
+    generate_demands_href: str
+    publish_label: str
+    publish_href: str
+    kpis: list[UserDashboardKpi]
+    invoices_section_title: str
+    invoices_count_label: str
+    table_headers: list[str]
+    invoice_rows: list[FeeDemandInvoiceManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    open_portal_label: str
+    open_portal_href: str
+    academic_year_filter_label: str
+    programme_filter_label: str
+    academic_year_options: list[StudentAdminDashboardFilterOption]
+    programme_options: list[StudentAdminDashboardFilterOption]
+    selected_academic_year: str
+    selected_programme_code: str
+    workflow_steps: list[FacultyAssignmentWorkflowStep]
+    kpis: list[UserDashboardKpi]
+    transactions_section_title: str
+    transactions_count_label: str
+    table_headers: list[str]
+    transaction_rows: list[FinanceDashboardTransactionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    collection_section_title: str
+    programme_collection_items: list[FinanceProgrammeCollectionItem]
+    generated_at: datetime
+
+
+class FinancePaymentGatewayItem(BaseModel):
+    gateway_key: str
+    gateway_label: str
+    detail_line: str
+    status_label: str
+    status_tone: str
+    icon_variant: str
+
+
+class FinanceOfflinePaymentTableRow(BaseModel):
+    reference: str
+    student_name: str
+    method_label: str
+    amount_label: str
+    counter_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class OnlinePaymentMonitoringPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    verify_pending_label: str
+    verify_pending_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    transactions_section_title: str
+    table_headers: list[str]
+    transaction_rows: list[FinanceDashboardTransactionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    gateways_section_title: str
+    gateway_items: list[FinancePaymentGatewayItem]
+    generated_at: datetime
+
+
+class OfflinePaymentCollectionPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    record_payment_label: str
+    record_payment_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    payments_section_title: str
+    table_headers: list[str]
+    payment_rows: list[FinanceOfflinePaymentTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class PaymentTransactionsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    export_href: str
+    search_placeholder: str
+    sub_nav: list[YearsSemestersSubNavItem]
+    month_filter_label: str
+    month_options: list[StudentAdminDashboardFilterOption]
+    selected_month: str
+    method_filter_label: str
+    method_options: list[StudentAdminDashboardFilterOption]
+    selected_method: str
+    status_filter_label: str
+    status_options: list[StudentAdminDashboardFilterOption]
+    selected_status: str
+    transactions_section_title: str
+    table_headers: list[str]
+    transaction_rows: list[FinanceDashboardTransactionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceReceiptTableRow(BaseModel):
+    receipt_label: str
+    student_name: str
+    invoice_label: str
+    amount_label: str
+    date_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceOutstandingDuesTableRow(BaseModel):
+    student_name: str
+    invoice_label: str
+    balance_label: str
+    overdue_label: str
+    detail_href: str
+
+
+class FinanceAgingBucketItem(BaseModel):
+    bucket_key: str
+    label: str
+    amount_label: str
+    progress_percent: int
+    bar_tone: str
+
+
+class ReceiptManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    bulk_generate_label: str
+    bulk_generate_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    receipts_section_title: str
+    table_headers: list[str]
+    receipt_rows: list[FinanceReceiptTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class OutstandingDuesManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    send_reminders_label: str
+    send_reminders_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    dues_section_title: str
+    table_headers: list[str]
+    dues_rows: list[FinanceOutstandingDuesTableRow]
+    showing_label: str
+    list_count_label: str
+    pagination: PoliciesPagination
+    aging_section_title: str
+    aging_items: list[FinanceAgingBucketItem]
+    generated_at: datetime
+
+
+class FinanceScholarshipTableRow(BaseModel):
+    scheme_label: str
+    category_label: str
+    students_label: str
+    awarded_label: str
+    applied_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceConcessionTableRow(BaseModel):
+    student_name: str
+    category_label: str
+    requested_label: str
+    date_label: str
+    approver_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceRefundTableRow(BaseModel):
+    refund_label: str
+    student_name: str
+    original_transaction_label: str
+    amount_label: str
+    requested_label: str
+    stage_label: str
+    stage_tone: str
+    detail_href: str
+
+
+class ScholarshipManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_programme_label: str
+    new_programme_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    scholarships_section_title: str
+    table_headers: list[str]
+    scholarship_rows: list[FinanceScholarshipTableRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class ConcessionWaiverManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_request_label: str
+    new_request_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    requests_section_title: str
+    table_headers: list[str]
+    concession_rows: list[FinanceConcessionTableRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class RefundManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_request_label: str
+    new_request_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    refunds_section_title: str
+    table_headers: list[str]
+    refund_rows: list[FinanceRefundTableRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceReconciliationBatchRow(BaseModel):
+    batch_label: str
+    source_label: str
+    period_label: str
+    matched_label: str
+    unmatched_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceFinancialReportRow(BaseModel):
+    report_key: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class PaymentReconciliationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_batch_label: str
+    new_batch_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    batches_section_title: str
+    table_headers: list[str]
+    batch_rows: list[FinanceReconciliationBatchRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinancialReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    create_report_href: str
+    sub_nav: list[YearsSemestersSubNavItem]
+    reports_section_title: str
+    table_headers: list[str]
+    report_rows: list[FinanceFinancialReportRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceSettingsFormValues(BaseModel):
+    invoice_prefix: str = "INV-{YYYY}-{#####}"
+    receipt_prefix: str = "RCT-{YYMM}-{####}"
+    financial_year_start: str = "april_1"
+    refund_approver: str = "finance_manager_principal"
+    late_fee_policy: str = "LF-2026"
+    default_payment_methods: str = "upi,card,net_banking,cash"
+    confirm_online_backend: bool = True
+    lock_posted_entries: bool = True
+    allow_installment_plans: bool = True
+
+
+class FinanceSettingsToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str = ""
+    badge_label: str = ""
+    enabled: bool
+
+
+class FinanceSettingsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    configuration_section_title: str
+    controls_section_title: str
+    form: FinanceSettingsFormValues
+    field_meta: list[InstitutionFieldMeta]
+    field_options: dict[str, list[InstitutionFieldOption]]
+    toggle_rules: list[FinanceSettingsToggleRule]
+    generated_at: datetime
+
+
+class FinanceSettingsSave(BaseModel):
+    form: FinanceSettingsFormValues
 
 
 class ExaminationSessionManagementPageRead(BaseModel):

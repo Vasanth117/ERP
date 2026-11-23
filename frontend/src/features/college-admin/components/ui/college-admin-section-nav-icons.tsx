@@ -55,6 +55,16 @@ const SECTION_NAV_ICONS: Record<string, NavIcon> = {
   suspended: BanIcon,
   pending_activation: MailIcon,
   deactivated: DatabaseIcon,
+  online: RefreshCwIcon,
+  offline: CoinsIcon,
+  all: ListIcon,
+  receipts: ClipboardListIcon,
+  dues: ChartBarIcon,
+  scholarships: GraduationCapIcon,
+  concessions: CoinsIcon,
+  refunds: RefreshCwIcon,
+  reconciliation: RefreshCwIcon,
+  reports: ChartBarIcon,
 };
 
 function resolveNavIcon(navKey: string): NavIcon {

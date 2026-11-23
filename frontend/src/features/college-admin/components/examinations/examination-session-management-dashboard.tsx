@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useExaminationSessionManagementPage } from "@/features/college-admin/hooks/use-examination-session-management";
 import { cn } from "@/lib/utils";
@@ -55,8 +55,7 @@ export function ExaminationSessionManagementDashboard() {
           href={data?.create_session_href ?? "/college-admin/examinations/examination-configuration?mode=new"}
           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
         >
-          <PlusIcon className="size-3.5" aria-hidden />
-          {data?.create_session_label ?? "Create session"}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_session_label ?? "Create session" } />
         </Link>
       </div>
 

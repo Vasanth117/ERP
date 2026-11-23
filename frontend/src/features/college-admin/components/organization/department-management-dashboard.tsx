@@ -1,11 +1,11 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { CollegeAdminIcon } from "@/features/college-admin/components/layout/college-admin-icon";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { CollegeAdminKpiGrid, CollegeAdminUserDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
@@ -223,8 +223,7 @@ export function DepartmentManagementDashboard() {
             href={data?.create_department_href ?? "/college-admin/organization/create-department"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_department_label ?? "Create department"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_department_label ?? "Create department" } />
           </Link>
         </div>
       </div>

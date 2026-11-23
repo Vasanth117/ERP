@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,8 +219,7 @@ export function BatchSectionConfigurationDashboard() {
             {data?.auto_allocate_label ?? "Auto-allocate sections"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryButton onClick={() => setShowAdd((v) => !v)}>
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_section_label ?? "Add section"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_section_label ?? "Add section" } />
           </CollegeAdminPrimaryButton>
         </div>
       </div>

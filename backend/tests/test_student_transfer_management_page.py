@@ -14,7 +14,12 @@ from app.core.security import hash_password
 from app.modules.auth.models import User
 from app.modules.college_admin.identity_models import InstitutionDepartment
 from app.modules.college_admin.student_admin_models import StudentRecord, StudentLifecycleStatus, StudentTransfer, TransferStatus
-from app.modules.college_admin.student_transfer_management_page_service import get_student_transfer_management_page
+from app.modules.college_admin.schemas import StudentTransferRequestCreate
+from app.modules.college_admin.student_transfer_management_page_service import (
+    create_student_transfer_request,
+    get_student_transfer_create_page,
+    get_student_transfer_management_page,
+)
 from app.modules.department_admin.models import (
     DepartmentRequestStatus,
     DepartmentSectionTransferRequest,
@@ -120,3 +125,60 @@ async def test_transfer_management_page_merges_requests(db_ready):
     detail = await get_student_transfer_management_page(scope, selected_request_key=key)
     assert detail.review_reason
     assert detail.approval_steps
+    assert page.new_transfer_href.endswith("/student-transfer-create")
+
+
+@pytest.mark.anyio
+async def test_create_student_transfer_request(db_ready):
+    suffix = uuid4().hex[:8]
+    tenant = Tenant(name=f"College TRF2 {suffix}", code=f"trf2_{suffix}")
+    await tenant.insert()
+    admin = User(
+        email=f"admin+trf2+{suffix}@example.com",
+        hashed_password=hash_password("password1234567890"),
+        full_name="College Admin",
+        role=Role.COLLEGE_ADMIN,
+        tenant_id=tenant.id,
+    )
+    await admin.insert()
+    student = User(
+        email=f"student2+trf+{suffix}@example.com",
+        hashed_password=hash_password("password1234567890"),
+        full_name="Arjun Rao",
+        role=Role.STUDENT,
+        tenant_id=tenant.id,
+    )
+    await student.insert()
+    record = StudentRecord(
+        tenant_id=tenant.id,
+        user_id=student.id,
+        roll_number="23ME0199",
+        programme_code="MECH",
+        section_code="B",
+        lifecycle_status=StudentLifecycleStatus.ACTIVE,
+    )
+    await record.insert()
+    scope = AccessScope(
+        role=Role.COLLEGE_ADMIN,
+        user_id=admin.id,
+        tenant_id=tenant.id,
+        department_id=None,
+        effective_permissions=permissions_for_role(Role.COLLEGE_ADMIN),
+    )
+
+    create_page = await get_student_transfer_create_page(scope)
+    assert any(opt.value == str(record.id) for opt in create_page.student_options)
+
+    result = await create_student_transfer_request(
+        scope,
+        StudentTransferRequestCreate(
+            student_record_id=str(record.id),
+            transfer_type="programme",
+            to_programme_code="CIV",
+            reason="Branch change request",
+            effective_semester="Semester 3",
+        ),
+    )
+    assert result.request_key.startswith("student:")
+    page = await get_student_transfer_management_page(scope, selected_request_key=result.request_key)
+    assert any(row.student_name == "Arjun Rao" for row in page.transfer_rows)

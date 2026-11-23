@@ -6,7 +6,7 @@ import { onCollegeAdminMutationError } from "@/features/college-admin/context/co
 import { toast } from "sonner";
 
 import { CircleCheckIcon } from "@/components/icons/erp/generated/circle-check";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 import { SlidersHorizontalIcon } from "@/components/icons/erp/generated/sliders-horizontal";
 import { TriangleAlertIcon } from "@/components/icons/erp/generated/triangle-alert";
 import { Input } from "@/components/ui/input";

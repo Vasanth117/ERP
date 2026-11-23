@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 
 import type { ErpIconName } from "@/components/icons/erp/names";
+import { erpIconRegistry } from "@/components/icons/erp/registry";
 import { BackendLogoIcon } from "@/components/icons/erp/generated/backend-logo";
 import { BenchlogoNameIcon } from "@/components/icons/erp/generated/benchlogo_name";
 import { BellIcon } from "@/components/icons/erp/generated/bell";
@@ -148,7 +149,7 @@ export function resolveCollegeAdminIconSlug(name: string): ErpIconName {
 export function getCollegeAdminErpIcon(
   slug: ErpIconName,
 ): ErpIconComponent | undefined {
-  return ERP_ICON_COMPONENTS[slug];
+  return ERP_ICON_COMPONENTS[slug] ?? erpIconRegistry[slug];
 }
 
 export const CollegeAdminChevronLeft = ChevronLeftIcon;

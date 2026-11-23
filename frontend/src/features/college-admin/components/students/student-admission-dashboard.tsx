@@ -1,11 +1,11 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import {
@@ -85,7 +85,10 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
 }
 
 function formatAyLabel(label: string) {
-  return label.startsWith("AY ") ? label : label;
+  if (!label || label === "All academic years") return label;
+  if (label.startsWith("AY ")) return label;
+  if (label.toUpperCase().startsWith("AY")) return label;
+  return label.includes("–") || /^\d{4}/.test(label) ? `AY ${label.replace(/-/g, "–")}` : label;
 }
 
 
@@ -127,34 +130,6 @@ export function StudentAdmissionDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:2987">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student Admission"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Admission applications"}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
-            <CollegeAdminDownload className="size-3.5" />
-            {data?.export_label ?? "Export"}
-          </Button>
-          <Link
-            href={data?.new_admission_href ?? "/college-admin/students/new-student-registration"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.new_admission_label ?? "New admission"}
-          </Link>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
@@ -165,8 +140,8 @@ export function StudentAdmissionDashboard() {
             options={
               data?.academic_year_options?.map((o) => ({
                 value: o.value,
-                label: o.label.startsWith("Academic year") ? o.label : formatAyLabel(o.label),
-              })) ?? [{ value: "", label: "Academic year" }]
+                label: o.value === "" ? o.label : formatAyLabel(o.label),
+              })) ?? [{ value: "", label: "All academic years" }]
             }
           />
           <FilterSelect
@@ -183,6 +158,24 @@ export function StudentAdmissionDashboard() {
             onChange={setQuota}
             options={data?.quota_options ?? [{ value: "", label: "All quotas" }]}
           />
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
+            onClick={handleExport}
+            disabled={isLoading || !data}
+          >
+            <CollegeAdminDownload className="size-3.5" />
+            {data?.export_label ?? "Export"}
+          </Button>
+          <Link
+            href={data?.new_admission_href ?? "/college-admin/students/new-student-registration"}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_admission_label ?? "New admission" } />
+          </Link>
         </div>
       </div>
 

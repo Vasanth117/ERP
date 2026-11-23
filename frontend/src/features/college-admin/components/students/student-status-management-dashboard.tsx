@@ -6,7 +6,6 @@ import { onCollegeAdminMutationError } from "@/features/college-admin/context/co
 import { toast } from "sonner";
 
 import { ArrowRightLeftIcon } from "@/components/icons/erp/generated/arrow-right-left";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
@@ -14,6 +13,7 @@ import {
   useStudentStatusManagementPage,
   useSubmitStudentStatusChange,
 } from "@/features/college-admin/hooks/use-student-status-management";
+import { StudentsTabHeader } from "@/features/college-admin/components/students/students-tab-header";
 import { cn } from "@/lib/utils";
 
 function StatusPill({ label, tone }: { label: string; tone: string }) {
@@ -92,17 +92,11 @@ export function StudentStatusManagementDashboard() {
   }, [data?.selected_request_id, selectedRequestId]);
 
   useEffect(() => {
-    if (!data) return;
+    if (!data?.selected_request_id) return;
     setRecordId(data.form_record_id);
     setNewStatus(data.form_new_status);
     setReason(data.form_reason);
-  }, [
-    data?.selected_request_id,
-    data?.form_record_id,
-    data?.form_new_status,
-    data?.form_reason,
-    data,
-  ]);
+  }, [data?.selected_request_id, data?.form_record_id, data?.form_new_status, data?.form_reason]);
 
   const changeStatusHref = (() => {
     const base = data?.change_status_href ?? "/college-admin/students/student-withdrawal-discontinuation";
@@ -151,21 +145,19 @@ export function StudentStatusManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:5911">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student Status Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "—"}</p>
-        </div>
-        <Link
-          href={changeStatusHref}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-        >
-          <ArrowRightLeftIcon className="size-3.5" aria-hidden />
-          {data?.change_status_label ?? "Change status"}
-        </Link>
-      </div>
+      <StudentsTabHeader
+        title={data?.page_title ?? "Student Status Management"}
+        subtitle={data?.page_subtitle ?? "Active, on hold, suspended and alumni"}
+        actions={
+          <Link
+            href={changeStatusHref}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
+          >
+            <ArrowRightLeftIcon className="size-3.5" aria-hidden />
+            {data?.change_status_label ?? "Withdrawal / discontinue"}
+          </Link>
+        }
+      />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
@@ -285,7 +277,13 @@ export function StudentStatusManagementDashboard() {
                       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#f3f4f6]">
                         <div
                           className={cn("h-full rounded-full transition-all", mixBarColor(item.tone))}
-                          style={{ width: `${Math.min(100, Math.max(0, item.bar_percent))}%` }}
+                          style={{
+                            width: `${
+                              item.count > 0
+                                ? Math.min(100, Math.max(4, item.bar_percent))
+                                : 0
+                            }%`,
+                          }}
                         />
                       </div>
                     </li>
@@ -297,15 +295,15 @@ export function StudentStatusManagementDashboard() {
                 <div className="border-b border-[#f1f5f9] px-5 py-3.5">
                   <h3 className="text-[14px] font-semibold text-[#111827]">{data.update_status_section_title}</h3>
                 </div>
-                <div className="space-y-4 px-5 py-5">
+                <div className="space-y-4 px-5 py-5 pb-6">
                   <div>
                     <RequiredLabel>{data.student_field_label}</RequiredLabel>
                     <select
-                      className="mt-1.5 h-9 w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px]"
+                      className="mt-1.5 h-9 w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#374151]"
                       value={recordId}
                       onChange={(e) => setRecordId(e.target.value)}
                     >
-                      {!recordId ? <option value="">Select student</option> : null}
+                      <option value="">Select student</option>
                       {data.student_picker_options.map((opt) => (
                         <option key={opt.record_id} value={opt.record_id}>
                           {opt.label}
@@ -316,11 +314,11 @@ export function StudentStatusManagementDashboard() {
                   <div>
                     <RequiredLabel>{data.new_status_field_label}</RequiredLabel>
                     <select
-                      className="mt-1.5 h-9 w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px]"
+                      className="mt-1.5 h-9 w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#374151]"
                       value={newStatus}
                       onChange={(e) => setNewStatus(e.target.value)}
                     >
-                      {!newStatus ? <option value="">Select status</option> : null}
+                      <option value="">Select status</option>
                       {data.new_status_options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
@@ -338,24 +336,23 @@ export function StudentStatusManagementDashboard() {
                     />
                   </div>
                   <div className="flex flex-col gap-2 pt-1">
-                    <Button
+                    <button
                       type="button"
-                      className="h-9 w-full bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
+                      className="inline-flex h-9 w-full items-center justify-center rounded-md bg-[#245dd8] text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
                       disabled={submitChange.isPending}
                       onClick={handleSubmit}
                     >
                       {data.submit_status_label}
-                    </Button>
+                    </button>
                     {selectedPending ? (
-                      <Button
+                      <button
                         type="button"
-                        variant="outline"
-                        className="h-9 w-full border-[#10b981] text-xs text-[#047857] hover:bg-[#ecfdf5]"
+                        className="inline-flex h-9 w-full items-center justify-center rounded-md border border-[#10b981] bg-white text-xs font-medium text-[#047857] hover:bg-[#ecfdf5] disabled:opacity-50"
                         disabled={approveChange.isPending}
                         onClick={handleApprove}
                       >
                         {data.approve_status_label}
-                      </Button>
+                      </button>
                     ) : null}
                   </div>
                 </div>

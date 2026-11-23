@@ -1,11 +1,12 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
@@ -90,24 +91,34 @@ function ApprovalTimeline({
 }
 
 export function StudentTransferManagementDashboard() {
+  const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const [selectedKey, setSelectedKey] = useState<string | undefined>();
   const [transferType, setTransferType] = useState("");
   const [effectiveSemester, setEffectiveSemester] = useState("");
   const [reason, setReason] = useState("");
 
+  const selectedFromUrl = searchParams.get("selected_request_key") ?? undefined;
+
   const { data, isLoading, isError, error, refetch } = useStudentTransferManagementPage({
     page,
-    selected_request_key: selectedKey,
+    selected_request_key: selectedFromUrl ?? selectedKey,
   });
 
   const saveReview = useSaveStudentTransferReview();
 
   useEffect(() => {
-    if (data?.selected_request_key && selectedKey !== data.selected_request_key) {
+    const fromUrl = searchParams.get("selected_request_key");
+    if (fromUrl) {
+      setSelectedKey(fromUrl);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (data?.selected_request_key && !searchParams.get("selected_request_key")) {
       setSelectedKey(data.selected_request_key);
     }
-  }, [data?.selected_request_key, selectedKey]);
+  }, [data?.selected_request_key, searchParams]);
 
   useEffect(() => {
     if (!data) return;
@@ -142,21 +153,12 @@ export function StudentTransferManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:5236">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student Transfer Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Programme, section and college transfers"}
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Link
-          href={data?.new_transfer_href ?? "/college-admin/students/all-students-list"}
+          href={data?.new_transfer_href ?? "/college-admin/students/student-transfer-create"}
           className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
         >
-          <PlusIcon className="size-3.5" aria-hidden />
-          {data?.new_transfer_label ?? "New transfer"}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_transfer_label ?? "New transfer" } />
         </Link>
       </div>
 

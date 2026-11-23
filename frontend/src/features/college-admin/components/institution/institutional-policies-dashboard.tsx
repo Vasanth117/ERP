@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -210,8 +210,7 @@ export function InstitutionalPoliciesDashboard() {
             disabled={!data}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_policy_label ?? "Add policy"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_policy_label ?? "Add policy" } />
           </button>
         </div>
       </div>

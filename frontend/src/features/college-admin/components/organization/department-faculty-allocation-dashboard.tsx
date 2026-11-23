@@ -6,7 +6,7 @@ import { onCollegeAdminMutationError } from "@/features/college-admin/context/co
 import { toast } from "sonner";
 
 import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 import { SlidersHorizontalIcon } from "@/components/icons/erp/generated/sliders-horizontal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

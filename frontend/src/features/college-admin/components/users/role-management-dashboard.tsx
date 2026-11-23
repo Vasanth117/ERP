@@ -1,10 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useState } from "react";
 
 import { ArrowLeftRightIcon } from "@/components/icons/erp/generated/arrow-left-right";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { CollegeAdminKpiGrid, CollegeAdminUserDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useRoleManagementDashboardPage } from "@/features/college-admin/hooks/use-role-management-dashboard";
@@ -59,8 +59,7 @@ export function RoleManagementDashboard() {
             href={data?.create_role_href ?? "/college-admin/users/create-edit-role"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_role_label ?? "Create role"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_role_label ?? "Create role" } />
           </Link>
         </div>
       </div>

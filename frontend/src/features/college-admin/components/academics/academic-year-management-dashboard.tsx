@@ -1,10 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { LockIcon } from "@/components/icons/erp/generated/lock";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { YearsSemestersSubNav } from "@/features/college-admin/components/academics/years-semesters-sub-nav";
 import {
   CollegeAdminPanelEmptyState,
@@ -138,8 +138,7 @@ export function AcademicYearManagementDashboard() {
             {data?.close_current_year_label ?? "Close current year"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={createHref}>
-            <PlusIcon className="size-3.5 shrink-0" aria-hidden />
-            {data?.new_academic_year_label ?? "New academic year"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_academic_year_label ?? "New academic year" } />
           </CollegeAdminPrimaryLink>
         </div>
       </div>
@@ -220,8 +219,7 @@ export function AcademicYearManagementDashboard() {
                     description="Start by creating an academic year with start and end dates, then add semesters and calendar events."
                     action={
                       <CollegeAdminPrimaryLink href={createHref}>
-                        <PlusIcon className="size-3.5 shrink-0" aria-hidden />
-                        {data.new_academic_year_label}
+                        <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.new_academic_year_label } />
                       </CollegeAdminPrimaryLink>
                     }
                   />

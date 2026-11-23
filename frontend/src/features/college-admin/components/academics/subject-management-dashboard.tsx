@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { UploadIcon } from "@/components/icons/erp/generated/upload";
 import { Input } from "@/components/ui/input";
@@ -113,8 +113,7 @@ export function SubjectManagementDashboard() {
             href={data?.add_subject_href ?? "/college-admin/academics/course-configuration?mode=create"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_subject_label ?? "Add subject"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_subject_label ?? "Add subject" } />
           </Link>
         </div>
       </div>

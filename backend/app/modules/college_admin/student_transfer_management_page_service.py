@@ -24,11 +24,20 @@ from app.modules.college_admin.schemas import (
     InstitutionFieldOption,
     PoliciesPagination,
     StudentTransferApprovalStep,
+    StudentTransferCreatePageRead,
     StudentTransferManagementPageRead,
     StudentTransferManagementTableRow,
+    StudentTransferRequestCreate,
+    StudentTransferRequestCreateResult,
     StudentTransferReviewSavePayload,
 )
-from app.modules.college_admin.student_admin_models import StudentRecord, StudentTransfer, TransferStatus
+from app.modules.college_admin.student_admin_models import (
+    StudentLifecycleStatus,
+    StudentRecord,
+    StudentTransfer,
+    TransferStatus,
+)
+from app.modules.college_admin.student_statistics_overview_service import _ENROLLED_LIFECYCLE
 from app.modules.college_admin.student_administration_dashboard_page_service import _fmt_time_label
 from app.modules.department_admin.models import (
     DepartmentRequestStatus,
@@ -366,7 +375,7 @@ async def get_student_transfer_management_page(
         page_title="Student Transfer Management",
         page_subtitle="Programme, section and college transfers",
         new_transfer_label="New transfer",
-        new_transfer_href="/college-admin/students/all-students-list",
+        new_transfer_href="/college-admin/students/student-transfer-create",
         requests_section_title="Transfer requests",
         table_headers=["Request", "Student", "From", "To", "Type", "Status"],
         transfer_rows=[item["row"] for item in page_items],
@@ -472,4 +481,159 @@ async def save_student_transfer_review(
         scope,
         page=payload.page,
         selected_request_key=payload.request_key,
+    )
+
+
+async def get_student_transfer_create_page(scope: AccessScope) -> StudentTransferCreatePageRead:
+    authorize(scope, Permission.STUDENT_ADMIN_READ)
+    tenant_id = require_college_tenant_scope(scope)
+    now = utcnow()
+    _, semester_label = await _reader.current_academic_term(tenant_id)
+
+    programmes = await AcademicProgramme.find(Eq(AcademicProgramme.tenant_id, tenant_id)).to_list()
+    records = await StudentRecord.find(Eq(StudentRecord.tenant_id, tenant_id)).sort("-updated_at").to_list()
+    enrolled = [r for r in records if r.lifecycle_status.value in _ENROLLED_LIFECYCLE]
+
+    users = await User.find(In(User.id, [r.user_id for r in enrolled])).to_list() if enrolled else []
+    user_by_id = {u.id: u for u in users if u.id is not None}
+    profiles = await StudentProfile.find(Eq(StudentProfile.tenant_id, tenant_id)).to_list()
+    profile_by_user = {p.user_id: p for p in profiles}
+
+    student_options = [InstitutionFieldOption(value="", label="Select student")]
+    for record in enrolled[:200]:
+        user = user_by_id.get(record.user_id)
+        profile = profile_by_user.get(record.user_id)
+        name = (user.full_name if user else None) or "Student"
+        register = _register_number(record, profile)
+        student_options.append(
+            InstitutionFieldOption(
+                value=str(record.id),
+                label=f"{name} · {register}",
+            )
+        )
+
+    semester_options = [InstitutionFieldOption(value="", label="Select semester")]
+    if semester_label:
+        semester_options.append(
+            InstitutionFieldOption(value=f"Semester {semester_label}", label=f"Semester {semester_label}")
+        )
+    for n in range(1, 9):
+        label = f"Semester {n}"
+        semester_options.append(InstitutionFieldOption(value=label, label=label))
+
+    return StudentTransferCreatePageRead(
+        page_title="New transfer request",
+        page_subtitle="Create a programme, section, or outgoing transfer for review",
+        back_href="/college-admin/students/student-transfer-management",
+        back_label="Back to transfers",
+        submit_label="Submit request",
+        student_field_label="Student",
+        transfer_type_field_label="Transfer type",
+        programme_field_label="Destination programme",
+        section_field_label="Destination section",
+        institution_field_label="Destination institution",
+        effective_field_label="Effective from",
+        reason_field_label="Reason",
+        student_options=student_options,
+        transfer_type_options=_TRANSFER_TYPE_OPTIONS,
+        programme_options=[
+            InstitutionFieldOption(value="", label="Select programme"),
+            *[
+                InstitutionFieldOption(value=p.programme_code, label=p.name or p.programme_code)
+                for p in sorted(programmes, key=lambda row: (row.name or row.programme_code).lower())
+            ],
+        ],
+        effective_options=semester_options,
+        generated_at=now,
+    )
+
+
+async def create_student_transfer_request(
+    scope: AccessScope,
+    payload: StudentTransferRequestCreate,
+) -> StudentTransferRequestCreateResult:
+    authorize(scope, Permission.STUDENT_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    now = utcnow()
+
+    record_id = to_object_id(payload.student_record_id, "student_record_id")
+    record = await StudentRecord.get(record_id)
+    if record is None or record.tenant_id != tenant_id:
+        raise AppError(code="NOT_FOUND", message="Student record not found", status_code=404)
+    if record.lifecycle_status.value not in _ENROLLED_LIFECYCLE:
+        raise AppError(code="VALIDATION", message="Student must be enrolled to request a transfer", status_code=422)
+
+    programmes = await AcademicProgramme.find(Eq(AcademicProgramme.tenant_id, tenant_id)).to_list()
+    prog_by_code = {p.programme_code.upper(): p for p in programmes}
+
+    transfer_kind = payload.transfer_type.strip().lower()
+    to_prog_code = payload.to_programme_code.strip().upper() if payload.to_programme_code else None
+    if transfer_kind in ("programme", "section") and not to_prog_code:
+        raise AppError(code="VALIDATION", message="Destination programme is required", status_code=422)
+    if transfer_kind == "section" and not (payload.to_section_code or "").strip():
+        raise AppError(code="VALIDATION", message="Destination section is required for section transfers", status_code=422)
+    if transfer_kind == "outgoing" and not (payload.to_institution_label or "").strip():
+        raise AppError(code="VALIDATION", message="Destination institution is required for outgoing transfers", status_code=422)
+
+    from_prog = _build_programme_short_label(record.programme_code, prog_by_code)
+    from_section = (record.section_code or "").strip() or "—"
+    from_label = f"{from_prog} - {from_section}"
+
+    if transfer_kind == "outgoing":
+        to_label = (payload.to_institution_label or "").strip()
+        to_prog_code = None
+    elif transfer_kind == "section":
+        to_section = (payload.to_section_code or "").strip().upper()
+        to_prog_label = _build_programme_short_label(to_prog_code, prog_by_code)
+        to_label = f"{to_prog_label} - {to_section}"
+    else:
+        to_prog_label = _build_programme_short_label(to_prog_code, prog_by_code)
+        to_section = (payload.to_section_code or record.section_code or "—").strip()
+        to_label = f"{to_prog_label} - {to_section}"
+
+    meta = {
+        "transfer_kind": transfer_kind,
+        "from_label": from_label,
+        "to_label": to_label,
+        "from_section_code": from_section if from_section != "—" else "",
+        "to_section_code": (payload.to_section_code or "").strip().upper(),
+        "to_institution_label": (payload.to_institution_label or "").strip(),
+        "effective_semester_label": (payload.effective_semester or "").strip(),
+        "approval_steps": [
+            {
+                "key": "department_admin",
+                "label": "Department Admin",
+                "status_label": "Pending",
+                "tone": "warning",
+            },
+            {
+                "key": "college_admin",
+                "label": "College Admin",
+                "status_label": "Pending",
+                "tone": "warning",
+            },
+        ],
+    }
+
+    transfer = StudentTransfer(
+        tenant_id=tenant_id,
+        user_id=record.user_id,
+        from_department_id=record.department_id,
+        to_department_id=None,
+        from_programme_code=record.programme_code,
+        to_programme_code=to_prog_code,
+        reason=payload.reason.strip(),
+        status=TransferStatus.REQUESTED,
+        actor_id=scope.user_id,
+        metadata=meta,
+    )
+    await transfer.insert()
+    meta["request_number"] = _request_number(now, transfer.id)
+    transfer.metadata = meta
+    await transfer.save()
+
+    request_key = f"student:{transfer.id}"
+    return StudentTransferRequestCreateResult(
+        request_key=request_key,
+        transfer_href=f"/college-admin/students/student-transfer-management?selected_request_key={request_key}",
     )

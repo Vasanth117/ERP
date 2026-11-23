@@ -80,36 +80,97 @@ function TrendPill({ row }: { row: AttendanceDashboardDepartmentRow }) {
   );
 }
 
+const TREND_CHART_MAX_X_LABELS = 8;
+
 function AttendanceTrendChart({ points }: { points: AttendanceDashboardTrendPoint[] }) {
   if (!points.length) {
     return <p className="text-sm text-[#9ca3af]">No attendance sessions in this range yet.</p>;
   }
-  const values = points.map((p) => p.attendance_pct).filter((v): v is number => v != null);
-  const min = Math.min(...values, 70);
-  const max = Math.max(...values, 100);
-  const span = Math.max(max - min, 8);
-  const w = 640;
-  const h = 160;
+
+  const numeric = points.flatMap((p, index) =>
+    p.attendance_pct != null ? [{ index, value: p.attendance_pct }] : [],
+  );
+  const hasSeries = numeric.length > 0;
+
+  const w = 520;
+  const h = 168;
   const pad = 24;
+  const plotH = h - 2 * pad;
+  const values = numeric.map((n) => n.value);
+  const min = hasSeries ? Math.min(...values, 70) : 70;
+  const max = hasSeries ? Math.max(...values, 100) : 100;
+  const span = Math.max(max - min, 8);
+
   const toX = (i: number) => pad + (i * (w - 2 * pad)) / Math.max(points.length - 1, 1);
-  const toY = (v: number) => h - pad - ((v - min) / span) * (h - 2 * pad);
-  const line = points
-    .map((p, i) => (p.attendance_pct != null ? `${toX(i)},${toY(p.attendance_pct)}` : null))
-    .filter(Boolean)
-    .join(" ");
+  const toY = (v: number) => h - pad - ((v - min) / span) * plotH;
+  const line = numeric.map((n) => `${toX(n.index)},${toY(n.value)}`).join(" ");
+
+  const labelStep =
+    points.length <= TREND_CHART_MAX_X_LABELS
+      ? 1
+      : Math.max(1, Math.ceil((points.length - 1) / (TREND_CHART_MAX_X_LABELS - 1)));
 
   return (
-    <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-44 w-full" role="img" aria-label="Attendance trend">
-        <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#e8ecf2" />
-        {line ? <polyline fill="none" stroke="#245dd8" strokeWidth="2.5" points={line} /> : null}
+    <div className="w-full max-w-full overflow-hidden">
+      {!hasSeries ? (
+        <p className="mb-2 text-[12px] text-[#9ca3af]">No submitted attendance in this range yet.</p>
+      ) : null}
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        className="h-44 w-full"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        aria-label="Attendance trend"
+      >
+        {[0, 0.33, 0.66, 1].map((tick) => {
+          const y = pad + tick * plotH;
+          return (
+            <line
+              key={tick}
+              x1={pad}
+              y1={y}
+              x2={w - pad}
+              y2={y}
+              stroke={tick === 1 ? "#e8ecf2" : "#f1f5f9"}
+              strokeDasharray={tick === 1 ? undefined : "4 4"}
+            />
+          );
+        })}
+        {hasSeries && line ? (
+          <>
+            <polyline fill="none" stroke="#245dd8" strokeWidth="2.5" points={line} />
+            {numeric.map((n) => (
+              <circle key={n.index} cx={toX(n.index)} cy={toY(n.value)} r="3.5" fill="#245dd8" />
+            ))}
+          </>
+        ) : (
+          <line
+            x1={pad}
+            y1={h - pad}
+            x2={w - pad}
+            y2={h - pad}
+            stroke="#cbd5e1"
+            strokeWidth="1.5"
+            strokeDasharray="5 5"
+          />
+        )}
       </svg>
-      <div className="mt-1 flex justify-between gap-1 text-[9px] text-[#9ca3af]">
-        {points.map((p) => (
-          <span key={p.date_label} className="max-w-[2.5rem] truncate">
-            {p.date_label}
-          </span>
-        ))}
+      <div className="relative mt-2 h-4 w-full">
+        {points.map((p, index) => {
+          const showLabel =
+            index === 0 || index === points.length - 1 || index % labelStep === 0;
+          if (!showLabel) return null;
+          const leftPct = points.length === 1 ? 50 : (index / (points.length - 1)) * 100;
+          return (
+            <span
+              key={`${p.date_label}-${index}`}
+              className="absolute top-0 max-w-[3rem] -translate-x-1/2 truncate text-[9px] text-[#9ca3af]"
+              style={{ left: `${leftPct}%` }}
+            >
+              {p.date_label}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -159,13 +220,19 @@ export function AttendanceDashboardDashboard() {
     department_id: departmentId || undefined,
   };
 
-  const { data, isLoading, isError, error, refetch } = useAttendanceDashboardPage(queryParams);
+  const { data, isLoading, isFetching, isError, error, refetch } = useAttendanceDashboardPage(queryParams);
 
   useEffect(() => {
     if (data?.selected_term_key && !termKey) {
       setTermKey(data.selected_term_key);
     }
   }, [data?.selected_term_key, termKey]);
+
+  useEffect(() => {
+    if (data?.selected_department_id !== undefined && !departmentId && data.selected_department_id) {
+      setDepartmentId(data.selected_department_id);
+    }
+  }, [data?.selected_department_id, departmentId]);
 
   const handleExport = useCallback(() => {
     if (!data) return;
@@ -180,12 +247,22 @@ export function AttendanceDashboardDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:6844">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Attendance Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "—"}</p>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterSelect
+            icon={<CalendarIcon className="size-3.5" aria-hidden />}
+            label={data?.term_filter_label ?? "Academic term"}
+            value={termKey}
+            onChange={setTermKey}
+            options={data?.term_options ?? []}
+          />
+          <FilterSelect
+            icon={<FilterIcon className="size-3.5" aria-hidden />}
+            label={data?.department_filter_label ?? "Department"}
+            value={departmentId}
+            onChange={setDepartmentId}
+            options={data?.department_options ?? [{ value: "", label: "All departments" }]}
+          />
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           <Button
@@ -208,50 +285,31 @@ export function AttendanceDashboardDashboard() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterSelect
-            icon={<CalendarIcon className="size-3.5" aria-hidden />}
-            label={data?.term_filter_label ?? "Academic term"}
-            value={termKey}
-            onChange={setTermKey}
-            options={data?.term_options ?? []}
-          />
-          <FilterSelect
-            icon={<FilterIcon className="size-3.5" aria-hidden />}
-            label={data?.department_filter_label ?? "Department"}
-            value={departmentId}
-            onChange={setDepartmentId}
-            options={data?.department_options ?? [{ value: "", label: "All departments" }]}
-          />
-        </div>
-      </div>
-
-      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
+      <QueryState isLoading={isLoading && !data} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
-          <>
-            <CollegeAdminKpiGrid>
+          <div className={cn("space-y-5", isFetching && "opacity-60")}>
+            <CollegeAdminKpiGrid className="w-full max-w-full">
               {data.kpis.map((kpi, index) => (
                 <CollegeAdminUserDashboardKpiCard key={kpi.key} kpi={kpi} index={index} />
               ))}
             </CollegeAdminKpiGrid>
 
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
-              <div className="space-y-5">
+            <div className="grid w-full max-w-full grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <div className="min-w-0 space-y-5">
                 <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                   <div className="border-b border-[#f1f5f9] px-5 py-3.5">
                     <h3 className="text-[14px] font-semibold text-[#111827]">{data.department_table_title}</h3>
                   </div>
                   {data.department_rows.length ? (
                     <div className="overflow-x-auto">
-                      <table className="w-full min-w-[40rem] text-left text-[13px]">
+                      <table className="w-full min-w-[36rem] text-left text-[13px]">
                         <thead>
-                          <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
+                          <tr className="border-b border-[#f1f5f9] text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
                             {data.department_table_headers.map((header, index) => (
                               <th
                                 key={header}
                                 className={cn(
-                                  "pb-3 font-medium",
+                                  "pb-3 pt-3 font-medium",
                                   index === 0 ? "px-5" : "pr-3 text-right",
                                   index === data.department_table_headers.length - 1 && "text-left",
                                 )}
@@ -283,7 +341,7 @@ export function AttendanceDashboardDashboard() {
                       </table>
                     </div>
                   ) : (
-                    <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">
+                    <p className="px-5 py-8 text-center text-sm text-[#9ca3af]">
                       No department attendance data for the current term.
                     </p>
                   )}
@@ -292,13 +350,13 @@ export function AttendanceDashboardDashboard() {
                   </div>
                 </section>
 
-                <section className="rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-5">
+                <section className="max-w-full overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-5">
                   <h3 className="mb-4 text-[14px] font-semibold text-[#111827]">{data.trend_chart_title}</h3>
                   <AttendanceTrendChart points={data.trend_series} />
                 </section>
               </div>
 
-              <section className="h-fit rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <section className="h-fit min-w-0 rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <h3 className="mb-2 text-[14px] font-semibold text-[#111827]">{data.needs_attention_title}</h3>
                 <ul>
                   {data.needs_attention_items.map((item) => (
@@ -308,7 +366,11 @@ export function AttendanceDashboardDashboard() {
               </section>
             </div>
 
-          </>
+            <footer className="flex flex-col gap-1 border-t border-[#f1f5f9] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
+              <span>{data.footer_disclaimer}</span>
+              <span className="shrink-0 tabular-nums">{data.footer_snapshot_label}</span>
+            </footer>
+          </div>
         ) : null}
       </QueryState>
     </div>

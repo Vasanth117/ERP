@@ -1,10 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Input } from "@/components/ui/input";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
@@ -130,8 +130,7 @@ export function AllUsersListDashboard() {
             href={data?.create_user_href ?? "/college-admin/users/create-new-user"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_user_label ?? "Create user"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_user_label ?? "Create user" } />
           </Link>
         </div>
       </div>

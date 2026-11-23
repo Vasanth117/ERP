@@ -36,8 +36,257 @@ from app.modules.college_admin.finance_admin_service import (
     upsert_fee_structure,
     upsert_financial_period,
 )
+from app.modules.college_admin.fee_structure_management_page_service import get_fee_structure_management_page
+from app.modules.college_admin.fee_demand_invoice_management_page_service import (
+    get_fee_demand_invoice_management_page,
+)
+from app.modules.college_admin.student_fee_management_page_service import get_student_fee_management_page
+from app.modules.college_admin.finance_dashboard_page_service import get_finance_dashboard_page
+from app.modules.college_admin.finance_payments_pages_service import (
+    get_offline_payment_collection_page,
+    get_online_payment_monitoring_page,
+    get_payment_transactions_page,
+)
+from app.modules.college_admin.finance_aid_pages_service import (
+    get_concession_waiver_management_page,
+    get_refund_management_page,
+    get_scholarship_management_page,
+)
+from app.modules.college_admin.finance_reconciliation_reports_pages_service import (
+    get_financial_reports_page,
+    get_payment_reconciliation_page,
+)
+from app.modules.college_admin.finance_settings_page_service import (
+    get_finance_settings_page,
+    save_finance_settings_page,
+)
+from app.modules.college_admin.finance_receipts_dues_pages_service import (
+    get_outstanding_dues_management_page,
+    get_receipt_management_page,
+)
+from app.modules.college_admin.schemas import (
+    FeeStructureManagementPageRead,
+    FinanceDashboardPageRead,
+    FeeDemandInvoiceManagementPageRead,
+    FinanceSettingsPageRead,
+    FinanceSettingsSave,
+    OfflinePaymentCollectionPageRead,
+    OnlinePaymentMonitoringPageRead,
+    ConcessionWaiverManagementPageRead,
+    FinancialReportsPageRead,
+    OutstandingDuesManagementPageRead,
+    PaymentReconciliationPageRead,
+    PaymentTransactionsPageRead,
+    ReceiptManagementPageRead,
+    RefundManagementPageRead,
+    ScholarshipManagementPageRead,
+    StudentFeeManagementPageRead,
+)
 
 router = APIRouter()
+
+
+@router.get("/invoices/page", response_model=ApiResponse[FeeDemandInvoiceManagementPageRead])
+async def fee_demand_invoice_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[FeeDemandInvoiceManagementPageRead]:
+    return success_response(
+        await get_fee_demand_invoice_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/assessments/page", response_model=ApiResponse[StudentFeeManagementPageRead])
+async def student_fee_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[StudentFeeManagementPageRead]:
+    return success_response(
+        await get_student_fee_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/fee-structures/page", response_model=ApiResponse[FeeStructureManagementPageRead])
+async def fee_structure_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[FeeStructureManagementPageRead]:
+    return success_response(
+        await get_fee_structure_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/settings/page", response_model=ApiResponse[FinanceSettingsPageRead])
+async def finance_settings_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[FinanceSettingsPageRead]:
+    return success_response(await get_finance_settings_page(scope), request_id=get_request_id())
+
+
+@router.put("/settings/page", response_model=ApiResponse[FinanceSettingsPageRead])
+async def finance_settings_page_save_route(
+    payload: FinanceSettingsSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[FinanceSettingsPageRead]:
+    return success_response(await save_finance_settings_page(scope, payload), request_id=get_request_id())
+
+
+@router.get("/reconciliation/page", response_model=ApiResponse[PaymentReconciliationPageRead])
+async def payment_reconciliation_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[PaymentReconciliationPageRead]:
+    return success_response(
+        await get_payment_reconciliation_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/reports/financial/page", response_model=ApiResponse[FinancialReportsPageRead])
+async def financial_reports_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[FinancialReportsPageRead]:
+    return success_response(
+        await get_financial_reports_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/aid/scholarships/page", response_model=ApiResponse[ScholarshipManagementPageRead])
+async def scholarship_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[ScholarshipManagementPageRead]:
+    return success_response(
+        await get_scholarship_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/aid/concessions/page", response_model=ApiResponse[ConcessionWaiverManagementPageRead])
+async def concession_waiver_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[ConcessionWaiverManagementPageRead]:
+    return success_response(
+        await get_concession_waiver_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/aid/refunds/page", response_model=ApiResponse[RefundManagementPageRead])
+async def refund_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[RefundManagementPageRead]:
+    return success_response(
+        await get_refund_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/receipts/page", response_model=ApiResponse[ReceiptManagementPageRead])
+async def receipt_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[ReceiptManagementPageRead]:
+    return success_response(
+        await get_receipt_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/dues/outstanding/page", response_model=ApiResponse[OutstandingDuesManagementPageRead])
+async def outstanding_dues_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[OutstandingDuesManagementPageRead]:
+    return success_response(
+        await get_outstanding_dues_management_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/payments/online/page", response_model=ApiResponse[OnlinePaymentMonitoringPageRead])
+async def online_payment_monitoring_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[OnlinePaymentMonitoringPageRead]:
+    return success_response(
+        await get_online_payment_monitoring_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/payments/offline/page", response_model=ApiResponse[OfflinePaymentCollectionPageRead])
+async def offline_payment_collection_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> ApiResponse[OfflinePaymentCollectionPageRead]:
+    return success_response(
+        await get_offline_payment_collection_page(scope, page=page),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/payments/transactions/page", response_model=ApiResponse[PaymentTransactionsPageRead])
+async def payment_transactions_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    search: Annotated[str | None, Query()] = None,
+    month: Annotated[str | None, Query()] = None,
+    method: Annotated[str | None, Query()] = None,
+    status: Annotated[str | None, Query()] = None,
+) -> ApiResponse[PaymentTransactionsPageRead]:
+    return success_response(
+        await get_payment_transactions_page(
+            scope,
+            page=page,
+            search=search,
+            month=month,
+            method=method,
+            status=status,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/dashboard/page", response_model=ApiResponse[FinanceDashboardPageRead])
+async def finance_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    academic_year_code: Annotated[str | None, Query()] = None,
+    programme_code: Annotated[str | None, Query()] = None,
+) -> ApiResponse[FinanceDashboardPageRead]:
+    return success_response(
+        await get_finance_dashboard_page(
+            scope,
+            page=page,
+            academic_year_code=academic_year_code,
+            programme_code=programme_code,
+        ),
+        request_id=get_request_id(),
+    )
 
 
 @router.put("/fee-structures", response_model=ApiResponse[FeeStructureRead])

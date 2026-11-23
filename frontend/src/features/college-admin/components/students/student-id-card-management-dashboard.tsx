@@ -1,13 +1,13 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
-import { Button } from "@/components/ui/button";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { StudentsTabHeader } from "@/features/college-admin/components/students/students-tab-header";
 import {
   CollegeAdminKpiGrid,
   CollegeAdminUserDashboardKpiCard,
@@ -78,35 +78,31 @@ export function StudentIdCardManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:6282">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student ID Card Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Issue, reprint and block ID cards"}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs text-[#374151]"
-            disabled={bulkPrintMutation.isPending}
-            onClick={handleBulkPrint}
-          >
-            <CollegeAdminDownload className="size-3.5" aria-hidden />
-            {data?.bulk_print_label ?? "Bulk print"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-            disabled={issueMutation.isPending}
-            onClick={handleIssueCard}
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.issue_card_label ?? "Issue card"}
-          </Button>
-        </div>
-      </div>
+      <StudentsTabHeader
+        title={data?.page_title ?? "Student ID Card Management"}
+        subtitle={data?.page_subtitle ?? "Issue, reprint and block ID cards"}
+        actions={
+          <>
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
+              disabled={bulkPrintMutation.isPending || isLoading}
+              onClick={handleBulkPrint}
+            >
+              <CollegeAdminDownload className="size-3.5" aria-hidden />
+              {data?.bulk_print_label ?? "Bulk print"}
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
+              disabled={issueMutation.isPending || isLoading}
+              onClick={handleIssueCard}
+            >
+              <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.issue_card_label ?? "Issue card" } />
+            </button>
+          </>
+        }
+      />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (

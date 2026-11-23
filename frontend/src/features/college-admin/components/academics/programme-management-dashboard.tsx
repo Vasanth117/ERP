@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Input } from "@/components/ui/input";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
@@ -126,8 +126,7 @@ export function ProgrammeManagementDashboard() {
             {data?.export_label ?? "Export"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={createHref}>
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_programme_label ?? "Add programme"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_programme_label ?? "Add programme" } />
           </CollegeAdminPrimaryLink>
         </div>
       </div>
@@ -214,8 +213,7 @@ export function ProgrammeManagementDashboard() {
                 }
                 action={
                   <CollegeAdminPrimaryLink href={createHref}>
-                    <PlusIcon className="size-3.5" aria-hidden />
-                    {data.add_programme_label}
+                    <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.add_programme_label } />
                   </CollegeAdminPrimaryLink>
                 }
               />

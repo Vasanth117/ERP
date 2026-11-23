@@ -16,7 +16,7 @@ from app.common.access import AccessScope
 from app.common.ids import to_object_id
 from app.common.time import utcnow
 from app.core.exceptions import AppError
-from app.modules.college_admin.academic_config_models import AcademicProgramme
+from app.modules.college_admin.academic_config_models import AcademicProgramme, AcademicYear
 from app.modules.college_admin.integrations.operational_reader import OperationalDataReader
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
@@ -36,7 +36,12 @@ from app.modules.college_admin.student_admin_models import (
     StudentNewRegistrationDraft,
 )
 from app.modules.college_admin.student_administration_dashboard_page_service import _quota_label
-from app.modules.college_admin.student_statistics_overview_service import _CATEGORY_LABELS, _normalize_meta_key
+from app.modules.college_admin.student_statistics_overview_service import (
+    _CATEGORY_LABELS,
+    _academic_year_start,
+    _meta_lookup,
+    _normalize_meta_key,
+)
 
 _IST = ZoneInfo("Asia/Kolkata")
 _reader = OperationalDataReader()
@@ -112,7 +117,7 @@ def _programme_label(code: str | None, programmes: dict[str, AcademicProgramme])
 
 
 async def _generate_admission_number(tenant_id: PydanticObjectId, ay_code: str) -> str:
-    year_part = ay_code.split("-")[0] if ay_code and "-" in ay_code else "0000"
+    year_part = str(_academic_year_start(ay_code) or utcnow().year)
     for _ in range(8):
         suffix = secrets.token_hex(2).upper()[:4]
         candidate = f"ADM-{year_part}-{suffix}"
@@ -165,11 +170,18 @@ async def _get_or_create_draft(
     )
     if existing is not None:
         return existing
+    admission = await StudentAdmission.get(admission_id)
+    has_admission_details = bool(
+        admission
+        and (admission.programme_code or "").strip()
+        and (admission.academic_year_code or "").strip()
+    )
+    initial_step = "student_information" if has_admission_details else "admission"
     draft = StudentNewRegistrationDraft(
         tenant_id=tenant_id,
         admission_id=admission_id,
         actor_id=actor_id,
-        step_key="student_information",
+        step_key=initial_step,
     )
     await draft.insert()
     return draft
@@ -178,6 +190,13 @@ async def _get_or_create_draft(
 def _coerce_form_values(raw: dict[str, Any], admission: StudentAdmission) -> NewStudentRegistrationFormValues:
     meta = admission.metadata or {}
     return NewStudentRegistrationFormValues(
+        programme_code=str(raw.get("programme_code") or admission.programme_code or "").strip(),
+        academic_year_code=str(raw.get("academic_year_code") or admission.academic_year_code or "").strip(),
+        marks_percentage=str(
+            raw.get("marks_percentage")
+            or _meta_lookup(admission.metadata, "marks_percentage", "entrance_marks", "aggregate_marks", "percentage")
+            or ""
+        ).strip(),
         full_name=str(raw.get("full_name") or admission.applicant_name or "").strip(),
         date_of_birth=raw.get("date_of_birth") or meta.get("date_of_birth"),
         gender=raw.get("gender") or meta.get("gender"),
@@ -253,6 +272,43 @@ def _build_next_steps(current_key: str) -> list[NewStudentRegistrationNextStep]:
     return items[:3]
 
 
+def _validate_admission(form: NewStudentRegistrationFormValues) -> None:
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
+    details: list[dict] = []
+    if not (form.programme_code or "").strip():
+        details.append(
+            scroll_field(
+                "programme_code",
+                label="Programme",
+                message="Select the programme the student is applying for.",
+            )
+        )
+    if not (form.academic_year_code or "").strip():
+        details.append(
+            scroll_field(
+                "academic_year_code",
+                label="Academic year",
+                message="Select the intake academic year.",
+            )
+        )
+    if form.marks_percentage:
+        try:
+            marks = float(form.marks_percentage)
+            if marks < 0 or marks > 100:
+                raise ValueError("out of range")
+        except (TypeError, ValueError):
+            details.append(
+                scroll_field(
+                    "marks_percentage",
+                    label="Marks / percentage",
+                    message="Enter a valid percentage between 0 and 100.",
+                )
+            )
+    if details:
+        raise_validation_error("Complete the admission details before continuing.", details)
+
+
 def _validate_student_information(form: NewStudentRegistrationFormValues) -> None:
     from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
 
@@ -322,6 +378,10 @@ def _validate_student_information(form: NewStudentRegistrationFormValues) -> Non
 
 
 async def _apply_form_to_admission(admission: StudentAdmission, form: NewStudentRegistrationFormValues) -> None:
+    if form.programme_code:
+        admission.programme_code = form.programme_code.strip().upper()
+    if form.academic_year_code:
+        admission.academic_year_code = form.academic_year_code.strip()
     admission.applicant_name = form.full_name or admission.applicant_name
     if form.email and not form.email.endswith("@pending.local"):
         admission.applicant_email = form.email.lower()
@@ -339,6 +399,8 @@ async def _apply_form_to_admission(admission: StudentAdmission, form: NewStudent
         "guardian_occupation": form.occupation,
         "guardian_relationship": form.relationship,
     }
+    if form.marks_percentage:
+        mapping["marks_percentage"] = form.marks_percentage
     for k, v in mapping.items():
         if v is not None and v != "":
             meta[k] = v
@@ -351,6 +413,7 @@ def _page_read(
     admission: StudentAdmission,
     draft: StudentNewRegistrationDraft,
     programmes: dict[str, AcademicProgramme],
+    academic_years: list[AcademicYear],
     now,
 ) -> NewStudentRegistrationPageRead:
     form = _coerce_form_values(draft.values, admission)
@@ -402,6 +465,23 @@ def _page_read(
         nationality_options=_NATIONALITY_OPTIONS,
         community_options=_COMMUNITY_OPTIONS,
         relationship_options=_RELATIONSHIP_OPTIONS,
+        programme_options=[
+            InstitutionFieldOption(value="", label="Select programme"),
+            *[
+                InstitutionFieldOption(value=p.programme_code, label=p.name or p.programme_code)
+                for p in sorted(programmes.values(), key=lambda row: (row.name or row.programme_code).lower())
+            ],
+        ],
+        academic_year_options=[
+            InstitutionFieldOption(value="", label="Select academic year"),
+            *[
+                InstitutionFieldOption(
+                    value=year.year_code,
+                    label=_ay_display(year.label or year.year_code),
+                )
+                for year in academic_years
+            ],
+        ],
         form=form,
         admission_summary_title="Admission summary",
         admission_summary=summary,
@@ -428,17 +508,16 @@ async def get_new_student_registration_page(
     draft = await _get_or_create_draft(tenant_id, actor_id, admission.id)
     programmes = await AcademicProgramme.find(Eq(AcademicProgramme.tenant_id, tenant_id)).to_list()
     programme_by_code = {p.programme_code.upper(): p for p in programmes}
+    academic_years = await AcademicYear.find(Eq(AcademicYear.tenant_id, tenant_id)).sort("-year_code").to_list()
 
     if not draft.values:
         draft.values = _coerce_form_values({}, admission).model_dump()
-        if not (admission.programme_code or "").strip() and programmes:
-            admission.programme_code = programmes[0].programme_code
-            await admission.save()
 
     return _page_read(
         admission=admission,
         draft=draft,
         programmes=programme_by_code,
+        academic_years=academic_years,
         now=now,
     )
 
@@ -464,7 +543,11 @@ async def save_new_student_registration_draft(
     form = _coerce_form_values(merged, admission)
 
     if payload.advance:
-        if draft.step_key == "student_information" or payload.step_key == "student_information":
+        active_step = payload.step_key or draft.step_key
+        if active_step == "admission":
+            _validate_admission(form)
+            draft.step_key = "student_information"
+        elif active_step == "student_information":
             _validate_student_information(form)
             draft.step_key = "documents"
     elif payload.step_key:
@@ -477,4 +560,11 @@ async def save_new_student_registration_draft(
 
     programmes = await AcademicProgramme.find(Eq(AcademicProgramme.tenant_id, tenant_id)).to_list()
     programme_by_code = {p.programme_code.upper(): p for p in programmes}
-    return _page_read(admission=admission, draft=draft, programmes=programme_by_code, now=now)
+    academic_years = await AcademicYear.find(Eq(AcademicYear.tenant_id, tenant_id)).sort("-year_code").to_list()
+    return _page_read(
+        admission=admission,
+        draft=draft,
+        programmes=programme_by_code,
+        academic_years=academic_years,
+        now=now,
+    )

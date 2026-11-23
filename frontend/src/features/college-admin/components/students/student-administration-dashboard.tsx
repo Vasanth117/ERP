@@ -1,13 +1,14 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { TriangleAlertIcon } from "@/components/icons/erp/generated/triangle-alert";
 import { Button } from "@/components/ui/button";
+import { LayoutGridIcon } from "@/components/icons/erp/generated/layout-grid";
 import {
   CollegeAdminDownload,
   getCollegeAdminErpIcon,
@@ -109,7 +110,9 @@ function AdmissionsWeeklyChart({
     return <p className="text-sm text-[#9ca3af]">No weekly admission data for the selected year.</p>;
   }
   const values = points.flatMap((p) => [p.current_year_count, p.previous_year_count]);
-  const max = Math.max(...values, 1);
+  const peak = Math.max(...values, 0);
+  const max = Math.max(peak, 1);
+  const allZero = peak === 0;
   const w = 520;
   const h = 168;
   const pad = 24;
@@ -120,16 +123,37 @@ function AdmissionsWeeklyChart({
 
   return (
     <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-44 w-full">
+      {allZero ? (
+        <p className="mb-2 text-[12px] text-[#9ca3af]">No confirmed admissions in the selected weeks yet.</p>
+      ) : null}
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-44 w-full" role="img" aria-label="Weekly admissions comparison">
+        {[0, 0.5, 1].map((tick) => {
+          const y = h - pad - tick * (h - 2 * pad);
+          return (
+            <line key={tick} x1={pad} y1={y} x2={w - pad} y2={y} stroke="#f1f5f9" strokeDasharray={tick === 0 ? undefined : "4 4"} />
+          );
+        })}
         <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#e8ecf2" />
-        <polyline fill="none" stroke="#245dd8" strokeWidth="2.5" points={currentLine} />
-        <polyline
-          fill="none"
-          stroke="#93c5fd"
-          strokeWidth="2"
-          strokeDasharray="6 4"
-          points={prevLine}
-        />
+        {!allZero ? (
+          <>
+            <polyline fill="none" stroke="#245dd8" strokeWidth="2.5" points={currentLine} />
+            <polyline
+              fill="none"
+              stroke="#93c5fd"
+              strokeWidth="2"
+              strokeDasharray="6 4"
+              points={prevLine}
+            />
+            {points.map((p, i) => (
+              <g key={p.week_label}>
+                <circle cx={toX(i)} cy={toY(p.current_year_count)} r="3.5" fill="#245dd8" />
+                <circle cx={toX(i)} cy={toY(p.previous_year_count)} r="3" fill="#93c5fd" />
+              </g>
+            ))}
+          </>
+        ) : (
+          <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="5 5" />
+        )}
       </svg>
       <div className="mt-1 flex justify-between gap-1 text-[9px] text-[#9ca3af]">
         {points.map((p) => (
@@ -171,15 +195,11 @@ function DocumentAlertBanner({ alert }: { alert: StudentAdminDocumentAlert }) {
 
 function WorkQueueRow({ item }: { item: StudentAdminWorkQueueItem }) {
   const slug = resolveCollegeAdminIconSlug(item.icon_slug);
-  const Icon = getCollegeAdminErpIcon(slug);
+  const Icon = getCollegeAdminErpIcon(slug) ?? LayoutGridIcon;
   return (
     <li className="flex items-center justify-between gap-3 border-b border-[#f1f5f9] py-3.5 last:border-0">
       <div className="flex min-w-0 items-center gap-3">
-        {Icon ? (
-          <Icon className="size-[18px] shrink-0 text-[#9ca3af]" aria-hidden />
-        ) : (
-          <span className="size-[18px] shrink-0 rounded bg-[#f3f4f6]" aria-hidden />
-        )}
+        <Icon className="size-[18px] shrink-0 text-[#9ca3af]" aria-hidden strokeWidth={1.75} />
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-[#111827]">{item.title}</p>
           <p className="text-[12px] text-[#6b7280]">
@@ -231,36 +251,6 @@ export function StudentAdministrationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:145600">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student Administration Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Admissions, enrollment, documents and student status"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
-            <CollegeAdminDownload className="size-3.5" />
-            {data?.export_label ?? "Export"}
-          </Button>
-          <Link
-            href={data?.new_admission_href ?? "/college-admin/students/student-admission"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.new_admission_label ?? "New admission"}
-          </Link>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
@@ -289,6 +279,24 @@ export function StudentAdministrationDashboard() {
             onChange={setStudyYear}
             options={data?.study_year_options ?? [{ value: "", label: "All years" }]}
           />
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
+            onClick={handleExport}
+            disabled={isLoading || !data}
+          >
+            <CollegeAdminDownload className="size-3.5" />
+            {data?.export_label ?? "Export"}
+          </Button>
+          <Link
+            href={data?.new_admission_href ?? "/college-admin/students/new-student-registration"}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_admission_label ?? "New admission" } />
+          </Link>
         </div>
       </div>
 
@@ -388,7 +396,9 @@ export function StudentAdministrationDashboard() {
                         <div className="h-2 overflow-hidden rounded-full bg-[#eef2f7]">
                           <div
                             className="h-full rounded-full bg-[#245dd8]"
-                            style={{ width: `${Math.max(4, bar.share_percent)}%` }}
+                            style={{
+                              width: `${bar.student_count > 0 ? Math.max(4, bar.share_percent) : 0}%`,
+                            }}
                           />
                         </div>
                       </li>
