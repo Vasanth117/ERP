@@ -1,5 +1,13 @@
 {
-  "figma": {
-    "url": "https://mcp.figma.com/mcp"
+  "mcpServers": {
+    "figma": {
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "render": {
+      "url": "https://mcp.render.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:RENDER_API_KEY}"
+      }
+    }
   }
 }

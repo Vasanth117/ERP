@@ -1,0 +1,102 @@
+# Render Blueprint for College ERP (FastAPI + Next.js + Celery).
+# Apply from Dashboard: New → Blueprint → connect this repo, or: render blueprint apply
+#
+# Before first deploy, set sync: false secrets (MongoDB Atlas, RabbitMQ e.g. CloudAMQP).
+
+envVarGroups:
+  - name: erp-backend
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: MONGODB_URL
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: erp
+      - key: RABBITMQ_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_ISSUER
+        value: erp-system
+      - key: JWT_AUDIENCE
+        value: erp-api
+      - key: API_V1_PREFIX
+        value: /api/v1
+      - key: SAAS_BILLING_ENABLED
+        value: "true"
+      - key: DEMO_MUTATION_GUARD_ENABLED
+        value: "true"
+
+services:
+  - type: keyvalue
+    name: erp-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+  - type: web
+    name: erp-api
+    runtime: docker
+    rootDir: backend
+    plan: starter
+    healthCheckPath: /ready
+    envVars:
+      - fromGroup: erp-backend
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: erp-redis
+          property: connectionString
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: erp-web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: erp-web
+    runtime: node
+    rootDir: frontend
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: erp-api
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_API_PREFIX
+        value: /api/v1
+
+  - type: worker
+    name: erp-celery-worker
+    runtime: docker
+    rootDir: backend
+    plan: starter
+    dockerCommand: celery -A app.celery_app:celery_app worker --loglevel=info
+    envVars:
+      - fromGroup: erp-backend
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: erp-redis
+          property: connectionString
+
+  - type: worker
+    name: erp-celery-beat
+    runtime: docker
+    rootDir: backend
+    plan: starter
+    dockerCommand: celery -A app.celery_app:celery_app beat --loglevel=info
+    envVars:
+      - fromGroup: erp-backend
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: erp-redis
+          property: connectionString
