@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { SendIcon } from "@/components/icons/erp/generated/send";
-import { Button } from "@/components/ui/button";
-import { CollegeAdminOutlineLink } from "@/features/college-admin/components/ui/college-admin-page-buttons";
+import {
+  CollegeAdminOutlineLink,
+  CollegeAdminPrimaryLink,
+} from "@/features/college-admin/components/ui/college-admin-page-buttons";
 import {
   CollegeAdminKpiGrid,
   CollegeAdminUserDashboardKpiCard,
@@ -124,16 +126,10 @@ export function FeeDemandInvoiceManagementDashboard() {
               label={data?.generate_demands_label ?? "Generate demands"}
             />
           </CollegeAdminOutlineLink>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] px-4 text-xs font-medium hover:bg-[#1f4fb8]"
-            asChild
-          >
-            <Link href={publishHref}>
-              <SendIcon className="size-3.5" aria-hidden />
-              {data?.publish_label ?? "Publish"}
-            </Link>
-          </Button>
+          <CollegeAdminPrimaryLink href={publishHref}>
+            <SendIcon className="size-3.5" aria-hidden />
+            {data?.publish_label ?? "Publish"}
+          </CollegeAdminPrimaryLink>
         </div>
       </div>
 

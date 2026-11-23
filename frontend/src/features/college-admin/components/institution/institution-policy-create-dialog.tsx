@@ -143,7 +143,7 @@ export function InstitutionPolicyCreateDialog({
                 value={form.category}
                 onChange={(e) => onChange({ category: e.target.value })}
               >
-                {page.create_category_options.map((opt) => (
+                {(page.create_category_options ?? []).map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -157,7 +157,7 @@ export function InstitutionPolicyCreateDialog({
                 value={form.audience}
                 onChange={(e) => onChange({ audience: e.target.value })}
               >
-                {page.create_audience_options.map((opt) => (
+                {(page.create_audience_options ?? []).map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -189,7 +189,7 @@ export function InstitutionPolicyCreateDialog({
                 value={form.status}
                 onChange={(e) => onChange({ status: e.target.value })}
               >
-                {page.create_status_options.map((opt) => (
+                {(page.create_status_options ?? []).map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -252,8 +252,8 @@ export function InstitutionPolicyCreateDialog({
 export function defaultPolicyCreateForm(page?: InstitutionPoliciesPage): PolicyCreateFormState {
   return {
     ...EMPTY_FORM,
-    category: page?.create_category_options[0]?.value ?? "Academic",
-    audience: page?.create_audience_options[0]?.value ?? "all",
-    status: page?.create_status_options[0]?.value ?? "draft",
+    category: page?.create_category_options?.[0]?.value ?? "Academic",
+    audience: page?.create_audience_options?.[0]?.value ?? "all",
+    status: page?.create_status_options?.[0]?.value ?? "draft",
   };
 }

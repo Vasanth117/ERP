@@ -58,7 +58,7 @@ export function StudentExamEligibilityDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:12451">
-      <motionHeader data={data} onRerun={handleRerun} rerunPending={rerun.isPending} />
+      <MotionHeader data={data} onRerun={handleRerun} rerunPending={rerun.isPending} />
 
       {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 
@@ -109,7 +109,7 @@ export function StudentExamEligibilityDashboard() {
               ) : (
                 <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No ineligible students in this session.</p>
               )}
-              <motionPagination data={data} page={page} setPage={setPage} />
+              <MotionPagination data={data} page={page} setPage={setPage} />
             </section>
 
           </>
@@ -119,7 +119,7 @@ export function StudentExamEligibilityDashboard() {
   );
 }
 
-function motionHeader({
+function MotionHeader({
   data,
   onRerun,
   rerunPending,
@@ -144,7 +144,7 @@ function motionHeader({
   );
 }
 
-function motionPagination({
+function MotionPagination({
   data,
   page,
   setPage,

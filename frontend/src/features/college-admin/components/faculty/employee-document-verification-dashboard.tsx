@@ -153,7 +153,7 @@ export function EmployeeDocumentVerificationDashboard() {
                   <span className="text-[12px] text-[#6b7280]">{data.documents_footer_label}</span>
                 </div>
                 {data.document_rows.length ? (
-                  <motionTable>
+                  <MotionTable>
                     <table className="w-full min-w-[40rem] text-left text-[13px]">
                       <thead>
                         <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
@@ -184,7 +184,7 @@ export function EmployeeDocumentVerificationDashboard() {
                         ))}
                       </tbody>
                     </table>
-                  </motionTable>
+                  </MotionTable>
                 ) : (
                   <p className="px-5 py-8 text-sm text-[#9ca3af]">No employee documents awaiting verification.</p>
                 )}
@@ -277,6 +277,6 @@ export function EmployeeDocumentVerificationDashboard() {
   );
 }
 
-function motionTable({ children }: { children: React.ReactNode }) {
+function MotionTable({ children }: { children: React.ReactNode }) {
   return <div className="overflow-x-auto">{children}</div>;
 }

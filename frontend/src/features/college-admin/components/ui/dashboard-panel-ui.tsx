@@ -383,7 +383,7 @@ export function CollegeAdminPanelEmptyState({
 }: {
   iconSlug?: ErpIconName;
   title?: string;
-  description: string;
+  description?: string;
   action?: ReactNode;
   className?: string;
 }) {
@@ -398,7 +398,9 @@ export function CollegeAdminPanelEmptyState({
         <ErpIcon slug={iconSlug} className="size-7 text-[#245dd8]" />
       </div>
       <h4 className="mt-5 text-[15px] font-semibold tracking-[-0.01em] text-[#111827]">{title}</h4>
-      <p className="mt-2 max-w-[26rem] text-[13px] leading-relaxed text-[#6b7280]">{description}</p>
+      {description ? (
+        <p className="mt-2 max-w-[26rem] text-[13px] leading-relaxed text-[#6b7280]">{description}</p>
+      ) : null}
       {action ? <div className="mt-6 flex flex-wrap items-center justify-center gap-2">{action}</div> : null}
     </div>
   );

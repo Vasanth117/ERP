@@ -80,9 +80,9 @@ export type InstitutionFieldOption = { value: string; label: string };
 export type InstitutionFieldMeta = {
   key: string;
   label: string;
-  required: boolean;
-  locked: boolean;
-  field_type: string;
+  required?: boolean;
+  locked?: boolean;
+  field_type?: string;
 };
 
 export type InstitutionInformationFormValues = {

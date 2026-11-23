@@ -7,6 +7,7 @@ import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
 import { XIcon } from "@/components/icons/erp/generated/x";
 import { Button } from "@/components/ui/button";
+import { CollegeAdminPrimaryLink } from "@/features/college-admin/components/ui/college-admin-page-buttons";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useAttendanceRulesPoliciesPage } from "@/features/college-admin/hooks/use-attendance-configuration";
 import { cn } from "@/lib/utils";
@@ -62,16 +63,12 @@ export function AttendanceRulesPoliciesDashboard() {
             <XIcon className="size-3.5" aria-hidden />
             {data?.cancel_label ?? "Cancel"}
           </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs text-white hover:bg-[#1f4fb8]"
-            asChild
+          <CollegeAdminPrimaryLink
+            href={data?.configuration_href ?? "/college-admin/attendance/attendance-configuration"}
           >
-            <Link href={data?.configuration_href ?? "/college-admin/attendance/attendance-configuration"}>
-              <CheckIcon className="size-3.5" aria-hidden />
-              {data?.save_label ?? "Save"}
-            </Link>
-          </Button>
+            <CheckIcon className="size-3.5" aria-hidden />
+            {data?.save_label ?? "Save"}
+          </CollegeAdminPrimaryLink>
         </div>
       </div>
 
