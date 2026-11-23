@@ -2143,9 +2143,13 @@ def document_models() -> list[type]:
     ]
 
 
-# Index definitions renamed in Beanie models; drop stale names before init_beanie (MongoDB code 85).
+# Stale index names or specs in Mongo (codes 85/86) block init_beanie on shared DBs (e.g. Atlas).
 _LEGACY_INDEX_DROPS: dict[str, tuple[str, ...]] = {
-    "hostel_allocations": ("unique_active_student_allocation",),
+    "hostel_allocations": (
+        "unique_active_student_allocation",
+        # Same name, older partialFilterExpression (e.g. only pending/active).
+        "unique_active_bed_allocation",
+    ),
 }
 
 
