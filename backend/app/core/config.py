@@ -37,6 +37,13 @@ class Settings(BaseSettings):
   subscription_trial_days: int = 14
   demo_seed_secret: str = Field(default="", repr=False)
   demo_mutation_guard_enabled: bool = True
+  beanie_skip_indexes: bool = Field(
+    default=False,
+    description=(
+      "Skip Beanie index/collection creation at startup. Use on Atlas Free (500 collection "
+      "cap) so the API can boot; upgrade to M10+ for full index sync. Set BEANIE_SKIP_INDEXES=true."
+    ),
+  )
   login_default_tenant_code: str = Field(
     default="",
     description=(

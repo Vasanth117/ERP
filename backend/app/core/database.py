@@ -2216,12 +2216,27 @@ async def connect_to_mongo() -> None:
             logger.error(hint)
         raise
     database = _client[settings.mongodb_db_name]
-    await _drop_legacy_beanie_indexes(database)
+    if settings.beanie_skip_indexes:
+        logger.warning(
+            "BEANIE_SKIP_INDEXES is enabled: skipping index/collection creation. "
+            "Atlas Free tier allows 500 collections; this ERP registers %s Beanie models. "
+            "Use a paid Atlas cluster (M10+) for production.",
+            len(document_models()),
+        )
+    else:
+        await _drop_legacy_beanie_indexes(database)
+    models = document_models()
     await init_beanie(
         database=database,
-        document_models=document_models(),
+        document_models=models,
+        skip_indexes=settings.beanie_skip_indexes,
     )
-    logger.info("Connected to MongoDB database %s", settings.mongodb_db_name)
+    logger.info(
+        "Connected to MongoDB database %s (%s document models, skip_indexes=%s)",
+        settings.mongodb_db_name,
+        len(models),
+        settings.beanie_skip_indexes,
+    )
 
 
 async def close_mongo() -> None:

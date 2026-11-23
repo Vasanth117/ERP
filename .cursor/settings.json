@@ -5,6 +5,9 @@
     },
     "render": {
       "enabled": true
+    },
+    "vercel": {
+      "enabled": true
     }
   }
 }
