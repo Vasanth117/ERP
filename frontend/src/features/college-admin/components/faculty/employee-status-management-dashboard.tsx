@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { ArrowRightLeftIcon } from "@/components/icons/erp/generated/arrow-right-left";
@@ -59,17 +60,6 @@ function mixBarColor(tone: string) {
   }
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function RequiredLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -128,7 +118,7 @@ export function EmployeeStatusManagementDashboard() {
           toast.success("Status change submitted for approval.");
           if (res.selected_request_id) setSelectedRequestId(res.selected_request_id);
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -147,7 +137,7 @@ export function EmployeeStatusManagementDashboard() {
       { request_id: selectedRequestId, page },
       {
         onSuccess: () => toast.success("Status change approved and applied."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -380,12 +370,6 @@ export function EmployeeStatusManagementDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

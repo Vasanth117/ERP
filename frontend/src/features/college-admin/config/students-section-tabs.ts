@@ -56,6 +56,7 @@ export const studentsSectionTabs = [
     figmaFrame: "158:5236",
     activePrefixes: [
       "/college-admin/students/student-transfer-management",
+      "/college-admin/students/student-transfer-create",
       "/college-admin/students/student-promotion-management",
     ],
   },

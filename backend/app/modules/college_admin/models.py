@@ -89,6 +89,28 @@ class InstitutionCampus(Document):
         ]
 
 
+class InstitutionCampusCreationDraft(Document):
+    """In-progress campus creation / edit wizard (CA 02.04)."""
+
+    tenant_id: PydanticObjectId
+    created_by: PydanticObjectId
+    step_key: str = Field(default="identity", max_length=48)
+    values: dict[str, Any] = Field(default_factory=dict)
+    edit_campus_id: PydanticObjectId | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_campus_creation_drafts"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("created_by", ASCENDING)],
+                unique=True,
+                name="unique_campus_creation_draft_per_user",
+            ),
+        ]
+
+
 class InstitutionSettings(Document):
     tenant_id: PydanticObjectId
     settings: dict[str, Any] = Field(default_factory=dict)

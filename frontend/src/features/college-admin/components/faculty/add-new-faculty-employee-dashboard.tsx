@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -30,7 +31,10 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className={cn("space-y-1.5", meta.field_type === "textarea" ? "sm:col-span-2" : undefined)}>
+    <div
+      className={cn("space-y-1.5", meta.field_type === "textarea" ? "sm:col-span-2" : undefined)}
+      data-field-key={meta.key}
+    >
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -102,17 +106,6 @@ function WizardStepper({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 const STEP_TITLES: Record<string, string> = {
   personal: "Personal details",
@@ -162,7 +155,7 @@ export function AddNewFacultyEmployeeDashboard() {
       { draft_id: data.draft_id, step_key: activeStep, values: toPayload(values) },
       {
         onSuccess: () => toast.success("Draft saved"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -180,11 +173,11 @@ export function AddNewFacultyEmployeeDashboard() {
                 toast.success("Employee record created");
                 router.push(res.detail_href);
               },
-              onError: (e: Error) => toast.error(e.message),
+              onError: onCollegeAdminMutationError,
             },
           );
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -427,12 +420,6 @@ export function AddNewFacultyEmployeeDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-1 border-t border-[#f1f5f9] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <span>{data.footer_disclaimer}</span>
-              <span>
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

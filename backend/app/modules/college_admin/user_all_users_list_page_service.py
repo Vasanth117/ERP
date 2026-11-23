@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from datetime import datetime, timedelta
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 from beanie import PydanticObjectId
@@ -55,6 +57,18 @@ _PRIVILEGED_MFA_ROLES = {
     Role.ACCOUNTS_STAFF,
     Role.HR_STAFF,
 }
+
+
+@dataclass
+class _AccountListRow:
+    user: User | None
+    institution: InstitutionUser | None
+    invite: InstitutionUserInvitation | None
+    role_codes: list[str]
+    public_id: str
+    phone: str | None
+    employee: EmployeeRecord | None
+    sort_at: datetime
 
 
 def _display_role(role: Role, institution_role_codes: list[str]) -> str:
@@ -175,7 +189,8 @@ async def get_all_users_list_page(
         dept_filter_oid = PydanticObjectId(department_id)
 
     needle = (search or "").strip().lower()
-    filtered: list[tuple[User, InstitutionUser | None, list[str], str, str | None, EmployeeRecord | None]] = []
+    user_emails = {user.email.lower() for user in users}
+    filtered: list[_AccountListRow] = []
     for user in users:
         if role_filter and user.role.value != role_filter:
             continue
@@ -194,12 +209,49 @@ async def get_all_users_list_page(
         if needle and not _matches_search(user, public_id=public_id, phone=phone, needle=needle):
             continue
         codes = await _role_codes_for_user(tenant_id, user.id)
-        filtered.append((user, inst, codes, public_id, phone, employee))
+        sort_at = inst.last_login_at if inst and inst.last_login_at else user.created_at
+        filtered.append(
+            _AccountListRow(
+                user=user,
+                institution=inst,
+                invite=None,
+                role_codes=codes,
+                public_id=public_id,
+                phone=phone,
+                employee=employee,
+                sort_at=sort_at,
+            ),
+        )
 
-    filtered.sort(
-        key=lambda row: row[1].last_login_at if row[1] and row[1].last_login_at else row[0].created_at,
-        reverse=True,
-    )
+    for inv in pending_invites:
+        if inv.email.lower() in user_emails:
+            continue
+        if role_filter and inv.intended_role.value != role_filter:
+            continue
+        if dept_filter_oid is not None and inv.department_id != dept_filter_oid:
+            continue
+        if status_filter and status_filter != "invited":
+            continue
+        reference_id = (inv.provisioning_reference_id or "").strip()
+        public_id = reference_id or f"INV-{str(inv.id)[-6:].upper()}"
+        if needle:
+            hay = " ".join([inv.full_name, inv.email, public_id, inv.intended_role.value]).lower()
+            if needle not in hay:
+                continue
+        filtered.append(
+            _AccountListRow(
+                user=None,
+                institution=None,
+                invite=inv,
+                role_codes=[],
+                public_id=public_id,
+                phone=None,
+                employee=None,
+                sort_at=inv.created_at,
+            ),
+        )
+
+    filtered.sort(key=lambda row: row.sort_at, reverse=True)
 
     total = len(filtered)
     total_pages = max(1, math.ceil(total / _PAGE_SIZE)) if total else 0
@@ -208,36 +260,65 @@ async def get_all_users_list_page(
     page_slice = filtered[start : start + _PAGE_SIZE]
 
     table_rows: list[UserListTableRow] = []
-    for user, inst, codes, public_id, _phone, employee in page_slice:
-        invited = user.email.lower() in invited_emails
-        status = inst.account_status if inst else InstitutionAccountStatus.ACTIVE
-        status_code, status_label, status_tone = _status_presentation(status, invited)
+    for row in page_slice:
+        if row.user is not None:
+            user = row.user
+            inst = row.institution
+            invited = user.email.lower() in invited_emails
+            status = inst.account_status if inst else InstitutionAccountStatus.ACTIVE
+            status_code, status_label, status_tone = _status_presentation(status, invited)
+            dept_label = "—"
+            if user.department_id and user.department_id in dept_by_id:
+                dept_label = dept_by_id[user.department_id].name
+
+            employee = row.employee
+            mfa_on = bool(employee and employee.confidential_hr.get("mfa_enabled"))
+            if not mfa_on and require_mfa and user.role in _PRIVILEGED_MFA_ROLES:
+                mfa_on = False
+            mfa_label = "On" if mfa_on else "Off"
+            mfa_tone = "success" if mfa_on else "muted"
+
+            last_login = inst.last_login_at if inst else None
+            table_rows.append(
+                UserListTableRow(
+                    user_id=str(user.id),
+                    full_name=user.full_name,
+                    public_id=row.public_id,
+                    role_label=_display_role(user.role, row.role_codes),
+                    department_label=dept_label,
+                    last_login_label=_format_last_login(last_login),
+                    mfa_label=mfa_label,
+                    mfa_tone=mfa_tone,
+                    status_code=status_code,
+                    status_label=status_label,
+                    status_tone=status_tone,
+                    detail_href=f"/college-admin/users/user-details?userId={user.id}",
+                ),
+            )
+            continue
+
+        inv = row.invite
+        if inv is None:
+            continue
         dept_label = "—"
-        if user.department_id and user.department_id in dept_by_id:
-            dept_label = dept_by_id[user.department_id].name
-
-        mfa_on = bool(employee and employee.confidential_hr.get("mfa_enabled"))
-        if not mfa_on and require_mfa and user.role in _PRIVILEGED_MFA_ROLES:
-            mfa_on = False
-        mfa_label = "On" if mfa_on else "Off"
-        mfa_tone = "success" if mfa_on else "muted"
-
-        last_login = inst.last_login_at if inst else None
+        if inv.department_id and inv.department_id in dept_by_id:
+            dept_label = dept_by_id[inv.department_id].name
+        search_href = f"/college-admin/users/all-users-list?search={quote(inv.email)}"
         table_rows.append(
             UserListTableRow(
-                user_id=str(user.id),
-                full_name=user.full_name,
-                public_id=public_id,
-                role_label=_display_role(user.role, codes),
+                user_id=f"inv:{inv.id}",
+                full_name=inv.full_name,
+                public_id=row.public_id,
+                role_label=_display_role(inv.intended_role, []),
                 department_label=dept_label,
-                last_login_label=_format_last_login(last_login),
-                mfa_label=mfa_label,
-                mfa_tone=mfa_tone,
-                status_code=status_code,
-                status_label=status_label,
-                status_tone=status_tone,
-                detail_href=f"/college-admin/users/user-details?userId={user.id}",
-            )
+                last_login_label="—",
+                mfa_label="Off",
+                mfa_tone="muted",
+                status_code="invited",
+                status_label="Invited",
+                status_tone="info",
+                detail_href=search_href,
+            ),
         )
 
     page_numbers = list(range(1, min(total_pages, 12) + 1)) if total_pages else []

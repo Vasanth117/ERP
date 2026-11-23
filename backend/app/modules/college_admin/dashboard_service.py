@@ -14,6 +14,7 @@ from app.modules.college_admin.enums import DashboardDateRange, InstitutionActiv
 from app.modules.college_admin.integrations.operational_reader import OperationalDataReader, _date_window
 from app.modules.college_admin.models import InstitutionActivityLog
 from app.modules.college_admin.policy import require_college_tenant_scope
+from app.modules.college_admin.dashboard_analytics_service import load_college_dashboard_chart_series
 from app.modules.college_admin.repositories import InstitutionActivityRepository
 from app.modules.college_admin.schemas import (
     AcademicTermSummary,
@@ -94,6 +95,15 @@ async def get_dashboard_overview(
     pending = await _reader.pending_approvals(tenant_id, department_id=dept_oid)
     support = await _reader.unresolved_support_requests(tenant_id)
 
+    attendance_trend, fee_monthly_collection = await load_college_dashboard_chart_series(
+        scope,
+        anchor_date=anchor,
+        date_range=date_range,
+        department_id=department_id,
+        campus_id=campus_id,
+        academic_year_label=year_label,
+    )
+
     await InstitutionActivityLog(
         tenant_id=tenant_id,
         actor_id=user.id,
@@ -117,6 +127,8 @@ async def get_dashboard_overview(
         upcoming_events=upcoming_events,
         notifications=notifications,
         integration_health=integration_health,
+        attendance_trend=attendance_trend,
+        fee_monthly_collection=fee_monthly_collection,
     )
 
 

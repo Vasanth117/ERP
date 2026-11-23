@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -97,7 +98,7 @@ export function LoginAccountActivityDashboard() {
           disabled={!data || downloadMutation.isPending}
           onClick={() =>
             downloadMutation.mutate(undefined, {
-              onError: (e: Error) => toast.error(e.message),
+              onError: onCollegeAdminMutationError,
             })
           }
           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
@@ -130,12 +131,7 @@ export function LoginAccountActivityDashboard() {
             onChange={setLocationFilter}
             options={data?.location_filter_options ?? [{ value: "", label: "All locations" }]}
           />
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#dce3ec] bg-white px-3 py-1 text-[11px] font-medium text-[#374151]">
-            <span className="size-1.5 rounded-full bg-[#10b981]" />
-            {data?.scope_badge_label ?? "College scope"}
-          </span>
         </div>
-        <p className="text-[12px] text-[#9ca3af]">{data?.updated_label}</p>
       </div>
 
       <QueryState query={pageQuery}>
@@ -264,10 +260,6 @@ export function LoginAccountActivityDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-col gap-1 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p>{data.footer_snapshot_label}</p>
-            </footer>
           </>
         ) : null}
       </QueryState>

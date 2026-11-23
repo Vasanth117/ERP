@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -127,6 +128,7 @@ export function BulkUserInvitationDashboard() {
   const [page, setPage] = useState(1);
   const [skipErrors, setSkipErrors] = useState(true);
   const [requireMfa, setRequireMfa] = useState(true);
+  const [useAdminPassword, setUseAdminPassword] = useState(true);
 
   const pageQuery = useBulkUserInvitationPage(page);
   const upload = useUploadBulkUserInvitation();
@@ -139,8 +141,10 @@ export function BulkUserInvitationDashboard() {
     if (!data) return;
     const skip = data.invitation_toggles.find((t) => t.key === "skip_rows_with_errors");
     const mfa = data.invitation_toggles.find((t) => t.key === "require_mfa_first_login");
+    const pwd = data.invitation_toggles.find((t) => t.key === "use_admin_password");
     if (skip) setSkipErrors(skip.default_on);
     if (mfa) setRequireMfa(mfa.default_on);
+    if (pwd) setUseAdminPassword(pwd.default_on);
   }, [data]);
 
   const activeStep = data?.current_step_key ?? "upload";
@@ -166,7 +170,7 @@ export function BulkUserInvitationDashboard() {
             toast.success("File uploaded and validated");
             setPage(1);
           },
-          onError: (e: Error) => toast.error(e.message),
+          onError: onCollegeAdminMutationError,
         },
       );
     },
@@ -174,8 +178,12 @@ export function BulkUserInvitationDashboard() {
   );
 
   const syncToggles = useCallback(
-    (nextSkip: boolean, nextMfa: boolean) => {
-      settings.mutate({ skip_rows_with_errors: nextSkip, require_mfa_first_login: nextMfa });
+    (nextSkip: boolean, nextMfa: boolean, nextAdminPassword: boolean) => {
+      settings.mutate({
+        skip_rows_with_errors: nextSkip,
+        require_mfa_first_login: nextMfa,
+        use_admin_password: nextAdminPassword,
+      });
     },
     [settings],
   );
@@ -194,7 +202,7 @@ export function BulkUserInvitationDashboard() {
         toast.success(res.message);
         router.push(res.href);
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -411,7 +419,9 @@ export function BulkUserInvitationDashboard() {
                         ? skipErrors
                         : toggle.key === "require_mfa_first_login"
                           ? requireMfa
-                          : toggle.default_on;
+                          : toggle.key === "use_admin_password"
+                            ? useAdminPassword
+                            : toggle.default_on;
                     return (
                       <li key={toggle.key} className="flex items-start justify-between gap-3">
                         <div>
@@ -426,10 +436,13 @@ export function BulkUserInvitationDashboard() {
                             onChange={(e) => {
                               if (toggle.key === "skip_rows_with_errors") {
                                 setSkipErrors(e.target.checked);
-                                syncToggles(e.target.checked, requireMfa);
-                              } else {
+                                syncToggles(e.target.checked, requireMfa, useAdminPassword);
+                              } else if (toggle.key === "require_mfa_first_login") {
                                 setRequireMfa(e.target.checked);
-                                syncToggles(skipErrors, e.target.checked);
+                                syncToggles(skipErrors, e.target.checked, useAdminPassword);
+                              } else if (toggle.key === "use_admin_password") {
+                                setUseAdminPassword(e.target.checked);
+                                syncToggles(skipErrors, requireMfa, e.target.checked);
                               }
                             }}
                           />
@@ -479,7 +492,6 @@ export function BulkUserInvitationDashboard() {
         </footer>
       ) : null}
 
-      {data ? <p className="text-[11px] text-[#9ca3af]">{data.footer_disclaimer}</p> : null}
     </div>
   );
 }

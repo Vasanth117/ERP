@@ -20,6 +20,7 @@ from app.modules.audit.service import record_audit
 from app.authorization.permissions import Permission as Perm
 from app.authorization.resolver import effective_permissions_for_user
 from app.modules.auth.models import User
+from app.modules.demo.guard import resolve_demo_college_view_tenant_id
 from app.modules.support_access.service import resolve_support_session_token
 from app.modules.tenants.tenant_access import assert_tenant_allows_user_access
 
@@ -105,9 +106,15 @@ async def get_access_scope(
             metadata={"request_id": get_request_id()},
         )
 
+    viewing_demo_college = False
+    if support_session is None and not impersonating:
+        demo_tid = await resolve_demo_college_view_tenant_id(user, request.headers.get("x-demo-college-view"))
+        if demo_tid is not None:
+            tenant_id = demo_tid
+            viewing_demo_college = True
+
     department_id = user.department_id if user.role in DEPARTMENT_SCOPED_ROLES else None
-    effective_tenant_id = tenant_id if (impersonating or support_session is not None) else user.tenant_id
-    await assert_tenant_allows_user_access(effective_tenant_id, role=user.role)
+    await assert_tenant_allows_user_access(tenant_id, role=user.role)
     return AccessScope(
         role=user.role,
         user_id=user.id,
@@ -117,6 +124,7 @@ async def get_access_scope(
         support_session_id=support_session_id,
         support_scopes=support_scopes,
         support_tenant_id=support_tenant_id,
+        viewing_demo_college=viewing_demo_college,
     )
 
 

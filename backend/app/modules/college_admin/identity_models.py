@@ -179,6 +179,15 @@ class InstitutionUserInvitation(Document):
     department_id: PydanticObjectId | None = None
     campus_id: PydanticObjectId | None = None
     institution_role_id: PydanticObjectId | None = None
+    provisioning_reference_id: str | None = Field(
+        default=None,
+        max_length=64,
+        description="Roll / employee ID captured at invite time before the account exists",
+    )
+    provisioning_extras: dict = Field(
+        default_factory=dict,
+        description="Admin-captured profile fields applied when the invitation is accepted",
+    )
     token_hash: str
     status: InvitationStatus = InvitationStatus.PENDING
     expires_at: datetime
@@ -231,6 +240,7 @@ class InstitutionBulkUserInvitationDraft(Document):
     validated_rows: list = Field(default_factory=list)
     skip_rows_with_errors: bool = True
     require_mfa_first_login: bool = True
+    use_admin_password: bool = True
     updated_at: datetime = Field(default_factory=utcnow)
 
     class Settings:

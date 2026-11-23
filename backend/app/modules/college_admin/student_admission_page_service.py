@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 from zoneinfo import ZoneInfo
 
 from beanie.odm.operators.find.comparison import Eq
@@ -102,8 +103,26 @@ def _application_presentation(
     return "under_review", "Under review", "info"
 
 
-def _ay_display(code: str) -> str:
-    return code.replace("-", "–") if code else "—"
+def _ay_display(code: str, year_by_code: dict[str, AcademicYear] | None = None) -> str:
+    if not code:
+        return "—"
+    if year_by_code:
+        doc = year_by_code.get(code)
+        if doc and doc.label:
+            return doc.label.replace("-", "–")
+    return code.replace("-", "–")
+
+
+def _academic_year_option_label(year: AcademicYear) -> str:
+    label = year.label or year.year_code
+    display = label.replace("-", "–")
+    if display.upper().startswith("AY "):
+        return display
+    if display.upper().startswith("AY") or year.year_code.upper().startswith("AY-"):
+        return display if display.upper().startswith("AY") else f"AY {display}"
+    if "–" in display or re.match(r"^\d{4}", display):
+        return f"AY {display}"
+    return display
 
 
 async def get_student_admission_page(
@@ -122,6 +141,7 @@ async def get_student_admission_page(
 
     current_year_label, _ = await _reader.current_academic_term(tenant_id)
     years = await AcademicYear.find(Eq(AcademicYear.tenant_id, tenant_id)).sort("-year_code").to_list()
+    year_by_code = {y.year_code: y for y in years}
     selected_ay = academic_year_code or current_year_label or (years[0].year_code if years else "")
 
     programmes = await AcademicProgramme.find(Eq(AcademicProgramme.tenant_id, tenant_id)).to_list()
@@ -134,36 +154,35 @@ async def get_student_admission_page(
     profiles = await StudentProfile.find(Eq(StudentProfile.tenant_id, tenant_id)).to_list()
     profile_by_user = {p.user_id: p for p in profiles}
 
-    ay_options = [StudentAdminDashboardFilterOption(value="", label="Academic year")]
+    ay_options = [StudentAdminDashboardFilterOption(value="", label="All academic years")]
     for year in years:
         ay_options.append(
             StudentAdminDashboardFilterOption(
                 value=year.year_code,
-                label=f"AY {year.year_code.replace('-', '–')}",
+                label=_academic_year_option_label(year),
             )
         )
-    if len(ay_options) == 1 and selected_ay:
+    if selected_ay and not any(o.value == selected_ay for o in ay_options):
         ay_options.append(
             StudentAdminDashboardFilterOption(
                 value=selected_ay,
-                label=f"AY {_ay_display(selected_ay)}",
+                label=_ay_display(selected_ay, year_by_code),
             )
         )
 
-    programme_codes: set[str] = set()
-    quota_keys: set[str] = set()
+    quota_keys: set[str] = set(_CATEGORY_LABELS.keys())
     for admission in admissions:
-        if admission.programme_code:
-            programme_codes.add(admission.programme_code.upper())
         key = _quota_filter_key(admission)
         if key:
             quota_keys.add(key)
 
     programme_options = [StudentAdminDashboardFilterOption(value="", label="All programmes")]
-    for code in sorted(programme_codes):
-        prog = programme_by_code.get(code)
+    for programme in sorted(programmes, key=lambda p: (p.name or p.programme_code).lower()):
         programme_options.append(
-            StudentAdminDashboardFilterOption(value=code, label=prog.name if prog else code),
+            StudentAdminDashboardFilterOption(
+                value=programme.programme_code,
+                label=programme.name or programme.programme_code,
+            ),
         )
 
     quota_options = [StudentAdminDashboardFilterOption(value="", label="All quotas")]
@@ -211,7 +230,7 @@ async def get_student_admission_page(
             key="applications",
             label="Applications",
             value=f"{total_applications:,}",
-            hint_line=f"{_ay_display(selected_ay)} intake" if selected_ay else "All intakes",
+            hint_line=f"{_ay_display(selected_ay, year_by_code)} intake" if selected_ay else "All intakes",
             hint_tone="info",
         ),
         UserDashboardKpi(
@@ -283,7 +302,7 @@ async def get_student_admission_page(
         table_rows.append(
             StudentAdmissionListTableRow(
                 admission_id=str(admission.id),
-                applicant_name=admission.applicant_name,
+                applicant_name=admission.applicant_name.strip() or "Draft application",
                 application_number=admission.admission_number,
                 programme_label=programme_label,
                 quota_label=quota_label,
@@ -302,7 +321,7 @@ async def get_student_admission_page(
     showing_to = min(start + _PAGE_SIZE, total)
 
     subtitle = (
-        f"Admission applications for {_ay_display(selected_ay)}"
+        f"Admission applications for {_ay_display(selected_ay, year_by_code)}"
         if selected_ay
         else "Admission applications for the college"
     )

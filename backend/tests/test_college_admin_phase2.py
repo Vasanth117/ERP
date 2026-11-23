@@ -37,7 +37,11 @@ from app.modules.college_admin.user_management_dashboard_page_service import (
 )
 from app.modules.college_admin.user_all_users_list_page_service import get_all_users_list_page
 from app.modules.college_admin.user_details_page_service import get_user_details_page
-from app.modules.college_admin.create_new_user_page_service import get_create_new_user_page
+from app.modules.college_admin.create_new_user_page_service import (
+    get_create_new_user_page,
+    submit_create_new_user,
+)
+from app.modules.college_admin.schemas import CreateNewUserSubmitPayload
 from app.modules.college_admin.edit_user_information_page_service import get_edit_user_information_page
 from app.modules.college_admin.bulk_user_invitation_page_service import get_bulk_user_invitation_page
 from app.modules.college_admin.role_management_dashboard_page_service import get_role_management_dashboard_page
@@ -139,6 +143,29 @@ async def test_create_user_and_duplicate(db_ready) -> None:
     assert users_list.page_title == "All Users List"
     assert users_list.pagination.total >= 2
 
+    invite_suffix = uuid4().hex[:6]
+    invite_email = f"student+{invite_suffix}@example.com"
+    invited = await submit_create_new_user(
+        scope,
+        CreateNewUserSubmitPayload(
+            values={
+                "first_name": "Invited",
+                "last_name": "Student",
+                "official_email": invite_email,
+                "user_type": "student",
+                "public_id": f"STU-{invite_suffix}",
+                "send_invitation_email": True,
+            },
+        ),
+    )
+    assert invited.status == "ok"
+    invited_list = await get_all_users_list_page(scope)
+    assert any(
+        row.full_name == "Invited Student" and row.status_code == "invited" for row in invited_list.users
+    )
+    invited_only = await get_all_users_list_page(scope, status_filter="invited")
+    assert any(row.public_id == f"STU-{invite_suffix}" for row in invited_only.users)
+
     details = await get_user_details_page(scope, to_object_id(created.user_id, "user id"))
     assert details.page_title == "User Details"
     assert details.profile_name == "Faculty Member"
@@ -191,6 +218,9 @@ async def test_create_user_and_duplicate(db_ready) -> None:
     assert perm_page.page_title == "Permission Management"
     assert len(perm_page.columns) == 8
     assert len(perm_page.groups) >= 5
+    assert perm_page.can_save
+    assert any(col.editable for col in perm_page.columns)
+    assert any(cell.editable for group in perm_page.groups for row in group.rows for cell in row.cells)
 
     assign_page = await get_role_assignment_page(scope)
     assert assign_page.page_title == "Role Assignment"

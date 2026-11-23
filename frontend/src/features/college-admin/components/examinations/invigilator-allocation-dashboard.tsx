@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
@@ -40,13 +41,6 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function Pagination({ data, page, setPage }: { data: InvigilatorAllocationPage; page: number; setPage: (p: number) => void }) {
   return (
@@ -102,7 +96,7 @@ export function InvigilatorAllocationDashboard() {
     if (!data?.selected_session_id) return;
     autoAssign.mutate(payload(), {
       onSuccess: () => toast.success("Invigilators auto-assigned."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -110,7 +104,7 @@ export function InvigilatorAllocationDashboard() {
     if (!data?.selected_session_id) return;
     publish.mutate(payload(), {
       onSuccess: () => toast.success("Duty roster published."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -193,12 +187,6 @@ export function InvigilatorAllocationDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

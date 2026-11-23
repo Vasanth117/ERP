@@ -1,6 +1,8 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import {
@@ -9,8 +11,10 @@ import {
   fetchAcademicYearConfigurationPage,
   saveAcademicYearConfiguration,
   fetchInstitutionCalendarSettingsPage,
+  createInstitutionHoliday,
   importInstitutionCalendarHolidays,
   saveInstitutionCalendarSettingsPage,
+  createInstitutionPolicy,
   fetchInstitutionPoliciesPage,
   fetchAcademicInstitutionSettingsPage,
   resetAcademicInstitutionSettingsPage,
@@ -80,7 +84,7 @@ export function useSaveInstitutionInformationDraft() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.informationPage() });
       toast.success("Draft saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -99,7 +103,7 @@ export function useSaveInstitutionBrandingDraft() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.brandingPage() });
       toast.success("Branding draft saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -113,7 +117,7 @@ export function usePublishInstitutionBranding() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.settings() });
       toast.success("Branding published");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -126,7 +130,7 @@ export function useUploadBrandingAsset() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.brandingPage() });
       toast.success("File uploaded");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -140,7 +144,7 @@ export function usePublishInstitutionInformation() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.profilePage() });
       toast.success("Institution information saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -161,9 +165,7 @@ export function useUpdateInstitutionProfile() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.profilePage() });
       toast.success("Institution profile saved");
     },
-    onError: (err: Error) => {
-      toast.error(err.message);
-    },
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -174,17 +176,22 @@ export function useAcademicYearConfigurationPage(selectedYearId?: string) {
   });
 }
 
-export function useSaveAcademicYearConfiguration(yearId: string) {
+export function useSaveAcademicYearConfiguration() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (form: AcademicYearSemesterForm) =>
+    mutationFn: ({ yearId, form }: { yearId: string; form: AcademicYearSemesterForm }) =>
       saveAcademicYearConfiguration(yearId, form),
-    onSuccess: (page) => {
-      void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.academicYearPage(page.selected_year_id ?? "") });
-      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-academic-year-page"] });
+    onSuccess: (page, variables) => {
+      void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(variables.yearId), page);
+      if (page.selected_year_id && page.selected_year_id !== variables.yearId) {
+        void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(page.selected_year_id), page);
+      }
+      void qc.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "institution-academic-year-page"],
+      });
       toast.success("Academic year configuration saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -192,11 +199,16 @@ export function useCopyAcademicYearFromPrevious() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => copyAcademicYearFromPrevious(),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-academic-year-page"] });
+    onSuccess: (page) => {
+      if (page.selected_year_id) {
+        void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(page.selected_year_id), page);
+      }
+      void qc.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "institution-academic-year-page"],
+      });
       toast.success("Academic year copied");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -204,11 +216,16 @@ export function useCreateInstitutionAcademicYear() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => createInstitutionAcademicYear(),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-academic-year-page"] });
+    onSuccess: (page) => {
+      if (page.selected_year_id) {
+        void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(page.selected_year_id), page);
+      }
+      void qc.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "institution-academic-year-page"],
+      });
       toast.success("Academic year created");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -237,7 +254,7 @@ export function useSaveInstitutionCalendarSettingsPage(
       void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
       toast.success("Calendar settings saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -249,7 +266,18 @@ export function useImportInstitutionCalendarHolidays() {
       void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
       toast.success("Holidays imported");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
+  });
+}
+
+export function useCreateInstitutionHoliday() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createInstitutionHoliday,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
+    },
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -264,6 +292,17 @@ export function useInstitutionPoliciesPage(params: {
   return useQuery({
     queryKey: collegeAdminQueryKeys.policiesPage(params),
     queryFn: () => fetchInstitutionPoliciesPage(params),
+  });
+}
+
+export function useCreateInstitutionPolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createInstitutionPolicy,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...collegeAdminQueryKeys.all, "policies-page"] });
+    },
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -283,7 +322,7 @@ export function useSaveAcademicInstitutionSettingsPage() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.academicSettingsPage() });
       toast.success("Academic settings saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -295,7 +334,7 @@ export function useResetAcademicInstitutionSettingsPage() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.academicSettingsPage() });
       toast.success("Academic settings reset to defaults");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -337,7 +376,7 @@ export function useSaveCampusContactPage(campusId: string) {
       });
       toast.success("Campus contact information saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -365,7 +404,7 @@ export function useCreateCampus() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.campusesDashboard() });
       toast.success("Campus created");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -380,7 +419,7 @@ export function useUpdateCampus(campusId: string) {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.campuses() });
       toast.success("Campus updated");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -400,7 +439,7 @@ export function useUpdateInstitutionSettings() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.settings() });
       toast.success("Settings saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 

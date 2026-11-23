@@ -91,6 +91,7 @@ def document_models() -> list[type]:
         InstitutionBranding,
         InstitutionBrandingAsset,
         InstitutionCampus,
+        InstitutionCampusCreationDraft,
     )
     from app.modules.college_admin.campus_ext_models import (
         InstitutionCampusBuilding,
@@ -134,6 +135,7 @@ def document_models() -> list[type]:
         AcademicRegulationCatalog,
         AcademicTerm,
         AcademicYear,
+        AcademicYearWizardDraft,
     )
     from app.modules.college_admin.student_admin_models import (
         StudentAdmission,
@@ -1190,6 +1192,7 @@ def document_models() -> list[type]:
         DepartmentProjectReview,
     )
     from app.modules.messaging.outbox_models import DomainOutboxEvent
+    from app.modules.demo.models import DemoGenerationRun
 
     return [
         User,
@@ -1212,6 +1215,7 @@ def document_models() -> list[type]:
         TenantFeatureFlags,
         InstitutionProfile,
         InstitutionCampus,
+        InstitutionCampusCreationDraft,
         InstitutionCampusBuilding,
         InstitutionCampusEmergencyContact,
         InstitutionCampusFacilityShowcase,
@@ -1282,6 +1286,7 @@ def document_models() -> list[type]:
         DepartmentProjectReview,
         DomainOutboxEvent,
         AcademicYear,
+        AcademicYearWizardDraft,
         AcademicTerm,
         AcademicCalendar,
         AcademicProgramme,
@@ -2134,12 +2139,17 @@ def document_models() -> list[type]:
         StudentProfileCorrectionRequest,
         StudentReportExport,
         StudentReportDownloadLog,
+        DemoGenerationRun,
     ]
 
 
-# Index definitions renamed in Beanie models; drop stale names before init_beanie (MongoDB code 85).
+# Stale index names or specs in Mongo (codes 85/86) block init_beanie on shared DBs (e.g. Atlas).
 _LEGACY_INDEX_DROPS: dict[str, tuple[str, ...]] = {
-    "hostel_allocations": ("unique_active_student_allocation",),
+    "hostel_allocations": (
+        "unique_active_student_allocation",
+        # Same name, older partialFilterExpression (e.g. only pending/active).
+        "unique_active_bed_allocation",
+    ),
 }
 
 

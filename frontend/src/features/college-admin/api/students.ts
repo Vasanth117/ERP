@@ -279,6 +279,21 @@ export function saveStudentTransferReview(payload: StudentTransferReviewPayload)
   );
 }
 
+export function fetchStudentTransferCreatePage() {
+  return apiRequest<import("@/features/college-admin/types/student-transfer-create").StudentTransferCreatePage>(
+    "/college-admin/student-administration/students/transfers/create/page",
+  );
+}
+
+export function createStudentTransferRequest(
+  payload: import("@/features/college-admin/types/student-transfer-create").StudentTransferCreatePayload,
+) {
+  return apiRequest<import("@/features/college-admin/types/student-transfer-create").StudentTransferCreateResult>(
+    "/college-admin/student-administration/students/transfers",
+    { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
 function buildStudentPromotionQuery(params?: StudentPromotionManagementPageQuery) {
   const searchParams = new URLSearchParams();
   if (params?.transition_key) searchParams.set("transition_key", params.transition_key);

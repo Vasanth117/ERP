@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -13,6 +14,7 @@ import { XIcon } from "@/components/icons/erp/generated/x";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { uploadCreateNewUserFile } from "@/features/college-admin/api/users";
 import {
   useCreateNewUserPage,
   useSaveCreateNewUserDraft,
@@ -41,7 +43,7 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" data-field-key={meta.key}>
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -150,6 +152,8 @@ export function CreateNewUserDashboard() {
   const [step, setStep] = useState<StepKey>("personal");
   const [checks, setChecks] = useState<CreateNewUserValidationCheck[]>([]);
   const [reviewLines, setReviewLines] = useState(pageQuery.data?.review_lines ?? []);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [uploadingKind, setUploadingKind] = useState<string | null>(null);
 
   const defaults = useMemo(
     () => pageQuery.data?.form,
@@ -162,7 +166,33 @@ export function CreateNewUserDashboard() {
 
   const data = pageQuery.data;
   const fieldMeta = data?.field_meta ?? [];
+  const studentMeta = data?.student_field_meta ?? [];
+  const staffMeta = data?.staff_field_meta ?? [];
+  const documentMeta = data?.document_field_meta ?? [];
   const watched = form.watch();
+  const sendInvite = Boolean(watched.send_invitation_email);
+  const isStudent = watched.user_type === "student";
+
+  const handleProvisioningUpload = useCallback(
+    async (
+      kind: "profile_photo" | "identity_document" | "supporting_document",
+      field: "profile_photo_ref" | "identity_document_ref" | "supporting_document_ref",
+      file: File | undefined,
+    ) => {
+      if (!file) return;
+      setUploadingKind(kind);
+      try {
+        const res = await uploadCreateNewUserFile(kind, file);
+        form.setValue(field, res.file_id, { shouldDirty: true });
+        toast.success(`${res.file_name} uploaded`);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Upload failed");
+      } finally {
+        setUploadingKind(null);
+      }
+    },
+    [form],
+  );
 
   useEffect(() => {
     if (data?.current_step_key && ["personal", "role_access", "review"].includes(data.current_step_key)) {
@@ -212,16 +242,27 @@ export function CreateNewUserDashboard() {
   });
 
   const handleSubmitInvite = form.handleSubmit((values) => {
+    if (!values.send_invitation_email) {
+      if (values.initial_password.length < 8) {
+        toast.error("Password must be at least 8 characters");
+        return;
+      }
+      if (values.initial_password !== confirmPassword) {
+        toast.error("Password and confirmation do not match");
+        return;
+      }
+    }
     submit.mutate(toPayload(values), {
       onSuccess: (res) => {
         toast.success(res.message);
         if (res.detail_href) {
           router.push(res.detail_href);
         } else {
-          router.push("/college-admin/users/all-users-list");
+          const email = encodeURIComponent(values.official_email.trim());
+          router.push(email ? `/college-admin/users/all-users-list?search=${email}` : "/college-admin/users/all-users-list");
         }
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   });
 
@@ -378,6 +419,127 @@ export function CreateNewUserDashboard() {
                         </FormField>
                       </div>
                     </Section>
+
+                    {isStudent ? (
+                      <Section title="Student profile & schooling">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <FormField meta={metaFor(studentMeta, "previous_school")}>
+                            <Input className="h-9" {...form.register("previous_school")} />
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "programme_code")}>
+                            <Input className="h-9" {...form.register("programme_code")} />
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "batch_label")}>
+                            <Input className="h-9" {...form.register("batch_label")} />
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "section_code")}>
+                            <Input className="h-9" {...form.register("section_code")} />
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "blood_group")}>
+                            <select
+                              className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                              {...form.register("blood_group")}
+                            >
+                              {(data.blood_group_options ?? []).map((opt) => (
+                                <option key={opt.value || opt.label} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "nationality")}>
+                            <select
+                              className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                              {...form.register("nationality")}
+                            >
+                              {(data.nationality_options ?? []).map((opt) => (
+                                <option key={opt.value || opt.label} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "guardian_name")}>
+                            <Input className="h-9" {...form.register("guardian_name")} />
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "guardian_relationship")}>
+                            <select
+                              className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                              {...form.register("guardian_relationship")}
+                            >
+                              {(data.guardian_relationship_options ?? []).map((opt) => (
+                                <option key={opt.value || opt.label} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "guardian_mobile")}>
+                            <Input className="h-9" {...form.register("guardian_mobile")} />
+                          </FormField>
+                        </div>
+                        <div className="mt-4 grid gap-4">
+                          <FormField meta={metaFor(studentMeta, "permanent_address")}>
+                            <textarea
+                              className="min-h-[72px] w-full rounded-md border border-[#dce3ec] px-3 py-2 text-[13px]"
+                              {...form.register("permanent_address")}
+                            />
+                          </FormField>
+                          <FormField meta={metaFor(studentMeta, "current_address")}>
+                            <textarea
+                              className="min-h-[72px] w-full rounded-md border border-[#dce3ec] px-3 py-2 text-[13px]"
+                              {...form.register("current_address")}
+                            />
+                          </FormField>
+                        </div>
+                      </Section>
+                    ) : (
+                      <Section title="Staff profile">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <FormField meta={metaFor(staffMeta, "specialization")}>
+                            <Input className="h-9" {...form.register("specialization")} />
+                          </FormField>
+                          <FormField meta={metaFor(staffMeta, "experience_years")}>
+                            <Input className="h-9" inputMode="decimal" {...form.register("experience_years")} />
+                          </FormField>
+                        </div>
+                      </Section>
+                    )}
+
+                    <Section title="Photo & documents">
+                      <div className="space-y-4">
+                        {(
+                          [
+                            ["profile_photo", "profile_photo_ref", "Profile photo"],
+                            ["identity_document", "identity_document_ref", "ID / admission document"],
+                            ["supporting_document", "supporting_document_ref", "Supporting document"],
+                          ] as const
+                        ).map(([kind, field, label]) => {
+                          const refValue = form.watch(field);
+                          return (
+                            <div key={kind} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-[13px] font-medium text-[#374151]">{label}</p>
+                                {refValue ? (
+                                  <p className="text-[11px] text-[#10b981]">Uploaded</p>
+                                ) : (
+                                  <p className="text-[11px] text-[#9ca3af]">Optional · JPG, PNG or PDF</p>
+                                )}
+                              </div>
+                              <Input
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="h-9 max-w-xs text-[12px]"
+                                disabled={uploadingKind === kind}
+                                onChange={(e) =>
+                                  void handleProvisioningUpload(kind, field, e.target.files?.[0])
+                                }
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Section>
                   </>
                 ) : null}
 
@@ -427,7 +589,34 @@ export function CreateNewUserDashboard() {
               </div>
 
               <div className="space-y-5">
-                <Section title="Invitation settings">
+                {!sendInvite ? (
+                  <Section title="Login credentials (admin-set)">
+                    <p className="mb-3 text-[11px] text-[#6b7280]">
+                      The user signs in with their official email and the password you set below.
+                    </p>
+                    <div className="space-y-3">
+                      <FormField meta={{ key: "initial_password", label: "Password", required: true }}>
+                        <Input
+                          className="h-9"
+                          type="password"
+                          autoComplete="new-password"
+                          {...form.register("initial_password")}
+                        />
+                      </FormField>
+                      <FormField meta={{ key: "confirm_password", label: "Confirm password", required: true }}>
+                        <Input
+                          className="h-9"
+                          type="password"
+                          autoComplete="new-password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                      </FormField>
+                    </div>
+                  </Section>
+                ) : null}
+
+                <Section title="Account options">
                   <ul className="space-y-4">
                     {data.invitation_settings.map((toggle) => (
                       <li key={toggle.key} className="flex items-start justify-between gap-3">
@@ -518,8 +707,6 @@ export function CreateNewUserDashboard() {
                 )}
               </div>
             </footer>
-
-            <p className="text-[11px] text-[#9ca3af]">{data.footer_disclaimer}</p>
           </>
         ) : null}
       </QueryState>

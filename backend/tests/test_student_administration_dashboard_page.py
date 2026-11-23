@@ -85,3 +85,21 @@ async def test_student_administration_dashboard_page_metrics(db_ready):
     assert any(k.key == "admissions_year" and k.value == "1" for k in page.kpis)
     assert len(page.recent_admissions_rows) == 1
     assert page.recent_admissions_rows[0].student_name == "Rohan Mehta"
+
+
+@pytest.mark.anyio
+async def test_student_administration_dashboard_ay_code_without_dates(db_ready):
+    suffix = uuid4().hex[:8]
+    tenant, _user, scope = await _seed_admin(suffix)
+    year_code = f"AY-{suffix[:6].upper()}"
+    year = AcademicYear(
+        tenant_id=tenant.id,
+        year_code=year_code,
+        label=year_code,
+        is_current=True,
+    )
+    await year.insert()
+
+    page = await get_student_administration_dashboard_page(scope, academic_year_code=year_code)
+    assert page.page_title == "Student Administration Dashboard"
+    assert len(page.admissions_weekly_series) == 8

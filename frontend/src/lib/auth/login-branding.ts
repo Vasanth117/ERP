@@ -8,12 +8,11 @@ export const loginBranding = {
   productName: "College ERP",
   /**
    * Set to a path under `public/` (e.g. `/login/college-hero.png`) to replace the default art.
-   * `null` uses the bundled placeholder illustration below.
+   * `null` uses the bundled campus hero in the login brand panel.
    */
   illustrationSrc: null as string | null,
-  illustrationAlt: "College campus illustration",
-  /** Fallback when `illustrationSrc` is null */
-  defaultIllustrationSrc: "/landing/2486e.png",
+  illustrationAlt:
+    "Unified Campus Management — College ERP by benchend",
   colors: {
     pageBackground: "#eef2f6",
     cardBorder: "#e3e9f2",

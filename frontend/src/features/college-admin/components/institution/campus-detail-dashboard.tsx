@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CollegeAdminDashboardPanel as Panel } from "@/features/college-admin/components/ui/dashboard-panel-ui";
 
 import {
   getCollegeAdminErpIcon,
@@ -11,31 +12,6 @@ import { useCampusDetailPage } from "@/features/college-admin/hooks/use-institut
 import type { CampusFacilityStatusRow, CampusSummaryStat } from "@/features/college-admin/types/institution";
 import { cn } from "@/lib/utils";
 
-function Panel({
-  title,
-  actionHref,
-  actionLabel,
-  children,
-}: {
-  title: string;
-  actionHref?: string;
-  actionLabel?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center justify-between gap-2 border-b border-[#f1f5f9] px-5 py-3.5">
-        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
-        {actionHref && actionLabel ? (
-          <Link href={actionHref} className="text-[12px] font-medium text-[#245dd8] hover:underline">
-            {actionLabel}
-          </Link>
-        ) : null}
-      </div>
-      <div className="px-5 py-1">{children}</div>
-    </section>
-  );
-}
 
 function SummaryGrid({ stats }: { stats: CampusSummaryStat[] }) {
   return (
@@ -86,12 +62,20 @@ export function CampusDetailDashboard({ campusId }: { campusId: string }) {
             {data?.page_title ?? "Campus details"}
           </h2>
         </div>
-        <Link
-          href={data?.contact_href ?? "/college-admin/institution/campuses"}
-          className="inline-flex h-9 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-        >
-          Address & contact →
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/college-admin/institution/campuses/new?campus_id=${encodeURIComponent(campusId)}`}
+            className="inline-flex h-9 items-center rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
+          >
+            Edit campus
+          </Link>
+          <Link
+            href={data?.contact_href ?? "/college-admin/institution/campuses"}
+            className="inline-flex h-9 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            Address & contact →
+          </Link>
+        </div>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>

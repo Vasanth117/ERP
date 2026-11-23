@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -32,7 +33,7 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" data-field-key={meta.key}>
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -169,7 +170,7 @@ export function CreateEditRoleDashboard() {
           }
           router.push(data?.back_href ?? "/college-admin/users/role-management-dashboard");
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });

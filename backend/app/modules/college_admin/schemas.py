@@ -4,7 +4,9 @@ from datetime import date, datetime
 from typing import Any
 
 from beanie import PydanticObjectId
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
+
+from app.core.form_values import blank_to_none
 
 from app.modules.college_admin.enums import DashboardDateRange, PendingApprovalCategory
 from app.modules.college_admin.models import (
@@ -107,6 +109,20 @@ class SupportRequestSummary(BaseModel):
     created_at: datetime
 
 
+class CollegeDashboardAttendanceTrendPoint(BaseModel):
+    label: str
+    students_pct: float | None = None
+    faculty_pct: float | None = None
+
+
+class CollegeDashboardFeeMonthPoint(BaseModel):
+    year: int
+    month: int
+    label: str
+    amount_inr: float = 0
+    is_month_to_date: bool = False
+
+
 class CollegeDashboardOverview(BaseModel):
     filters: DashboardFilterParams
     academic_term: AcademicTermSummary
@@ -120,6 +136,8 @@ class CollegeDashboardOverview(BaseModel):
     upcoming_events: list[dict[str, Any]] = Field(default_factory=list)
     notifications: list[NotificationSummary] = Field(default_factory=list)
     integration_health: list[IntegrationHealthSummary] = Field(default_factory=list)
+    attendance_trend: list[CollegeDashboardAttendanceTrendPoint] = Field(default_factory=list)
+    fee_monthly_collection: list[CollegeDashboardFeeMonthPoint] = Field(default_factory=list)
 
 
 class CollegeDashboardStatsRead(BaseModel):
@@ -158,6 +176,13 @@ class InstitutionProfileUpdate(BaseModel):
     accreditation_display: str | None = Field(default=None, max_length=200)
     autonomous_status_valid_until: date | None = None
     ugc_recognition: str | None = Field(default=None, max_length=64)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_blank_optional_strings(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        return {key: blank_to_none(value) for key, value in data.items()}
 
 
 class InstitutionProfileRead(BaseModel):
@@ -420,6 +445,83 @@ class InstitutionFieldMeta(BaseModel):
     field_type: str = "text"
 
 
+class CampusCreationWizardStep(BaseModel):
+    key: str
+    label: str
+    subtitle: str = ""
+    step_number: int
+    status: str = "pending"
+
+
+class CampusCreationFormValues(BaseModel):
+    campus_code: str = ""
+    name: str = ""
+    is_main: str = ""
+    address_line1: str = ""
+    address_line2: str = ""
+    city: str = ""
+    district: str = ""
+    state: str = ""
+    country: str = ""
+    postal_code: str = ""
+    latitude: str = ""
+    longitude: str = ""
+    contact_email: str = ""
+    contact_phone: str = ""
+    timezone: str = ""
+    locale: str = ""
+    area_acres: str = ""
+    built_up_sq_m: str = ""
+    buildings_count: str = ""
+    parking_slots: str = ""
+    planned_classrooms: str = ""
+    planned_laboratories: str = ""
+    hostel_blocks_planned: str = ""
+    library_branches_planned: str = ""
+    facilities_notes: str = ""
+
+
+class CampusCreationPageRead(BaseModel):
+    draft_id: str
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    save_draft_label: str
+    create_label: str
+    next_label: str = "Save & continue"
+    back_step_label: str = "Back"
+    current_step_key: str
+    steps: list[CampusCreationWizardStep]
+    field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    form: CampusCreationFormValues = Field(default_factory=CampusCreationFormValues)
+    timezone_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    locale_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    is_edit_mode: bool = False
+    edit_campus_id: str | None = None
+    has_draft: bool = False
+    generated_at: datetime
+
+
+class CampusCreationDraftUpdate(BaseModel):
+    draft_id: str | None = None
+    step_key: str | None = None
+    values: dict[str, Any] = Field(default_factory=dict)
+    advance: bool = False
+    retreat: bool = False
+
+
+class CampusCreationFinishPayload(BaseModel):
+    draft_id: str
+    values: dict[str, Any] = Field(default_factory=dict)
+
+
+class CampusCreationFinishResult(BaseModel):
+    campus_id: str
+    detail_href: str
+    message: str = "Campus saved successfully"
+
+
 class InstitutionInformationNotice(BaseModel):
     title: str
     body: str
@@ -489,6 +591,7 @@ class BrandingColorField(BaseModel):
 class BrandingPrimaryLogoPanel(BaseModel):
     upload_hint: str
     current_summary: str | None = None
+    file_id: str | None = None
 
 
 class BrandingAssetRow(BaseModel):
@@ -499,6 +602,7 @@ class BrandingAssetRow(BaseModel):
     status_label: str
     editable: bool = True
     file_name: str | None = None
+    file_id: str | None = None
 
 
 class BrandingDocumentTemplateRow(BaseModel):
@@ -569,6 +673,7 @@ class AcademicYearManagementTableRow(BaseModel):
     status_code: str
     status_label: str
     status_tone: str
+    detail_href: str
 
 
 class AcademicYearClosingChecklistItem(BaseModel):
@@ -611,6 +716,7 @@ class AcademicYearManagementPageRead(BaseModel):
     close_current_year_enabled: bool
     close_target_year_label: str | None = None
     new_academic_year_label: str
+    new_academic_year_href: str
     academic_years_table_title: str
     table_headers: list[str]
     academic_years: list[AcademicYearManagementTableRow]
@@ -645,11 +751,124 @@ class AcademicYearManagementCreate(BaseModel):
     end_date: date | None = None
     semester_count: int = Field(default=2, ge=1, le=4)
     admission_intake_opens: date | None = None
+    summer_term_start: date | None = None
+    summer_term_end: date | None = None
+    year_end_closing: date | None = None
+
+    @model_validator(mode="after")
+    def _validate_date_order(self) -> "AcademicYearManagementCreate":
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValueError("End date must be on or after the start date.")
+        return self
 
 
 class AcademicYearManagementRulesSave(BaseModel):
     only_one_current_year: bool = True
     lock_closed_years: bool = True
+
+
+class AcademicYearWizardStep(BaseModel):
+    key: str
+    label: str
+    step_number: int
+    status: str = "pending"
+
+
+class AcademicYearWizardFormSection(BaseModel):
+    key: str
+    title: str
+
+
+class AcademicYearWizardSummaryItem(BaseModel):
+    key: str
+    label: str
+    value: str
+
+
+class AcademicYearWizardFormValues(BaseModel):
+    label: str = ""
+    copy_from_year_id: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    admission_intake_opens: str | None = None
+    summer_term_start: str | None = None
+    summer_term_end: str | None = None
+    year_end_closing: str | None = None
+    semester_count: str = "2"
+
+
+class NewAcademicYearWizardPageRead(BaseModel):
+    draft_id: str
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    save_draft_label: str
+    continue_label: str
+    finalize_label: str
+    current_step_key: str
+    step_position_label: str
+    steps: list[AcademicYearWizardStep]
+    sections: list[AcademicYearWizardFormSection]
+    field_meta: list[InstitutionFieldMeta]
+    copy_from_options: list[AcademicYearCreateFormOption]
+    semester_count_options: list[AcademicYearCreateFormOption]
+    form: AcademicYearWizardFormValues
+    summary_title: str
+    summary_items: list[AcademicYearWizardSummaryItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AcademicYearWizardDraftUpdate(BaseModel):
+    draft_id: str
+    step_key: str | None = None
+    advance: bool = False
+    finalize: bool = False
+    values: dict[str, Any] = Field(default_factory=dict)
+
+
+class NewAcademicYearWizardSaveResult(BaseModel):
+    page: NewAcademicYearWizardPageRead | None = None
+    created_year_id: str | None = None
+    details_href: str | None = None
+
+
+class AcademicYearDetailsKeyValueRow(BaseModel):
+    key: str
+    label: str
+    value: str
+
+
+class AcademicYearDetailsTermRow(BaseModel):
+    term_id: str
+    label: str
+    period_label: str
+    status_label: str
+    status_tone: str
+
+
+class AcademicYearDetailsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    year_id: str
+    year_label: str
+    status_label: str
+    status_tone: str
+    is_current: bool
+    overview_section_title: str
+    overview_rows: list[AcademicYearDetailsKeyValueRow]
+    terms_section_title: str
+    terms_table_headers: list[str]
+    term_rows: list[AcademicYearDetailsTermRow]
+    manage_semesters_label: str
+    manage_semesters_href: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
 
 
 class SemesterManagementTableRow(BaseModel):
@@ -749,14 +968,33 @@ class ProgrammeManagementTableRow(BaseModel):
     status_code: str
     status_label: str
     status_tone: str
+    detail_href: str
 
 
 class ProgrammeManagementCreate(BaseModel):
     programme_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
+    short_name: str | None = Field(default=None, max_length=64)
+    description: str | None = Field(default=None, max_length=2000)
     department_id: str | None = None
+    programme_level: str | None = Field(default=None, max_length=32)
+    regulation_code: str | None = Field(default=None, max_length=32)
+    mode_of_study: str = Field(default="full_time", max_length=32)
+    approved_intake: int | None = Field(default=None, ge=0, le=9999)
+    entry_qualification: str | None = Field(default=None, max_length=500)
     duration_semesters: int = Field(default=8, ge=1, le=20)
     credits_required: float = Field(default=160, ge=0)
+
+
+class ProgrammeManagementCreateResult(BaseModel):
+    programme_id: str
+    detail_href: str
+    message: str = "Programme created"
+
+
+class ProgrammeDetailsSummaryRow(BaseModel):
+    label: str
+    value: str
 
 
 class AcademicYearSemesterForm(BaseModel):
@@ -767,6 +1005,25 @@ class AcademicYearSemesterForm(BaseModel):
     summer_term_start: date | None = None
     summer_term_end: date | None = None
     year_end_closing: date | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def empty_strings_to_none(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        out = dict(data)
+        for key in (
+            "odd_semester_start",
+            "odd_semester_end",
+            "even_semester_start",
+            "even_semester_end",
+            "summer_term_start",
+            "summer_term_end",
+            "year_end_closing",
+        ):
+            if key in out and (out[key] == "" or out[key] is None):
+                out[key] = None
+        return out
 
 
 class AcademicYearSemesterFieldMeta(BaseModel):
@@ -793,12 +1050,31 @@ class AcademicYearLinkedConfig(BaseModel):
     icon_slug: str
 
 
+class ProgrammeDetailsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    programme_name: str
+    programme_code: str
+    status_label: str
+    status_tone: str
+    back_href: str
+    edit_note: str
+    summary_rows: list[ProgrammeDetailsSummaryRow]
+    description: str | None
+    checklist_title: str
+    checklist_items: list[AcademicYearRuleToggle]
+    linked_title: str
+    linked_items: list[AcademicYearLinkedConfig]
+    generated_at: datetime
+
+
 class AcademicYearConfigurationPageRead(BaseModel):
     page_title: str
     page_subtitle: str
     copy_from_previous_label: str
     new_academic_year_label: str
     save_label: str
+    cancel_label: str
     academic_years_table_title: str
     archive_view_href: str
     archive_view_label: str
@@ -857,6 +1133,24 @@ class InstitutionPolicyReviewItem(BaseModel):
     status_tone: str
 
 
+class InstitutionPolicyCreate(BaseModel):
+    title: str = Field(min_length=2, max_length=200)
+    category: str = Field(min_length=2, max_length=64)
+    audience: str = Field(min_length=2, max_length=64)
+    version_label: str = Field(default="1.0", min_length=1, max_length=32)
+    effective_from: date | None = None
+    status: str = Field(default="draft", max_length=32)
+    owner_label: str | None = Field(default=None, max_length=200)
+    approved_by_label: str | None = Field(default=None, max_length=300)
+    acknowledgement_requirement: str | None = Field(default=None, max_length=200)
+
+
+class InstitutionPolicyCreateResult(BaseModel):
+    policy_id: str
+    title: str
+    message: str = "Policy created successfully"
+
+
 class PoliciesPagination(BaseModel):
     page: int
     page_size: int
@@ -872,6 +1166,10 @@ class ProgrammeManagementPageRead(BaseModel):
     page_subtitle: str
     export_label: str
     add_programme_label: str
+    new_programme_href: str
+    create_level_options: list[AcademicYearCreateFormOption]
+    create_regulation_options: list[AcademicYearCreateFormOption]
+    create_mode_options: list[AcademicYearCreateFormOption]
     search_placeholder: str
     level_filter_label: str
     department_filter_label: str
@@ -1431,6 +1729,21 @@ class InstitutionCalendarHolidayRow(BaseModel):
     applies_to_label: str
 
 
+class InstitutionHolidayCreate(BaseModel):
+    academic_year_id: str
+    title: str = Field(min_length=2, max_length=200)
+    start_date: date
+    end_date: date | None = None
+    holiday_type: str = Field(default="institution", max_length=32)
+    applies_to: str = Field(default="all", max_length=32)
+
+
+class InstitutionHolidayCreateResult(BaseModel):
+    holiday_id: str
+    title: str
+    message: str = "Holiday added successfully"
+
+
 class InstitutionCalendarFormValues(BaseModel):
     working_days: str
     saturday_pattern: str
@@ -1463,6 +1776,12 @@ class InstitutionCalendarSettingsPageRead(BaseModel):
     holidays_section_title: str
     add_holiday_label: str
     add_holiday_href: str
+    add_holiday_dialog_title: str = "Add holiday"
+    add_holiday_dialog_subtitle: str = "Register a holiday for the selected academic year"
+    create_holiday_save_label: str = "Add holiday"
+    create_holiday_cancel_label: str = "Cancel"
+    create_holiday_type_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    create_holiday_applies_options: list[InstitutionFieldOption] = Field(default_factory=list)
     holiday_table_headers: list[str]
     holidays: list[InstitutionCalendarHolidayRow]
     holiday_count_label: str
@@ -1698,10 +2017,27 @@ class CreateNewUserFormValues(BaseModel):
     designation: str | None = None
     campus_id: str | None = None
     institution_role_id: str | None = None
-    send_invitation_email: bool = True
+    initial_password: str = ""
+    send_invitation_email: bool = False
     send_sms_login_link: bool = False
     require_mfa_first_login: bool = True
     allow_sso_login: bool = True
+    previous_school: str = ""
+    programme_code: str = ""
+    batch_label: str = ""
+    section_code: str = ""
+    permanent_address: str = ""
+    current_address: str = ""
+    guardian_name: str = ""
+    guardian_relationship: str = ""
+    guardian_mobile: str = ""
+    blood_group: str | None = None
+    nationality: str | None = None
+    specialization: str = ""
+    experience_years: str = ""
+    profile_photo_ref: str | None = None
+    identity_document_ref: str | None = None
+    supporting_document_ref: str | None = None
 
 
 class CreateNewUserPageRead(BaseModel):
@@ -1723,6 +2059,12 @@ class CreateNewUserPageRead(BaseModel):
     designation_options: list[InstitutionFieldOption]
     campus_options: list[InstitutionFieldOption]
     institution_role_options: list[InstitutionFieldOption]
+    student_field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    staff_field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    document_field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    guardian_relationship_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    blood_group_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    nationality_options: list[InstitutionFieldOption] = Field(default_factory=list)
     invitation_settings: list[CreateNewUserToggleSetting]
     validation_checks: list[CreateNewUserValidationCheck]
     review_lines: list[CreateNewUserReviewLine] = Field(default_factory=list)
@@ -1758,6 +2100,12 @@ class CreateNewUserSubmitResponse(BaseModel):
     invitation_id: str | None = None
     detail_href: str | None = None
     accept_token: str | None = None
+
+
+class CreateNewUserProvisioningUploadRead(BaseModel):
+    file_id: str
+    file_name: str
+    kind: str
 
 
 class EditUserInformationFormValues(BaseModel):
@@ -1909,6 +2257,7 @@ class BulkUserInvitationStepPayload(BaseModel):
     step_key: str | None = None
     skip_rows_with_errors: bool | None = None
     require_mfa_first_login: bool | None = None
+    use_admin_password: bool | None = None
 
 
 class BulkUserInvitationSendResponse(BaseModel):
@@ -2090,6 +2439,7 @@ class PermissionManagementPageRead(BaseModel):
     change_on_label: str
     change_off_label: str
     can_save: bool
+    matrix_read_only_reason: str | None = None
     footer_disclaimer: str
     footer_snapshot_label: str
     generated_at: datetime
@@ -2418,6 +2768,13 @@ class InstitutionPoliciesPageRead(BaseModel):
     export_label: str
     add_policy_label: str
     add_policy_href: str
+    create_dialog_title: str = "Add policy"
+    create_dialog_subtitle: str = "Define title, audience, version and publish status"
+    create_save_label: str = "Create policy"
+    create_cancel_label: str = "Cancel"
+    create_category_options: list[InstitutionPolicyFilterOption] = Field(default_factory=list)
+    create_audience_options: list[InstitutionPolicyFilterOption] = Field(default_factory=list)
+    create_status_options: list[InstitutionPolicyFilterOption] = Field(default_factory=list)
     search_placeholder: str
     category_filter_label: str
     audience_filter_label: str
@@ -3118,6 +3475,16 @@ class DepartmentHeadAssignmentFormValues(BaseModel):
     order_reference: str = ""
 
 
+class OrganizationModuleEmptyState(BaseModel):
+    title: str
+    description: str
+    highlights: list[str] = Field(default_factory=list)
+    primary_label: str
+    primary_href: str
+    secondary_label: str | None = None
+    secondary_href: str | None = None
+
+
 class DepartmentHeadAssignmentPageRead(BaseModel):
     page_title: str
     page_subtitle: str
@@ -3148,6 +3515,9 @@ class DepartmentHeadAssignmentPageRead(BaseModel):
     footer_disclaimer: str
     footer_snapshot_label: str
     can_submit: bool
+    assign_head_enabled: bool = True
+    form_interactive: bool = True
+    setup_empty_state: OrganizationModuleEmptyState | None = None
     generated_at: datetime
 
 
@@ -3177,12 +3547,20 @@ class OrganizationalHierarchyNodeRead(BaseModel):
     children: list["OrganizationalHierarchyNodeRead"] = Field(default_factory=list)
 
 
+class OrganizationalHierarchyEditAction(BaseModel):
+    action_key: str
+    label: str
+    href: str
+    action_type: str = "outline"
+
+
 class OrganizationalHierarchySelectedUnitRead(BaseModel):
     node_id: str
     unit_label: str
     reports_to_label: str
     head_label: str
     members_label: str
+    edit_actions: list[OrganizationalHierarchyEditAction] = Field(default_factory=list)
 
 
 class OrganizationalHierarchySummaryItem(BaseModel):
@@ -3197,6 +3575,10 @@ class OrganizationalHierarchyPageRead(BaseModel):
     export_label: str
     edit_structure_label: str
     edit_structure_href: str
+    edit_mode: bool = False
+    edit_panel_title: str = ""
+    edit_panel_hint: str = ""
+    setup_edit_actions: list[OrganizationalHierarchyEditAction] = Field(default_factory=list)
     structure_section_title: str
     structure_section_hint: str
     tree: list[OrganizationalHierarchyNodeRead]
@@ -3278,6 +3660,7 @@ class ProgrammeCourseMappingPageRead(BaseModel):
     course_load_bars: list[CourseLoadBarItem]
     footer_disclaimer: str
     footer_snapshot_label: str
+    setup_empty_state: OrganizationModuleEmptyState | None = None
     generated_at: datetime
 
 
@@ -3313,6 +3696,9 @@ class DepartmentFacultyAllocationFormValues(BaseModel):
     allocate_to_department_id: str = ""
     allocation_type: str = "shared_50"
     effective_from: str = ""
+    effective_to: str = ""
+    order_reference: str = ""
+    semester_label: str = ""
 
 
 class DepartmentFacultyAllocationPageRead(BaseModel):
@@ -3339,17 +3725,23 @@ class DepartmentFacultyAllocationPageRead(BaseModel):
     capacity_rows: list[DepartmentFacultyCapacityRow]
     pagination: PoliciesPagination
     move_share_section_title: str
+    move_share_section_subtitle: str = ""
     faculty_field_label: str
     faculty_options: list[InstitutionFieldOption]
     allocate_to_field_label: str
     department_allocate_options: list[InstitutionFieldOption]
     allocation_type_field_label: str
     allocation_type_options: list[InstitutionFieldOption]
+    allocation_type_hint: str = ""
     effective_from_field_label: str
+    effective_to_field_label: str = "Effective to"
+    order_reference_field_label: str = "Order / reference"
     form: DepartmentFacultyAllocationFormValues
     move_footer_note: str
     cancel_label: str
     save_label: str
+    allocate_faculty_enabled: bool = True
+    form_interactive: bool = True
     vacancies_section_title: str
     hr_recruitment_label: str
     hr_recruitment_href: str
@@ -3359,11 +3751,16 @@ class DepartmentFacultyAllocationPageRead(BaseModel):
     can_save: bool
     footer_disclaimer: str
     footer_snapshot_label: str
+    setup_empty_state: OrganizationModuleEmptyState | None = None
     generated_at: datetime
 
 
 class DepartmentFacultyAllocationSavePayload(BaseModel):
     form: DepartmentFacultyAllocationFormValues
+    page: int = 1
+    semester_label: str | None = None
+    department_id: str | None = None
+    designation_filter: str | None = None
 
 
 class DepartmentFacultyAllocationSaveResult(BaseModel):
@@ -4361,6 +4758,9 @@ class NewStudentRegistrationNextStep(BaseModel):
 
 
 class NewStudentRegistrationFormValues(BaseModel):
+    programme_code: str = ""
+    academic_year_code: str = ""
+    marks_percentage: str = ""
     full_name: str = ""
     date_of_birth: str | None = None
     gender: str | None = None
@@ -4393,6 +4793,8 @@ class NewStudentRegistrationPageRead(BaseModel):
     nationality_options: list[InstitutionFieldOption]
     community_options: list[InstitutionFieldOption]
     relationship_options: list[InstitutionFieldOption]
+    programme_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    academic_year_options: list[InstitutionFieldOption] = Field(default_factory=list)
     form: NewStudentRegistrationFormValues
     admission_summary_title: str
     admission_summary: list[NewStudentRegistrationSummaryItem]
@@ -5845,6 +6247,41 @@ class StudentTransferReviewSavePayload(BaseModel):
     page: int = 1
 
 
+class StudentTransferCreatePageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    submit_label: str
+    student_field_label: str
+    transfer_type_field_label: str
+    programme_field_label: str
+    section_field_label: str
+    institution_field_label: str
+    effective_field_label: str
+    reason_field_label: str
+    student_options: list[InstitutionFieldOption]
+    transfer_type_options: list[InstitutionFieldOption]
+    programme_options: list[InstitutionFieldOption]
+    effective_options: list[InstitutionFieldOption]
+    generated_at: datetime
+
+
+class StudentTransferRequestCreate(BaseModel):
+    student_record_id: str
+    transfer_type: str = Field(pattern=r"^(programme|section|outgoing)$")
+    to_programme_code: str | None = None
+    to_section_code: str | None = Field(default=None, max_length=32)
+    to_institution_label: str | None = Field(default=None, max_length=200)
+    effective_semester: str | None = Field(default=None, max_length=64)
+    reason: str = Field(min_length=3, max_length=1000)
+
+
+class StudentTransferRequestCreateResult(BaseModel):
+    request_key: str
+    transfer_href: str
+
+
 class StudentPromotionRuleRow(BaseModel):
     rule_key: str
     rule_label: str
@@ -6200,6 +6637,438 @@ class ExaminationDashboardPageRead(BaseModel):
     footer_disclaimer: str
     footer_snapshot_label: str
     generated_at: datetime
+
+
+class FinanceDashboardTransactionRow(BaseModel):
+    transaction_id: str
+    student_name: str
+    invoice_label: str
+    method_label: str
+    amount_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceProgrammeCollectionItem(BaseModel):
+    key: str
+    label: str
+    collection_percent: float
+    bar_tone: str
+
+
+class FeeStructureManagementTableRow(BaseModel):
+    structure_id: str
+    structure_label: str
+    year_label: str
+    programme_label: str
+    total_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FeeStructureManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_fee_structure_label: str
+    create_fee_structure_href: str
+    structures_section_title: str
+    structures_count_label: str
+    table_headers: list[str]
+    structures: list[FeeStructureManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    info_notice_title: str
+    info_notice_body: str
+    generated_at: datetime
+
+
+class StudentFeeManagementTableRow(BaseModel):
+    assessment_id: str
+    student_name: str
+    register_number: str
+    programme_label: str
+    assessed_label: str
+    concession_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class StudentFeeManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    bulk_assign_label: str
+    bulk_assign_href: str
+    kpis: list[UserDashboardKpi]
+    student_fees_section_title: str
+    student_fees_count_label: str
+    table_headers: list[str]
+    student_fees: list[StudentFeeManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FeeDemandInvoiceManagementTableRow(BaseModel):
+    invoice_id: str
+    invoice_label: str
+    student_name: str
+    due_label: str
+    total_label: str
+    paid_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FeeDemandInvoiceManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    generate_demands_label: str
+    generate_demands_href: str
+    publish_label: str
+    publish_href: str
+    kpis: list[UserDashboardKpi]
+    invoices_section_title: str
+    invoices_count_label: str
+    table_headers: list[str]
+    invoice_rows: list[FeeDemandInvoiceManagementTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    open_portal_label: str
+    open_portal_href: str
+    academic_year_filter_label: str
+    programme_filter_label: str
+    academic_year_options: list[StudentAdminDashboardFilterOption]
+    programme_options: list[StudentAdminDashboardFilterOption]
+    selected_academic_year: str
+    selected_programme_code: str
+    workflow_steps: list[FacultyAssignmentWorkflowStep]
+    kpis: list[UserDashboardKpi]
+    transactions_section_title: str
+    transactions_count_label: str
+    table_headers: list[str]
+    transaction_rows: list[FinanceDashboardTransactionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    collection_section_title: str
+    programme_collection_items: list[FinanceProgrammeCollectionItem]
+    generated_at: datetime
+
+
+class FinancePaymentGatewayItem(BaseModel):
+    gateway_key: str
+    gateway_label: str
+    detail_line: str
+    status_label: str
+    status_tone: str
+    icon_variant: str
+
+
+class FinanceOfflinePaymentTableRow(BaseModel):
+    reference: str
+    student_name: str
+    method_label: str
+    amount_label: str
+    counter_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class OnlinePaymentMonitoringPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    verify_pending_label: str
+    verify_pending_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    transactions_section_title: str
+    table_headers: list[str]
+    transaction_rows: list[FinanceDashboardTransactionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    gateways_section_title: str
+    gateway_items: list[FinancePaymentGatewayItem]
+    generated_at: datetime
+
+
+class OfflinePaymentCollectionPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    record_payment_label: str
+    record_payment_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    payments_section_title: str
+    table_headers: list[str]
+    payment_rows: list[FinanceOfflinePaymentTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class PaymentTransactionsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    export_href: str
+    search_placeholder: str
+    sub_nav: list[YearsSemestersSubNavItem]
+    month_filter_label: str
+    month_options: list[StudentAdminDashboardFilterOption]
+    selected_month: str
+    method_filter_label: str
+    method_options: list[StudentAdminDashboardFilterOption]
+    selected_method: str
+    status_filter_label: str
+    status_options: list[StudentAdminDashboardFilterOption]
+    selected_status: str
+    transactions_section_title: str
+    table_headers: list[str]
+    transaction_rows: list[FinanceDashboardTransactionRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceReceiptTableRow(BaseModel):
+    receipt_label: str
+    student_name: str
+    invoice_label: str
+    amount_label: str
+    date_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceOutstandingDuesTableRow(BaseModel):
+    student_name: str
+    invoice_label: str
+    balance_label: str
+    overdue_label: str
+    detail_href: str
+
+
+class FinanceAgingBucketItem(BaseModel):
+    bucket_key: str
+    label: str
+    amount_label: str
+    progress_percent: int
+    bar_tone: str
+
+
+class ReceiptManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    bulk_generate_label: str
+    bulk_generate_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    receipts_section_title: str
+    table_headers: list[str]
+    receipt_rows: list[FinanceReceiptTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class OutstandingDuesManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    send_reminders_label: str
+    send_reminders_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    dues_section_title: str
+    table_headers: list[str]
+    dues_rows: list[FinanceOutstandingDuesTableRow]
+    showing_label: str
+    list_count_label: str
+    pagination: PoliciesPagination
+    aging_section_title: str
+    aging_items: list[FinanceAgingBucketItem]
+    generated_at: datetime
+
+
+class FinanceScholarshipTableRow(BaseModel):
+    scheme_label: str
+    category_label: str
+    students_label: str
+    awarded_label: str
+    applied_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceConcessionTableRow(BaseModel):
+    student_name: str
+    category_label: str
+    requested_label: str
+    date_label: str
+    approver_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceRefundTableRow(BaseModel):
+    refund_label: str
+    student_name: str
+    original_transaction_label: str
+    amount_label: str
+    requested_label: str
+    stage_label: str
+    stage_tone: str
+    detail_href: str
+
+
+class ScholarshipManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_programme_label: str
+    new_programme_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    scholarships_section_title: str
+    table_headers: list[str]
+    scholarship_rows: list[FinanceScholarshipTableRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class ConcessionWaiverManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_request_label: str
+    new_request_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    requests_section_title: str
+    table_headers: list[str]
+    concession_rows: list[FinanceConcessionTableRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class RefundManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_request_label: str
+    new_request_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    refunds_section_title: str
+    table_headers: list[str]
+    refund_rows: list[FinanceRefundTableRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceReconciliationBatchRow(BaseModel):
+    batch_label: str
+    source_label: str
+    period_label: str
+    matched_label: str
+    unmatched_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class FinanceFinancialReportRow(BaseModel):
+    report_key: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class PaymentReconciliationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_batch_label: str
+    new_batch_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[YearsSemestersSubNavItem]
+    batches_section_title: str
+    table_headers: list[str]
+    batch_rows: list[FinanceReconciliationBatchRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinancialReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    create_report_href: str
+    sub_nav: list[YearsSemestersSubNavItem]
+    reports_section_title: str
+    table_headers: list[str]
+    report_rows: list[FinanceFinancialReportRow]
+    list_count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class FinanceSettingsFormValues(BaseModel):
+    invoice_prefix: str = "INV-{YYYY}-{#####}"
+    receipt_prefix: str = "RCT-{YYMM}-{####}"
+    financial_year_start: str = "april_1"
+    refund_approver: str = "finance_manager_principal"
+    late_fee_policy: str = "LF-2026"
+    default_payment_methods: str = "upi,card,net_banking,cash"
+    confirm_online_backend: bool = True
+    lock_posted_entries: bool = True
+    allow_installment_plans: bool = True
+
+
+class FinanceSettingsToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str = ""
+    badge_label: str = ""
+    enabled: bool
+
+
+class FinanceSettingsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    configuration_section_title: str
+    controls_section_title: str
+    form: FinanceSettingsFormValues
+    field_meta: list[InstitutionFieldMeta]
+    field_options: dict[str, list[InstitutionFieldOption]]
+    toggle_rules: list[FinanceSettingsToggleRule]
+    generated_at: datetime
+
+
+class FinanceSettingsSave(BaseModel):
+    form: FinanceSettingsFormValues
 
 
 class ExaminationSessionManagementPageRead(BaseModel):

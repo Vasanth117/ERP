@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import math
+import re
 from copy import deepcopy
+from datetime import date
 from typing import Any
 from uuid import uuid4
 
@@ -13,6 +15,7 @@ from beanie.odm.operators.find.comparison import Eq
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.common.access import AccessScope
+from app.common.ids import to_object_id
 from app.common.time import utcnow
 from app.core.exceptions import AppError
 from app.modules.audit.service import record_audit
@@ -32,6 +35,8 @@ from app.modules.college_admin.schemas import (
     InstitutionCalendarToggleRule,
     InstitutionFieldMeta,
     InstitutionFieldOption,
+    InstitutionHolidayCreate,
+    InstitutionHolidayCreateResult,
     PoliciesPagination,
 )
 
@@ -79,6 +84,37 @@ _APPLIES_LABELS: dict[str, str] = {
     "staff": "Staff",
     "faculty": "Faculty",
 }
+
+_CREATE_HOLIDAY_TYPE_OPTIONS = [
+    InstitutionFieldOption(value="gazetted", label="Gazetted"),
+    InstitutionFieldOption(value="national", label="National"),
+    InstitutionFieldOption(value="institution", label="Institution"),
+]
+
+_CREATE_HOLIDAY_APPLIES_OPTIONS = [
+    InstitutionFieldOption(value="all", label="All"),
+    InstitutionFieldOption(value="students", label="Students"),
+    InstitutionFieldOption(value="staff", label="Staff"),
+    InstitutionFieldOption(value="faculty", label="Faculty"),
+]
+
+
+def _slug_holiday_id(title: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return (slug[:40] or "holiday").strip("-")
+
+
+async def _unique_holiday_id(tenant_id: PydanticObjectId, title: str) -> str:
+    base = _slug_holiday_id(title)
+    candidate = base
+    suffix = 0
+    while await InstitutionHoliday.find_one(
+        Eq(InstitutionHoliday.tenant_id, tenant_id),
+        Eq(InstitutionHoliday.holiday_id, candidate),
+    ):
+        suffix += 1
+        candidate = f"{base}-{suffix}"
+    return candidate
 
 
 def _time_options() -> list[InstitutionCalendarTimeOption]:
@@ -253,6 +289,12 @@ async def get_institution_calendar_settings_page(
         holidays_section_title=holidays_section_title,
         add_holiday_label="Add holiday",
         add_holiday_href="/college-admin/institution/calendar#add-holiday",
+        add_holiday_dialog_title="Add holiday",
+        add_holiday_dialog_subtitle="Register a holiday for the selected academic year",
+        create_holiday_save_label="Add holiday",
+        create_holiday_cancel_label="Cancel",
+        create_holiday_type_options=_CREATE_HOLIDAY_TYPE_OPTIONS,
+        create_holiday_applies_options=_CREATE_HOLIDAY_APPLIES_OPTIONS,
         holiday_table_headers=["Holiday", "Date", "Type", "Applies to"],
         holidays=holiday_rows,
         holiday_count_label=holiday_count_label,
@@ -284,6 +326,77 @@ async def get_institution_calendar_settings_page(
         footer_snapshot_label="Live snapshot",
         generated_at=utcnow(),
     )
+
+
+async def create_institution_holiday(
+    scope: AccessScope,
+    payload: InstitutionHolidayCreate,
+) -> InstitutionHolidayCreateResult:
+    authorize(scope, Permission.INSTITUTION_SETTINGS_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
+    title = payload.title.strip()
+    if len(title) < 2:
+        raise_validation_error(
+            "Complete the required holiday fields before saving.",
+            [
+                scroll_field(
+                    "title",
+                    label="Holiday title",
+                    message="Enter a name for this holiday.",
+                )
+            ],
+        )
+
+    year_oid = to_object_id(payload.academic_year_id, "academic_year_id")
+    year = await AcademicYear.find_one(
+        Eq(AcademicYear.tenant_id, tenant_id),
+        Eq(AcademicYear.id, year_oid),
+    )
+    if year is None:
+        raise AppError(code="NOT_FOUND", message="Academic year not found", status_code=404)
+
+    end = payload.end_date
+    start = payload.start_date
+    if end is not None and end < start:
+        raise_validation_error(
+            "Check the holiday date range.",
+            [
+                scroll_field(
+                    "end_date",
+                    label="End date",
+                    message="End date cannot be before the start date.",
+                )
+            ],
+        )
+
+    holiday_id = await _unique_holiday_id(tenant_id, title)
+    sort_order = await InstitutionHoliday.find(
+        Eq(InstitutionHoliday.tenant_id, tenant_id),
+        Eq(InstitutionHoliday.academic_year_id, year_oid),
+    ).count()
+
+    await InstitutionHoliday(
+        tenant_id=tenant_id,
+        academic_year_id=year_oid,
+        holiday_id=holiday_id,
+        title=title,
+        start_date=start,
+        end_date=end,
+        holiday_type=payload.holiday_type.strip().lower() or "institution",
+        applies_to=payload.applies_to.strip().lower() or "all",
+        sort_order=sort_order,
+    ).insert()
+
+    await record_audit(
+        actor_id=scope.user_id,
+        action="institution.calendar_holiday.created",
+        resource_type="institution_holiday",
+        resource_id=holiday_id,
+        tenant_id=tenant_id,
+    )
+    return InstitutionHolidayCreateResult(holiday_id=holiday_id, title=title)
 
 
 async def save_institution_calendar_settings_page(

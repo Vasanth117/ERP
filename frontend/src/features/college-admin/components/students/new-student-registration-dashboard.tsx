@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { BookOpenIcon } from "@/components/icons/erp/generated/book-open";
@@ -39,7 +40,7 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" data-field-key={meta.key}>
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -104,17 +105,6 @@ function RegistrationStepper({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function toPayload(values: NewStudentRegistrationFormValues): Record<string, unknown> {
   return { ...values };
@@ -135,7 +125,7 @@ export function NewStudentRegistrationDashboard() {
     values: defaults,
   });
 
-  const [activeStep, setActiveStep] = useState("student_information");
+  const [activeStep, setActiveStep] = useState("admission");
 
   useEffect(() => {
     if (data?.current_step_key) {
@@ -159,7 +149,7 @@ export function NewStudentRegistrationDashboard() {
       { admission_id: data.admission_id, step_key: activeStep, values: toPayload(values) },
       {
         onSuccess: () => toast.success("Draft saved"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -178,7 +168,7 @@ export function NewStudentRegistrationDashboard() {
           setActiveStep(res.current_step_key);
           toast.success("Saved — continue to the next step");
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -239,7 +229,56 @@ export function NewStudentRegistrationDashboard() {
           <>
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
               <div className="space-y-5">
-                {activeStep === "student_information" ? (
+                {activeStep === "admission" ? (
+                  <Section title="Admission details">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <FormField meta={{ key: "programme_code", label: "Programme", required: true }}>
+                        <select
+                          className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                          {...form.register("programme_code")}
+                        >
+                          {(data.programme_options ?? []).map((opt) => (
+                            <option key={opt.value || opt.label} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                      <FormField meta={{ key: "academic_year_code", label: "Academic year", required: true }}>
+                        <select
+                          className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                          {...form.register("academic_year_code")}
+                        >
+                          {(data.academic_year_options ?? []).map((opt) => (
+                            <option key={opt.value || opt.label} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                      <FormField meta={metaFor(fieldMeta, "community")}>
+                        <select
+                          className="h-9 w-full rounded-md border border-[#dce3ec] px-3 text-[13px]"
+                          {...form.register("community")}
+                        >
+                          {data.community_options.map((opt) => (
+                            <option key={opt.value || opt.label} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                      <FormField meta={{ key: "marks_percentage", label: "Marks / percentage", required: false }}>
+                        <Input
+                          className="h-9"
+                          inputMode="decimal"
+                          placeholder="e.g. 96.4"
+                          {...form.register("marks_percentage")}
+                        />
+                      </FormField>
+                    </div>
+                  </Section>
+                ) : activeStep === "student_information" ? (
                   <>
                     <Section
                       title={data.sections.find((s) => s.key === "personal_details")?.title ?? "Personal details"}
@@ -392,12 +431,6 @@ export function NewStudentRegistrationDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

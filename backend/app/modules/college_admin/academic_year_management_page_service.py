@@ -235,6 +235,7 @@ async def get_academic_year_management_page(
                 status_code=code,
                 status_label=status_label,
                 status_tone=tone,
+                detail_href=f"/college-admin/academics/academic-year-details?year_id={year.id}",
             )
         )
 
@@ -262,6 +263,7 @@ async def get_academic_year_management_page(
         close_current_year_enabled=close_enabled,
         close_target_year_label=current_year.label if current_year else None,
         new_academic_year_label="New academic year",
+        new_academic_year_href="/college-admin/academics/create-academic-year",
         academic_years_table_title="Academic years",
         table_headers=["Academic year", "Start", "End", "Students", "Status"],
         academic_years=table_rows,
@@ -400,6 +402,12 @@ async def create_academic_year_management(
         updated_by=scope.user_id,
         **copy_fields,
     )
+    if payload.summer_term_start is not None:
+        doc.summer_term_start = payload.summer_term_start
+    if payload.summer_term_end is not None:
+        doc.summer_term_end = payload.summer_term_end
+    if payload.year_end_closing is not None:
+        doc.year_end_closing = payload.year_end_closing
     await doc.insert()
     await _create_terms_for_year(
         tenant_id,

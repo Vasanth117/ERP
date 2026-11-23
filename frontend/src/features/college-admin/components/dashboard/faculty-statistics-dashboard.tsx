@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { CollegeAdminDashboardPanel as Panel } from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
@@ -47,34 +48,6 @@ function titleCaseDesignation(value: string) {
     .join(" ");
 }
 
-function Panel({
-  title,
-  children,
-  actionHref,
-  actionLabel,
-}: {
-  title: string;
-  children: ReactNode;
-  actionHref?: string;
-  actionLabel?: string;
-}) {
-  return (
-    <section className="rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-5">
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
-        {actionHref && actionLabel ? (
-          <Link
-            href={actionHref}
-            className="shrink-0 text-[12px] font-medium text-[#245dd8] hover:underline"
-          >
-            {actionLabel}
-          </Link>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 function DepartmentBarChart({
   items,
@@ -159,11 +132,11 @@ function AvailabilityBadge({ statusKey, count }: { statusKey: string; count: num
   return (
     <span
       className={cn(
-        "inline-flex min-w-[2.5rem] justify-center rounded-full px-2 py-0.5 text-[12px] font-semibold tabular-nums",
+        "inline-flex h-9 min-w-9 shrink-0 items-center justify-center rounded-full px-2 text-[12px] font-semibold leading-none tabular-nums",
         styles,
       )}
     >
-      {count}
+      {count.toLocaleString("en-IN")}
     </span>
   );
 }
@@ -478,7 +451,7 @@ export function FacultyStatisticsDashboard() {
                 >
                   <ul className="divide-y divide-[#f1f5f9]">
                     {data.availability_today.map((row) => (
-                      <li key={row.status_key} className="flex gap-3 py-3 first:pt-0">
+                      <li key={row.status_key} className="flex items-center gap-3 py-3 first:pt-0">
                         <AvailabilityBadge statusKey={row.status_key} count={row.count} />
                         <div className="min-w-0 flex-1">
                           <p className="text-[13px] font-semibold text-[#111827]">{row.label}</p>
@@ -491,11 +464,6 @@ export function FacultyStatisticsDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>
-                Live institutional data · Faculty, employee and attendance records · All times IST
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

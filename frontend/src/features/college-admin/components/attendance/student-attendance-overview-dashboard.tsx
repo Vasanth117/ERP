@@ -151,13 +151,6 @@ export function StudentAttendanceOverviewDashboard() {
             options={data?.programme_options ?? [{ value: "", label: "All programmes" }]}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-[12px] text-[#6b7280]">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8ecf2] bg-white px-2.5 py-1">
-            <span className="size-1.5 rounded-full bg-[#245dd8]" />
-            {data?.scope_indicator_label ?? "College scope"}
-          </span>
-          <span className="tabular-nums">{data?.updated_at_label ?? "—"}</span>
-        </div>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -226,10 +219,6 @@ export function StudentAttendanceOverviewDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span className="tabular-nums">{data.footer_snapshot_label}</span>
-            </footer>
           </>
         ) : null}
       </QueryState>

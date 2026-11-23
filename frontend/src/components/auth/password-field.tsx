@@ -29,9 +29,12 @@ export function PasswordField({
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <label htmlFor={id} className="text-[15px] font-medium text-[#334155]">
+        <label
+          htmlFor={id}
+          className="text-[13px] font-semibold tracking-tight text-[#334155]"
+        >
           {label}
         </label>
         {showForgotLink ? (
@@ -61,7 +64,7 @@ export function PasswordField({
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#172b45]"
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#64748b] transition-colors hover:bg-[#eef2f7] hover:text-[#0f2744]"
           aria-label={visible ? "Hide password" : "Show password"}
           tabIndex={-1}
         >
@@ -72,7 +75,9 @@ export function PasswordField({
           )}
         </button>
       </div>
-      {error ? <p className="text-[15px] text-red-600">{error}</p> : null}
+      {error ? (
+        <p className="text-[12px] font-medium text-red-600">{error}</p>
+      ) : null}
     </div>
   );
 }

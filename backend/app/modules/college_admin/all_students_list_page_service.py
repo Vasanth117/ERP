@@ -186,7 +186,7 @@ async def get_all_students_list_page(
             page_subtitle="Search and manage every student record in the college",
             export_label="Export",
             add_student_label="Add student",
-            add_student_href="/college-admin/students/create-student",
+            add_student_href="/college-admin/students/new-student-registration",
             bulk_actions_label="Bulk actions",
             bulk_actions_href="/college-admin/students/bulk-student-import",
             search_placeholder="Search name, register number, phone or email...",

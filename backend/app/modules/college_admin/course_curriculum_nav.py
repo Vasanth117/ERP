@@ -11,13 +11,13 @@ def course_curriculum_sub_nav(*, active: str) -> list[YearsSemestersSubNavItem]:
     return [
         YearsSemestersSubNavItem(
             key="course_configuration",
-            label="Course configuration",
+            label="Course management",
             href=_COURSE_CONFIG_HREF,
             active=active == "course_configuration",
         ),
         YearsSemestersSubNavItem(
             key="curriculum",
-            label="Curriculum management",
+            label="Configuration",
             href=_CURRICULUM_HREF,
             active=active == "curriculum",
         ),

@@ -1,6 +1,9 @@
 import type { InstitutionFieldMeta } from "@/features/college-admin/types/institution";
 
 export type NewStudentRegistrationFormValues = {
+  programme_code: string;
+  academic_year_code: string;
+  marks_percentage: string;
   full_name: string;
   date_of_birth: string | null;
   gender: string | null;
@@ -33,6 +36,8 @@ export type NewStudentRegistrationPage = {
   nationality_options: { value: string; label: string }[];
   community_options: { value: string; label: string }[];
   relationship_options: { value: string; label: string }[];
+  programme_options: { value: string; label: string }[];
+  academic_year_options: { value: string; label: string }[];
   form: NewStudentRegistrationFormValues;
   admission_summary_title: string;
   admission_summary: { key: string; label: string; value: string }[];

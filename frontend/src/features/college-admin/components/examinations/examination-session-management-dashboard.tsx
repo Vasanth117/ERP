@@ -1,9 +1,9 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useExaminationSessionManagementPage } from "@/features/college-admin/hooks/use-examination-session-management";
 import { cn } from "@/lib/utils";
@@ -37,17 +37,6 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function ExaminationSessionManagementDashboard() {
   const [page, setPage] = useState(1);
@@ -66,8 +55,7 @@ export function ExaminationSessionManagementDashboard() {
           href={data?.create_session_href ?? "/college-admin/examinations/examination-configuration?mode=new"}
           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
         >
-          <PlusIcon className="size-3.5" aria-hidden />
-          {data?.create_session_label ?? "Create session"}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_session_label ?? "Create session" } />
         </Link>
       </div>
 
@@ -167,12 +155,6 @@ export function ExaminationSessionManagementDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

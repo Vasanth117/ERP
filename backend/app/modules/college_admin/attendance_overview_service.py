@@ -336,6 +336,18 @@ async def get_attendance_overview(
     for day in chart_days:
         if day > anchor:
             continue
+        day_sessions = sessions_by_date.get(day, [])
+        if not day_sessions:
+            daily_points.append(
+                DailyAttendancePoint(
+                    label=_day_label(day),
+                    session_date=day,
+                    attendance_pct=None,
+                    students_present=0,
+                    students_total=today_total,
+                )
+            )
+            continue
         day_present = 0
         for uid in enrolled_ids:
             day_recs = records_by_student_date.get((uid, day), [])

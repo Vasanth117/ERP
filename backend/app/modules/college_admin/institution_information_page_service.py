@@ -13,6 +13,7 @@ from app.authorization.policy import authorize
 from app.common.access import AccessScope
 from app.common.time import utcnow
 from app.core.exceptions import AppError
+from app.core.form_values import normalize_form_values
 from app.modules.auth.models import User
 from app.modules.college_admin.institution_service import _ensure_profile
 from app.modules.college_admin.models import InstitutionActivityLog
@@ -312,7 +313,8 @@ async def save_institution_profile_draft(scope: AccessScope, values: dict[str, A
 
     profile = await _ensure_profile(tenant)
     allowed = {meta.key for meta in _FIELD_META}
-    profile.draft_values = {k: v for k, v in values.items() if k in allowed and v is not None}
+    normalized = normalize_form_values(values)
+    profile.draft_values = {k: v for k, v in normalized.items() if k in allowed and v is not None}
     profile.updated_at = utcnow()
     profile.updated_by = scope.user_id
     await profile.save()
@@ -329,6 +331,8 @@ async def publish_institution_information(scope: AccessScope, values: dict[str, 
     tenant = await Tenant.get(tenant_id)
     if tenant is None:
         raise AppError(code="NOT_FOUND", message="College not found", status_code=404)
+
+    values = normalize_form_values(values)
 
     valid_until = values.get("autonomous_status_valid_until")
     if isinstance(valid_until, str) and valid_until:

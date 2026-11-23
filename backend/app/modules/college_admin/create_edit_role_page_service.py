@@ -381,12 +381,17 @@ async def save_create_edit_role(scope: AccessScope, payload: CreateEditRoleSaveP
         raise AppError(code="VALIDATION_ERROR", message=str(exc), status_code=422) from exc
 
     role_settings = _role_settings_dict(payload.form)
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
     name = payload.form.name.strip()
     code = payload.form.role_code.strip().upper()
+    details: list[dict] = []
     if len(name) < 2:
-        raise AppError(code="VALIDATION_ERROR", message="Role name is required", status_code=422)
+        details.append(scroll_field("name", label="Role name", message="Enter a role name (at least 2 characters)."))
     if len(code) < 2:
-        raise AppError(code="VALIDATION_ERROR", message="Role code is required", status_code=422)
+        details.append(scroll_field("role_code", label="Role code", message="Enter a unique role code."))
+    if details:
+        raise_validation_error("Complete the required role details before saving.", details)
 
     role_id: PydanticObjectId | None = None
     if payload.role_id and payload.role_id.strip():

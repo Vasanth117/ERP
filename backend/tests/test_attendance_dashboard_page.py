@@ -72,3 +72,8 @@ async def test_attendance_dashboard_page_shape(db_ready):
     assert page.trend_chart_title == "Attendance trend"
     assert page.needs_attention_title == "Needs attention"
     assert len(page.needs_attention_items) == 3
+    assert len(page.trend_series) == 30
+    assert page.selected_term_key.endswith("|") or "|" in page.selected_term_key
+
+    keyed = await get_attendance_dashboard_page(scope, term_key="2026-27|Odd semester")
+    assert keyed.selected_term_key == "2026-27|Odd semester"

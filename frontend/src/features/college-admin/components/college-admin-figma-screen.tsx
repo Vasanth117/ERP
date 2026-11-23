@@ -46,6 +46,7 @@ const MODULES_WITH_SECTION_CHROME = new Set([
   "faculty",
   "attendance",
   "examinations",
+  "finance",
 ]);
 
 export function CollegeAdminFigmaScreen({
@@ -55,10 +56,29 @@ export function CollegeAdminFigmaScreen({
   title,
 }: Props) {
   const usesSectionChrome = MODULES_WITH_SECTION_CHROME.has(moduleKey);
+  const financeOwnHeader = new Set([
+    "finance-dashboard",
+    "fee-structure-management",
+    "student-fee-management",
+    "fee-demand-invoice-management",
+    "online-payment-monitoring",
+    "offline-payment-collection",
+    "payment-transactions",
+    "receipt-management",
+    "outstanding-dues-management",
+    "scholarship-management",
+    "fee-concession-waiver-management",
+    "refund-management",
+    "payment-reconciliation",
+    "financial-reports",
+    "finance-settings",
+  ]);
+  const showPageHeading =
+    !usesSectionChrome || (moduleKey === "finance" && !financeOwnHeader.has(slug));
 
   return (
     <div data-figma-frame={figmaNodeId}>
-      {!usesSectionChrome ? (
+      {showPageHeading ? (
         <PageHeading title={title} figmaFrame={figmaNodeId} />
       ) : null}
       {!usesSectionChrome ? (

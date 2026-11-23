@@ -7,6 +7,10 @@ import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
 import { Button } from "@/components/ui/button";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import {
+  InstitutionPageActionFooter,
+  institutionActionButtonPrimary,
+} from "@/features/college-admin/components/institution/institution-page-action-footer";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useConfigurationHistoryPage } from "@/features/college-admin/hooks/use-institution";
 import type { ConfigurationChangeRow } from "@/features/college-admin/types/institution";
@@ -78,17 +82,6 @@ function FilterSelect({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function ConfigurationHistoryDashboard() {
   const [page, setPage] = useState(1);
@@ -134,22 +127,11 @@ export function ConfigurationHistoryDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="72:10042">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Campus Configuration History"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <Button
-          type="button"
-          className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-          onClick={handleExport}
-          disabled={!data}
-        >
-          <CollegeAdminDownload className="size-3.5" />
-          {data?.export_label ?? "Export log"}
-        </Button>
+      <div className="min-w-0">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
+          {data?.page_title ?? "Campus Configuration History"}
+        </h2>
+        <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -175,15 +157,7 @@ export function ConfigurationHistoryDashboard() {
             onChange={setActorId}
             options={data?.user_options ?? [{ value: "", label: "All users" }]}
           />
-          <span className="text-[12px] font-medium text-[#245dd8]">
-            <span className="mr-1 text-[#3b82f6]">•</span>
-            {data?.scope_indicator_label ?? "College scope"}
-          </span>
         </div>
-        <p className="text-[12px] text-[#9ca3af]">
-          <span className="mr-1 text-[#10b981]">●</span>
-          Updated {data?.updated_at_label}
-        </p>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -369,12 +343,23 @@ export function ConfigurationHistoryDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
+            <InstitutionPageActionFooter
+              note={
+                data
+                  ? `${data.footer_disclaimer} · ${data.footer_snapshot_label}`
+                  : undefined
+              }
+            >
+              <Button
+                type="button"
+                className={institutionActionButtonPrimary}
+                onClick={handleExport}
+                disabled={!data}
+              >
+                <CollegeAdminDownload className="size-3.5" aria-hidden />
+                {data.export_label}
+              </Button>
+            </InstitutionPageActionFooter>
           </>
         ) : null}
       </QueryState>

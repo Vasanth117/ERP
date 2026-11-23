@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -99,7 +101,7 @@ function CreateDepartmentForm() {
       toast.success("Department created");
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.all });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
   return (
     <form
@@ -143,7 +145,7 @@ function DepartmentEditPicker() {
       toast.success("Department updated");
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.all });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
   return (
     <div className="space-y-3 max-w-md">
@@ -176,7 +178,7 @@ function OrgUnitsList() {
   const create = useMutation({
     mutationFn: createOrganizationUnit,
     onSuccess: () => toast.success("Unit created"),
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
   return (
     <div className="space-y-4">

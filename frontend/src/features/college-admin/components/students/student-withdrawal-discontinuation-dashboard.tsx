@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -111,17 +112,6 @@ function RequiredLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function ProcessTimeline({
   title,
@@ -225,7 +215,7 @@ export function StudentWithdrawalDiscontinuationDashboard() {
       },
       {
         onSuccess: () => toast.success("Withdrawal request submitted for approval."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -387,12 +377,6 @@ export function StudentWithdrawalDiscontinuationDashboard() {
                   <ProcessTimeline title={data.process_section_title} steps={data.process_steps} />
                 </div>
 
-                <footer className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9ca3af]">
-                  <span>{data.footer_disclaimer}</span>
-                  <span>
-                    {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-                  </span>
-                </footer>
               </>
             )}
           </>

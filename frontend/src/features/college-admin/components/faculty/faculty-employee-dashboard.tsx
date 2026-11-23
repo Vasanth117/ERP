@@ -1,11 +1,11 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminDownload,
@@ -189,17 +189,6 @@ function formatAyLabel(label: string) {
   return label.replace(/-/g, "–");
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function FacultyEmployeeDashboard() {
   const [academicYear, setAcademicYear] = useState("");
@@ -237,36 +226,6 @@ export function FacultyEmployeeDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:2199">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Faculty & Employee Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Faculty and staff across your institution"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
-            <CollegeAdminDownload className="size-3.5" />
-            {data?.export_label ?? "Export"}
-          </Button>
-          <Link
-            href={data?.add_faculty_href ?? "/college-admin/faculty/add-new-faculty-employee"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_faculty_label ?? "+ Add faculty / employee"}
-          </Link>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
@@ -289,12 +248,23 @@ export function FacultyEmployeeDashboard() {
             options={data?.department_options ?? [{ value: "", label: "All departments" }]}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-3 text-[12px] text-[#6b7280]">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8ecf2] bg-white px-2.5 py-1">
-            <span className="size-1.5 rounded-full bg-[#245dd8]" />
-            {data?.scope_indicator_label ?? "College scope"}
-          </span>
-          <span className="tabular-nums">{data?.updated_at_label ?? "—"}</span>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
+            onClick={handleExport}
+            disabled={isLoading || !data}
+          >
+            <CollegeAdminDownload className="size-3.5" />
+            {data?.export_label ?? "Export"}
+          </Button>
+          <Link
+            href={data?.add_faculty_href ?? "/college-admin/faculty/add-new-faculty-employee"}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_faculty_label ?? "Add faculty / employee" } />
+          </Link>
         </div>
       </div>
 
@@ -384,12 +354,6 @@ export function FacultyEmployeeDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

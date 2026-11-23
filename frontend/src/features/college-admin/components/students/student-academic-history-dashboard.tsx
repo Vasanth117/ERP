@@ -8,8 +8,8 @@ import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
 import { MailIcon } from "@/components/icons/erp/generated/mail";
 import { PhoneIcon } from "@/components/icons/erp/generated/phone";
-import { Button } from "@/components/ui/button";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { StudentsTabHeader } from "@/features/college-admin/components/students/students-tab-header";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useStudentAcademicHistoryPage } from "@/features/college-admin/hooks/use-student-academic-history-page";
 import { cn } from "@/lib/utils";
@@ -105,17 +105,6 @@ function RecordChangesTimeline({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function StudentAcademicHistoryDashboard() {
   const searchParams = useSearchParams();
@@ -137,16 +126,28 @@ export function StudentAcademicHistoryDashboard() {
   if (!recordId) {
     return (
       <div className="space-y-5" data-figma-frame="158:7002">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">Student Academic History</h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">Semester results and changes of record</p>
-        </div>
-        <div className="rounded-xl border border-dashed border-[#dce3ec] bg-[#f9fafb] px-5 py-10 text-center text-sm text-[#6b7280]">
-          Open a student from{" "}
-          <Link href="/college-admin/students/all-students-list" className="font-medium text-[#245dd8] hover:underline">
-            All students
-          </Link>{" "}
-          or Student details to view academic history.
+        <StudentsTabHeader
+          title="Student Academic History"
+          subtitle="Semester results and changes of record"
+        />
+        <div className="rounded-xl border border-dashed border-[#dce3ec] bg-[#f9fafb] px-5 py-10 text-center">
+          <p className="text-sm text-[#6b7280]">
+            Choose a student to view semester results, grades, and record changes.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Link
+              href="/college-admin/students/all-students-list"
+              className="inline-flex h-9 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+            >
+              Browse all students
+            </Link>
+            <Link
+              href="/college-admin/students/student-details"
+              className="inline-flex h-9 items-center rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
+            >
+              Open student details
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -154,34 +155,29 @@ export function StudentAcademicHistoryDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:7002">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <Link
             href={data?.back_href ?? "/college-admin/students/all-students-list"}
-            className="mt-1 inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-[#dce3ec] text-[#6b7280] hover:bg-[#f9fafb]"
+            className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-[#dce3ec] text-[#6b7280] hover:bg-[#f9fafb]"
             aria-label={data?.back_label ?? "Back"}
           >
             <ChevronLeftIcon className="size-4" />
           </Link>
-          <div>
-            <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-              {data?.page_title ?? "Student Academic History"}
-            </h2>
-            <p className="mt-1 text-[14px] text-[#6b7280]">
-              {data?.page_subtitle ?? "Semester results and changes of record"}
-            </p>
-          </div>
+          <StudentsTabHeader
+            title={data?.page_title ?? "Student Academic History"}
+            subtitle={data?.page_subtitle ?? "Semester results and changes of record"}
+          />
         </div>
-        <Button
+        <button
           type="button"
-          variant="outline"
-          className="h-9 gap-1.5 border-[#dce3ec] text-xs text-[#374151]"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
           disabled={!data}
           onClick={handleExport}
         >
           <CollegeAdminDownload className="size-3.5" aria-hidden />
           {data?.export_label ?? "Export"}
-        </Button>
+        </button>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -269,12 +265,6 @@ export function StudentAcademicHistoryDashboard() {
               <RecordChangesTimeline title={data.record_changes_section_title} steps={data.record_change_steps} />
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

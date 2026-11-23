@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { apiRequest } from "@/lib/api/client";
 import { AllStudentsListDashboard } from "@/features/college-admin/components/students/all-students-list-dashboard";
@@ -13,6 +13,7 @@ import { BatchSectionAllocationDashboard } from "@/features/college-admin/compon
 import { StudentPromotionManagementDashboard } from "@/features/college-admin/components/students/student-promotion-management-dashboard";
 import { StudentStatusManagementDashboard } from "@/features/college-admin/components/students/student-status-management-dashboard";
 import { StudentWithdrawalDiscontinuationDashboard } from "@/features/college-admin/components/students/student-withdrawal-discontinuation-dashboard";
+import { StudentTransferCreateDashboard } from "@/features/college-admin/components/students/student-transfer-create-dashboard";
 import { StudentTransferManagementDashboard } from "@/features/college-admin/components/students/student-transfer-management-dashboard";
 import { StudentEnrollmentManagementDashboard } from "@/features/college-admin/components/students/student-enrollment-management-dashboard";
 import { StudentProfileManagementDashboard } from "@/features/college-admin/components/students/student-profile-management-dashboard";
@@ -50,6 +51,8 @@ export function StudentsScreen({ slug }: { slug: string }) {
       return <BatchSectionAllocationDashboard />;
     case "student-transfer-management":
       return <StudentTransferManagementDashboard />;
+    case "student-transfer-create":
+      return <StudentTransferCreateDashboard />;
     case "student-promotion-management":
       return <StudentPromotionManagementDashboard />;
     case "student-status-management":
@@ -64,6 +67,7 @@ export function StudentsScreen({ slug }: { slug: string }) {
     case "student-details":
       return <StudentDetailsDashboard />;
     case "create-student":
+      return <NewStudentRegistrationDashboard />;
     case "bulk-student-import":
     case "profile-corrections":
       return (

@@ -394,7 +394,7 @@ async def get_department_resource_management_page(
     return DepartmentResourceManagementPageRead(
         page_title="Department Resource Management",
         page_subtitle="Classrooms, labs, equipment and budgets owned by each department",
-        request_resource_label="+ Request resource",
+        request_resource_label="Request resource",
         request_resource_href=request_href,
         faculty_nav_label="Faculty",
         faculty_nav_href=faculty_href,

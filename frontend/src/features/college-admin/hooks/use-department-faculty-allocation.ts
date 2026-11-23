@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   fetchDepartmentFacultyAllocationPage,
@@ -24,8 +25,13 @@ export function useDepartmentFacultyAllocationPage(params?: {
 export function useSaveDepartmentFacultyAllocation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { form: DepartmentFacultyAllocationFormValues }) =>
-      saveDepartmentFacultyAllocation(payload),
+    mutationFn: (payload: {
+      form: DepartmentFacultyAllocationFormValues;
+      page?: number;
+      semester_label?: string;
+      department_id?: string;
+      designation_filter?: string;
+    }) => saveDepartmentFacultyAllocation(payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.all });
     },

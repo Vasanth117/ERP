@@ -1,9 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
@@ -34,7 +35,7 @@ export function AttendanceReportsDashboard() {
           setShowCreate(false);
           setTemplateKey("");
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -53,8 +54,7 @@ export function AttendanceReportsDashboard() {
           className="h-9 shrink-0 gap-1.5 bg-[#245dd8] text-xs font-medium text-white hover:bg-[#1f4fb8]"
           onClick={() => setShowCreate((v) => !v)}
         >
-          <PlusIcon className="size-3.5" aria-hidden />
-          {data?.create_report_label ?? "Create report"}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_report_label ?? "Create report" } />
         </Button>
       </div>
 
@@ -143,10 +143,6 @@ export function AttendanceReportsDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-wrap justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>{data.footer_snapshot_label}</span>
-            </footer>
           </>
         ) : null}
       </QueryState>

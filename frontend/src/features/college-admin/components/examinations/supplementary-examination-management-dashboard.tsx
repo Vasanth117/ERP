@@ -1,9 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { ExaminationRegistrationSubNav } from "@/features/college-admin/components/examinations/examination-registration-sub-nav";
 import {
@@ -18,13 +19,6 @@ import {
 import type { SupplementaryExaminationManagementPage } from "@/features/college-admin/types/supplementary-examination-management";
 import { cn } from "@/lib/utils";
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function Pagination({
   data,
@@ -73,7 +67,7 @@ export function SupplementaryExaminationManagementDashboard() {
       { page, session_id: data?.selected_session_id || undefined },
       {
         onSuccess: () => toast.success("Supplementary session created."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -91,8 +85,7 @@ export function SupplementaryExaminationManagementDashboard() {
           disabled={createSession.isPending}
           onClick={handleCreate}
         >
-          <PlusIcon className="size-3.5" aria-hidden />
-          {data?.create_session_label ?? "Create session"}
+          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_session_label ?? "Create session" } />
         </Button>
       </div>
 
@@ -145,12 +138,6 @@ export function SupplementaryExaminationManagementDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

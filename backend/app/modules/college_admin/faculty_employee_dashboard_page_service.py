@@ -165,7 +165,23 @@ async def get_faculty_employee_dashboard_page(
     current_year_label, _ = await _reader.current_academic_term(tenant_id)
 
     years = await AcademicYear.find(Eq(AcademicYear.tenant_id, tenant_id)).sort("-year_code").to_list()
-    selected_ay = academic_year_code or current_year_label or (years[0].year_code if years else "")
+    year_codes = {y.year_code for y in years}
+    current_year_doc = next((y for y in years if y.is_current), None)
+    resolved_from_context: str | None = None
+    if current_year_label:
+        if current_year_label in year_codes:
+            resolved_from_context = current_year_label
+        else:
+            for y in years:
+                if y.label == current_year_label:
+                    resolved_from_context = y.year_code
+                    break
+    selected_ay = (
+        academic_year_code
+        or (current_year_doc.year_code if current_year_doc else None)
+        or resolved_from_context
+        or (years[0].year_code if years else "")
+    )
     ay_options = [StudentAdminDashboardFilterOption(value=y.year_code, label=y.label or y.year_code) for y in years]
 
     departments = await InstitutionDepartment.find(
@@ -173,8 +189,6 @@ async def get_faculty_employee_dashboard_page(
         Eq(InstitutionDepartment.status, DepartmentStatus.ACTIVE),
     ).to_list()
     dept_by_id = {d.id: d for d in departments}
-    academic_dept_count = sum(1 for d in departments if d.department_kind == DepartmentKind.ACADEMIC)
-    admin_unit_count = sum(1 for d in departments if d.department_kind == DepartmentKind.ADMINISTRATIVE)
 
     department_options = [
         StudentAdminDashboardFilterOption(value="", label="All departments"),
@@ -364,12 +378,6 @@ async def get_faculty_employee_dashboard_page(
         if emp.employment_status == FacultyEmploymentStatus.PROBATION:
             probation_due_users.add(emp.user_id)
 
-    total_employees = len(workforce_users)
-    page_subtitle = (
-        f"{total_employees:,} employees across {academic_dept_count} departments"
-        f" and {admin_unit_count} administrative units."
-    )
-
     kpis = [
         UserDashboardKpi(
             key="faculty",
@@ -442,9 +450,9 @@ async def get_faculty_employee_dashboard_page(
 
     return FacultyEmployeeDashboardPageRead(
         page_title="Faculty & Employee Dashboard",
-        page_subtitle=page_subtitle,
+        page_subtitle="",
         export_label="Export",
-        add_faculty_label="+ Add faculty / employee",
+        add_faculty_label="Add faculty / employee",
         add_faculty_href="/college-admin/faculty/add-new-faculty-employee",
         academic_year_filter_label="Academic year",
         department_filter_label="Department",

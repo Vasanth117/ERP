@@ -1,3 +1,5 @@
+import type { OrganizationModuleEmptyState } from "@/features/college-admin/types/organization-module";
+
 export type ProgrammeCourseMappingDepartmentTab = {
   department_id: string;
   tab_label: string;
@@ -68,5 +70,6 @@ export type ProgrammeCourseMappingPage = {
   course_load_bars: CourseLoadBarItem[];
   footer_disclaimer: string;
   footer_snapshot_label: string;
+  setup_empty_state?: OrganizationModuleEmptyState | null;
   generated_at: string;
 };

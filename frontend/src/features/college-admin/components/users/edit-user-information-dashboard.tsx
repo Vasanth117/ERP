@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { BanIcon } from "@/components/icons/erp/generated/ban";
@@ -92,14 +93,14 @@ export function EditUserInformationDashboard() {
         toast.success("Changes saved");
         router.push(data?.detail_href ?? `/college-admin/users/user-details?userId=${userId}`);
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   });
 
   const revokeSessions = useMutation({
     mutationFn: () => revokeUserSessions(userId),
     onSuccess: () => toast.success("Sessions revoked"),
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
 
   if (!userId) {
@@ -345,7 +346,6 @@ export function EditUserInformationDashboard() {
               </div>
             </footer>
 
-            <p className="text-[11px] text-[#9ca3af]">{data.footer_disclaimer}</p>
           </>
         ) : null}
       </QueryState>

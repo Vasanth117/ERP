@@ -173,6 +173,10 @@ export async function fetchDepartmentFacultyAllocationPage(params?: {
 
 export async function saveDepartmentFacultyAllocation(payload: {
   form: DepartmentFacultyAllocationFormValues;
+  page?: number;
+  semester_label?: string;
+  department_id?: string;
+  designation_filter?: string;
 }): Promise<DepartmentFacultyAllocationSaveResult> {
   return apiRequest<DepartmentFacultyAllocationSaveResult>(
     "/college-admin/departments/faculty-allocation/save",
@@ -219,11 +223,17 @@ export async function fetchProgrammeCourseMappingPage(
   );
 }
 
-export async function fetchOrganizationalHierarchyPage(selectedNodeId?: string): Promise<OrganizationalHierarchyPage> {
-  const qs = selectedNodeId
-    ? `?selected_node_id=${encodeURIComponent(selectedNodeId)}`
-    : "";
-  return apiRequest<OrganizationalHierarchyPage>(`/college-admin/organization/hierarchy/page${qs}`);
+export async function fetchOrganizationalHierarchyPage(
+  selectedNodeId?: string,
+  editMode?: boolean,
+): Promise<OrganizationalHierarchyPage> {
+  const params = new URLSearchParams();
+  if (selectedNodeId) params.set("selected_node_id", selectedNodeId);
+  if (editMode) params.set("edit", "true");
+  const qs = params.toString();
+  return apiRequest<OrganizationalHierarchyPage>(
+    `/college-admin/organization/hierarchy/page${qs ? `?${qs}` : ""}`,
+  );
 }
 
 export async function fetchDepartmentHeadAssignmentPage(params?: {

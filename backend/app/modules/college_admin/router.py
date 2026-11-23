@@ -4,6 +4,7 @@ from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi.responses import Response
 
 from app.api.deps import get_access_scope, pagination_params
 from app.common.access import AccessScope
@@ -30,6 +31,7 @@ from app.modules.college_admin.institution_information_page_service import (
 from app.modules.college_admin.institution_branding_page_service import (
     get_institution_branding_page,
     publish_institution_branding,
+    read_institution_branding_file,
     save_institution_branding_draft,
     upload_branding_asset,
 )
@@ -39,8 +41,12 @@ from app.modules.college_admin.institution_academic_year_page_service import (
     get_academic_year_configuration_page,
     save_academic_year_configuration,
 )
-from app.modules.college_admin.institution_policies_page_service import get_institution_policies_page
+from app.modules.college_admin.institution_policies_page_service import (
+    create_institution_policy,
+    get_institution_policies_page,
+)
 from app.modules.college_admin.institution_calendar_page_service import (
+    create_institution_holiday,
     get_institution_calendar_settings_page,
     import_institution_holidays_from_previous,
     save_institution_calendar_settings_page,
@@ -54,6 +60,11 @@ from app.modules.college_admin.institution_academic_settings_page_service import
     save_academic_institution_settings_page,
 )
 from app.modules.college_admin.campus_contact_page_service import get_campus_contact_page, save_campus_contact_page
+from app.modules.college_admin.campus_creation_page_service import (
+    finish_campus_creation,
+    get_campus_creation_page,
+    save_campus_creation_draft,
+)
 from app.modules.college_admin.campus_detail_page_service import get_campus_detail_page
 from app.modules.college_admin.campus_management_dashboard_service import get_campus_management_dashboard
 from app.modules.college_admin.institution_profile_page_service import get_institution_profile_page
@@ -106,6 +117,10 @@ from app.modules.college_admin.schemas import (
     CampusContactPageRead,
     CampusContactPageSave,
     CampusCreate,
+    CampusCreationDraftUpdate,
+    CampusCreationFinishPayload,
+    CampusCreationFinishResult,
+    CampusCreationPageRead,
     CampusDetailPageRead,
     CampusManagementDashboardRead,
     CampusRead,
@@ -114,6 +129,8 @@ from app.modules.college_admin.schemas import (
     CollegeDashboardStatsRead,
     InstitutionConfigurationHistoryItem,
     InstitutionPoliciesPageRead,
+    InstitutionPolicyCreate,
+    InstitutionPolicyCreateResult,
     InstitutionalOverviewRead,
     AcademicInstitutionSettingsPageRead,
     AcademicInstitutionSettingsSave,
@@ -121,11 +138,14 @@ from app.modules.college_admin.schemas import (
     AcademicYearConfigurationSave,
     InstitutionCalendarSettingsPageRead,
     InstitutionCalendarSettingsSave,
+    InstitutionHolidayCreate,
+    InstitutionHolidayCreateResult,
     ConfigurationHistoryPageRead,
     UserDashboardPageRead,
     UserAllUsersListPageRead,
     UserDetailsPageRead,
     CreateNewUserPageRead,
+    CreateNewUserProvisioningUploadRead,
     CreateNewUserDraftUpdate,
     CreateNewUserValidatePayload,
     CreateNewUserValidateResponse,
@@ -626,6 +646,23 @@ async def institution_branding_publish_route(
     return success_response(data, request_id=get_request_id())
 
 
+@router.get("/institution/branding/files/{storage_key:path}")
+async def institution_branding_file_route(
+    storage_key: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    data, mime, filename = await read_institution_branding_file(scope, storage_key)
+    return Response(
+        content=data,
+        media_type=mime,
+        headers={
+            "Cache-Control": "private, max-age=3600",
+            "Content-Disposition": f'inline; filename="{filename}"',
+        },
+    )
+
+
 @router.post(
     "/institution/branding/assets/{asset_key}",
     response_model=ApiResponse[InstitutionBrandingAssetRead],
@@ -661,6 +698,46 @@ async def institution_campuses_dashboard_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[CampusManagementDashboardRead]:
     data = await get_campus_management_dashboard(scope)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.get(
+    "/institution/campuses/create/page",
+    response_model=ApiResponse[CampusCreationPageRead],
+)
+async def institution_campus_creation_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    campus_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[CampusCreationPageRead]:
+    data = await get_campus_creation_page(scope, campus_id=campus_id)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.put(
+    "/institution/campuses/create/draft",
+    response_model=ApiResponse[CampusCreationPageRead],
+)
+async def institution_campus_creation_draft_route(
+    payload: CampusCreationDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CampusCreationPageRead]:
+    data = await save_campus_creation_draft(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/campuses/create/finish",
+    response_model=ApiResponse[CampusCreationFinishResult],
+    status_code=status.HTTP_201_CREATED,
+)
+async def institution_campus_creation_finish_route(
+    payload: CampusCreationFinishPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[CampusCreationFinishResult]:
+    data = await finish_campus_creation(scope, payload)
     return success_response(data, request_id=get_request_id())
 
 
@@ -849,6 +926,21 @@ async def institution_calendar_import_route(
     return success_response(data, request_id=get_request_id())
 
 
+@router.post(
+    "/institution/calendar/holidays",
+    response_model=ApiResponse[InstitutionHolidayCreateResult],
+    status_code=status.HTTP_201_CREATED,
+)
+async def institution_calendar_holiday_create_route(
+    payload: InstitutionHolidayCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    __: Annotated[None, Depends(institution_settings_rate_limit)],
+) -> ApiResponse[InstitutionHolidayCreateResult]:
+    data = await create_institution_holiday(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
 @router.get(
     "/institution/policies/page",
     response_model=ApiResponse[InstitutionPoliciesPageRead],
@@ -874,6 +966,20 @@ async def institution_policies_page_route(
         page_size=page_size,
         selected_policy_id=selected_policy_id,
     )
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/institution/policies",
+    response_model=ApiResponse[InstitutionPolicyCreateResult],
+    status_code=status.HTTP_201_CREATED,
+)
+async def institution_policy_create_route(
+    payload: InstitutionPolicyCreate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[InstitutionPolicyCreateResult]:
+    data = await create_institution_policy(scope, payload)
     return success_response(data, request_id=get_request_id())
 
 
@@ -1063,6 +1169,7 @@ from app.modules.college_admin.create_new_user_page_service import (
     get_create_new_user_page,
     save_create_new_user_draft,
     submit_create_new_user,
+    upload_create_new_user_file,
     validate_create_new_user,
 )
 from app.modules.college_admin.user_management_service import (
@@ -1344,6 +1451,20 @@ async def create_new_user_submit_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[CreateNewUserSubmitResponse]:
     data = await submit_create_new_user(scope, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post(
+    "/users/create-new-user/upload",
+    response_model=ApiResponse[CreateNewUserProvisioningUploadRead],
+)
+async def create_new_user_upload_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    kind: Annotated[str, Query(description="profile_photo | identity_document | supporting_document")],
+    file: Annotated[UploadFile, File()],
+) -> ApiResponse[CreateNewUserProvisioningUploadRead]:
+    data = await upload_create_new_user_file(scope, kind, file)
     return success_response(data, request_id=get_request_id())
 
 
@@ -1803,8 +1924,13 @@ async def organizational_hierarchy_page_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(college_admin_user)],
     selected_node_id: Annotated[str | None, Query()] = None,
+    edit: Annotated[bool, Query()] = False,
 ) -> ApiResponse[OrganizationalHierarchyPageRead]:
-    data = await get_organizational_hierarchy_page(scope, selected_node_id=selected_node_id)
+    data = await get_organizational_hierarchy_page(
+        scope,
+        selected_node_id=selected_node_id,
+        edit_mode=edit,
+    )
     return success_response(data, request_id=get_request_id())
 
 

@@ -197,7 +197,7 @@ async def get_attendance_dashboard_page(
             StudentAdminDashboardFilterOption(value=_term_key(ay_label, sem_label), label=_term_label(sem_label, ay_label))
         ]
 
-    selected_term = _term_key(ay_label, sem_label)
+    selected_term = (term_key or "").strip() or _term_key(ay_label, sem_label)
 
     departments = await InstitutionDepartment.find(
         Eq(InstitutionDepartment.tenant_id, tenant_id),

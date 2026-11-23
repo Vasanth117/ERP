@@ -14,5 +14,9 @@ const LoginForm = dynamic(
 );
 
 export function LoginFormLoader() {
-  return <LoginForm />;
+  return (
+    <div className="h-full min-h-0">
+      <LoginForm />
+    </div>
+  );
 }

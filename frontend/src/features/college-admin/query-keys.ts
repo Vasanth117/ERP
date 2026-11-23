@@ -59,6 +59,35 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "examination-overview", params ?? {}] as const,
   financeOverview: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "finance-overview", params ?? {}] as const,
+  financeDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "finance-dashboard-page", params ?? {}] as const,
+  feeStructureManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "fee-structure-management-page", params ?? {}] as const,
+  studentFeeManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "student-fee-management-page", params ?? {}] as const,
+  feeDemandInvoiceManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "fee-demand-invoice-management-page", params ?? {}] as const,
+  onlinePaymentMonitoringPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "online-payment-monitoring-page", params ?? {}] as const,
+  offlinePaymentCollectionPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "offline-payment-collection-page", params ?? {}] as const,
+  paymentTransactionsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "payment-transactions-page", params ?? {}] as const,
+  receiptManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "receipt-management-page", params ?? {}] as const,
+  outstandingDuesManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "outstanding-dues-management-page", params ?? {}] as const,
+  scholarshipManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "scholarship-management-page", params ?? {}] as const,
+  feeConcessionWaiverManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "fee-concession-waiver-management-page", params ?? {}] as const,
+  refundManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "refund-management-page", params ?? {}] as const,
+  paymentReconciliationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "payment-reconciliation-page", params ?? {}] as const,
+  financialReportsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "financial-reports-page", params ?? {}] as const,
+  financeSettingsPage: () => [...collegeAdminQueryKeys.all, "finance-settings-page"] as const,
   pendingApprovalsOverview: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "pending-approvals-overview", params ?? {}] as const,
   recentActivitiesOverview: (params?: Record<string, string | number | undefined>) =>
@@ -66,6 +95,8 @@ export const collegeAdminQueryKeys = {
   alertsOverview: () => [...collegeAdminQueryKeys.all, "alerts-overview"] as const,
   campusesDashboard: () =>
     [...collegeAdminQueryKeys.all, "campuses-dashboard"] as const,
+  campusCreationPage: (campusId?: string) =>
+    [...collegeAdminQueryKeys.all, "campus-creation-page", campusId ?? ""] as const,
   campusDetailPage: (campusId: string) =>
     [...collegeAdminQueryKeys.all, "campus-detail-page", campusId] as const,
   campusContactPage: (campusId: string) =>
@@ -136,7 +167,8 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "attendance-correction-requests", params ?? {}] as const,
   attendanceApproval: (requestId?: string) =>
     [...collegeAdminQueryKeys.all, "attendance-approval", requestId ?? "default"] as const,
-  attendanceConfiguration: [...collegeAdminQueryKeys.all, "attendance-configuration"] as const,
+  attendanceConfiguration: () =>
+    [...collegeAdminQueryKeys.all, "attendance-configuration"] as const,
   attendanceRulesPolicies: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "attendance-rules-policies", params ?? {}] as const,
   attendanceReports: (params?: Record<string, string | number | undefined>) =>
@@ -215,6 +247,7 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "batch-section-allocation-page", params ?? {}] as const,
   studentTransferManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "student-transfer-management-page", params ?? {}] as const,
+  studentTransferCreatePage: () => [...collegeAdminQueryKeys.all, "student-transfer-create-page"] as const,
   studentPromotionManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "student-promotion-management-page", params ?? {}] as const,
   studentStatusManagementPage: (params?: Record<string, string | number | undefined>) =>
@@ -225,12 +258,18 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "student-id-card-management-page", params ?? {}] as const,
   studentAcademicHistoryPage: (recordId?: string) =>
     [...collegeAdminQueryKeys.all, "student-academic-history-page", recordId ?? ""] as const,
+  newAcademicYearWizard: (draftId?: string) =>
+    [...collegeAdminQueryKeys.all, "new-academic-year-wizard", draftId ?? "new"] as const,
+  academicYearDetails: (yearId: string) =>
+    [...collegeAdminQueryKeys.all, "academic-year-details", yearId] as const,
   academicYearManagement: (page?: number) =>
     [...collegeAdminQueryKeys.all, "academic-year-management", page ?? 1] as const,
   semesterManagement: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "semester-management", params ?? {}] as const,
   programmeManagement: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "programme-management", params ?? {}] as const,
+  programmeDetails: (programmeId: string) =>
+    [...collegeAdminQueryKeys.all, "programme-details", programmeId] as const,
   subjectManagement: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "subject-management", params ?? {}] as const,
   curriculumManagement: (params?: Record<string, string | number | undefined>) =>
@@ -255,8 +294,13 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "department-details-page", departmentId ?? "none"] as const,
   departmentHeadAssignmentPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "department-head-assignment-page", params ?? {}] as const,
-  organizationalHierarchyPage: (selectedNodeId?: string) =>
-    [...collegeAdminQueryKeys.all, "organizational-hierarchy-page", selectedNodeId ?? "default"] as const,
+  organizationalHierarchyPage: (selectedNodeId?: string, editMode?: boolean) =>
+    [
+      ...collegeAdminQueryKeys.all,
+      "organizational-hierarchy-page",
+      selectedNodeId ?? "default",
+      editMode ? "edit" : "view",
+    ] as const,
   programmeCourseMappingPage: (departmentId?: string) =>
     [...collegeAdminQueryKeys.all, "programme-course-mapping-page", departmentId ?? "default"] as const,
   departmentFacultyAllocationPage: (params?: Record<string, string | number | undefined>) =>

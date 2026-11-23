@@ -2,8 +2,9 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from app.core.form_values import blank_to_none
 from app.modules.configuration.registry import BRANDING_THEME_KEYS
 
 PROTECTED_INSTITUTION_KEYS = frozenset(
@@ -54,6 +55,13 @@ class InstitutionBrandingUpdate(BaseModel):
     primary_color: str | None = Field(default=None, pattern=r"^#[0-9A-Fa-f]{6}$")
     secondary_color: str | None = Field(default=None, pattern=r"^#[0-9A-Fa-f]{6}$")
     theme: dict[str, str] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_blank_optional_strings(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        return {key: blank_to_none(value) for key, value in data.items()}
 
     @field_validator("theme")
     @classmethod

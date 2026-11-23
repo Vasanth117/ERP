@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { fetchAlertsOverview, markAllAlertsRead } from "@/features/college-admin/api/alerts-overview";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";

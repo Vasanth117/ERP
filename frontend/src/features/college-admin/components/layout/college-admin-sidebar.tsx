@@ -9,27 +9,16 @@ import {
   CollegeAdminChevronLeft,
   CollegeAdminChevronRight,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
-import {
-  collegeAdminNavGroups,
-} from "@/features/college-admin/config/navigation";
+import { isCollegeAdminNavItemActive } from "@/features/college-admin/config/college-admin-nav-utils";
+import { collegeAdminNavGroups } from "@/features/college-admin/config/navigation";
 import { BenchlogoNameIcon } from "@/components/icons/erp/generated/benchlogo_name";
+import { useCollegeAdminDemoMode } from "@/features/college-admin/context/college-admin-demo-mode-context";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { cn } from "@/lib/utils";
 
 const STORAGE_COLLAPSED = "college-admin-sidebar-collapsed";
-const STORAGE_DEMO = "college-admin-demo-mode";
 const WIDTH_EXPANDED = 264;
 const WIDTH_COLLAPSED = 72;
-
-function navActive(pathname: string, href: string): boolean {
-  if (href === "/college-admin/dashboard") {
-    return pathname === href || pathname.startsWith(`${href}/`);
-  }
-  if (href.startsWith("/college-admin/institution")) {
-    return pathname.startsWith("/college-admin/institution");
-  }
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -86,7 +75,7 @@ export function CollegeAdminSidebar() {
   const { data: user } = useCurrentUser();
   const [profileOpen, setProfileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
+  const { demoMode, setDemoMode } = useCollegeAdminDemoMode();
   const [canScrollMore, setCanScrollMore] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -97,7 +86,6 @@ export function CollegeAdminSidebar() {
   useEffect(() => {
     try {
       if (localStorage.getItem(STORAGE_COLLAPSED) === "1") setCollapsed(true);
-      if (localStorage.getItem(STORAGE_DEMO) === "1") setDemoMode(true);
     } catch {
       /* ignore */
     }
@@ -133,6 +121,12 @@ export function CollegeAdminSidebar() {
     };
   }, [collapsed, updateScrollHint]);
 
+  useEffect(() => {
+    if (!navRef.current || collapsed) return;
+    const activeEl = navRef.current.querySelector<HTMLElement>("[data-nav-active='true']");
+    activeEl?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [pathname, collapsed]);
+
   const setSidebarCollapsed = useCallback((next: boolean) => {
     setCollapsed(next);
     try {
@@ -147,16 +141,6 @@ export function CollegeAdminSidebar() {
     setSidebarCollapsed(!collapsed);
   }, [collapsed, setSidebarCollapsed]);
 
-  const setDemoModePersisted = useCallback((next: boolean) => {
-    setDemoMode(next);
-    try {
-      localStorage.setItem(STORAGE_DEMO, next ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
-    window.dispatchEvent(new CustomEvent("college-admin-demo-mode", { detail: next }));
-  }, []);
-
   const scrollNavFurther = useCallback(() => {
     navRef.current?.scrollBy({ top: 160, behavior: "smooth" });
   }, []);
@@ -164,6 +148,11 @@ export function CollegeAdminSidebar() {
   const flatNavItems = useMemo(
     () => collegeAdminNavGroups.flatMap((group) => group.items),
     [],
+  );
+
+  const isNavItemActive = useCallback(
+    (item: (typeof flatNavItems)[number]) => isCollegeAdminNavItemActive(pathname, item),
+    [pathname],
   );
 
   return (
@@ -211,21 +200,24 @@ export function CollegeAdminSidebar() {
           className={cn(
             "h-full overflow-y-auto overflow-x-hidden py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             collapsed ? "px-1.5" : "px-2.5",
+            canScrollMore && !collapsed ? "pb-12" : undefined,
           )}
         >
           {collapsed
             ? flatNavItems.map((item) => {
-                const active = navActive(pathname, item.href);
+                const active = isNavItemActive(item);
                 return (
                   <Link
                     key={item.id}
                     href={item.href}
                     title={item.label}
+                    aria-current={active ? "page" : undefined}
+                    data-nav-active={active ? "true" : undefined}
                     className={cn(
                       NAV_ROW,
                       "mb-0.5 justify-center px-2",
                       active
-                        ? "bg-[#eef4ff] text-[#245dd8]"
+                        ? "bg-[#eef4ff] text-[#245dd8] ring-1 ring-inset ring-[#c9d9f7]"
                         : "text-[#4b5563] hover:bg-[#f8fafc]",
                     )}
                   >
@@ -233,23 +225,32 @@ export function CollegeAdminSidebar() {
                   </Link>
                 );
               })
-            : collegeAdminNavGroups.map((group) => (
+            : collegeAdminNavGroups.map((group) => {
+                const groupActive = group.items.some((item) => isNavItemActive(item));
+                return (
                 <div key={group.title} className="mb-1">
-                  <p className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.04em] text-[#8a94a3]">
+                  <p
+                    className={cn(
+                      "px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.04em]",
+                      groupActive ? "text-[#245dd8]" : "text-[#8a94a3]",
+                    )}
+                  >
                     {group.title}
                   </p>
                   <ul className="flex flex-col gap-0.5">
                     {group.items.map((item) => {
-                      const active = navActive(pathname, item.href);
+                      const active = isNavItemActive(item);
                       return (
                         <li key={item.id}>
                           <Link
                             href={item.href}
+                            aria-current={active ? "page" : undefined}
+                            data-nav-active={active ? "true" : undefined}
                             className={cn(
                               NAV_ROW,
                               "px-3",
                               active
-                                ? "bg-[#eef4ff] font-medium text-[#245dd8]"
+                                ? "bg-[#eef4ff] font-semibold text-[#245dd8] ring-1 ring-inset ring-[#c9d9f7]"
                                 : "font-normal text-[#4b5563] hover:bg-[#f8fafc]",
                             )}
                           >
@@ -267,7 +268,8 @@ export function CollegeAdminSidebar() {
                     })}
                   </ul>
                 </div>
-              ))}
+              );
+              })}
         </nav>
 
         {canScrollMore && !collapsed ? (
@@ -296,7 +298,7 @@ export function CollegeAdminSidebar() {
             <span className="text-[13px] font-medium text-[#374151]">Demo mode</span>
             <SidebarToggle
               checked={demoMode}
-              onChange={setDemoModePersisted}
+              onChange={setDemoMode}
               label="Demo mode"
             />
           </div>
@@ -306,7 +308,7 @@ export function CollegeAdminSidebar() {
           <div className="flex flex-col items-center gap-2">
             <SidebarToggle
               checked={demoMode}
-              onChange={setDemoModePersisted}
+              onChange={setDemoMode}
               label="Demo mode"
             />
             <button

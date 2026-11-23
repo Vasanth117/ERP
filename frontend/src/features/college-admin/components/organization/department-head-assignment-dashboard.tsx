@@ -1,16 +1,23 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CircleCheckIcon } from "@/components/icons/erp/generated/circle-check";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 import { SlidersHorizontalIcon } from "@/components/icons/erp/generated/sliders-horizontal";
 import { TriangleAlertIcon } from "@/components/icons/erp/generated/triangle-alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  CollegeAdminOutlineButton,
+  CollegeAdminOutlineLink,
+  CollegeAdminPrimaryButton,
+  collegeAdminActionLabel,
+} from "@/features/college-admin/components/ui/college-admin-page-buttons";
+import { OrganizationSetupEmptyState } from "@/features/college-admin/components/ui/organization-setup-empty-state";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useDepartmentHeadAssignmentPage,
@@ -54,18 +61,6 @@ function EligibilityBadge({ label, tone }: { label: string; tone: string }) {
   return (
     <span className={cn("rounded-md border px-2 py-0.5 text-[11px] font-medium", styles[key])}>{label}</span>
   );
-}
-
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
 }
 
 function isoToDateInput(iso: string) {
@@ -116,19 +111,26 @@ export function DepartmentHeadAssignmentDashboard() {
   }, [data, facultyUserId, selectedDepartmentId]);
 
   const form = formDraft ?? data?.form;
+  const formInteractive = data?.form_interactive ?? false;
+  const assignHeadEnabled = data?.assign_head_enabled ?? false;
 
-  const updateForm = useCallback((patch: Partial<DepartmentHeadAssignmentFormValues>) => {
-    setFormDraft((prev) => {
-      const base = prev ?? data?.form;
-      if (!base) return prev;
-      return { ...base, ...patch };
-    });
-    if (patch.faculty_user_id !== undefined) {
-      setFacultyUserId(patch.faculty_user_id);
-    }
-  }, [data?.form]);
+  const updateForm = useCallback(
+    (patch: Partial<DepartmentHeadAssignmentFormValues>) => {
+      if (!formInteractive) return;
+      setFormDraft((prev) => {
+        const base = prev ?? data?.form;
+        if (!base) return prev;
+        return { ...base, ...patch };
+      });
+      if (patch.faculty_user_id !== undefined) {
+        setFacultyUserId(patch.faculty_user_id);
+      }
+    },
+    [data?.form, formInteractive],
+  );
 
   const handleSelectDepartment = (departmentId: string) => {
+    if (!assignHeadEnabled) return;
     setSelectedDepartmentId(departmentId);
     setFacultyUserId("");
     setFormDraft(null);
@@ -143,7 +145,7 @@ export function DepartmentHeadAssignmentDashboard() {
   };
 
   const handleSubmit = () => {
-    if (!selectedDepartmentId || !form) return;
+    if (!selectedDepartmentId || !form || !formInteractive) return;
     submit.mutate(
       { department_id: selectedDepartmentId, form },
       {
@@ -151,7 +153,7 @@ export function DepartmentHeadAssignmentDashboard() {
           toast.success(result.message);
           setFormDraft({ ...result.page.form });
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -170,25 +172,25 @@ export function DepartmentHeadAssignmentDashboard() {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Link
-            href={data?.rotation_policy_href ?? "/college-admin/institution/policies"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
-          >
+          <CollegeAdminOutlineLink href={data?.rotation_policy_href ?? "/college-admin/institution/policies"}>
             <SlidersHorizontalIcon className="size-3.5" aria-hidden />
             {data?.rotation_policy_label ?? "Rotation policy"}
-          </Link>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          </CollegeAdminOutlineLink>
+          <CollegeAdminPrimaryButton
             onClick={() => {
               const first = data?.table_rows.find((r) => r.is_selected) ?? data?.table_rows[0];
               if (first) handleSelectDepartment(first.department_id);
             }}
-            disabled={isLoading}
+            disabled={isLoading || !assignHeadEnabled}
+            className={
+              !assignHeadEnabled
+                ? "cursor-not-allowed bg-[#dbe4f8] text-[#a5b4d4] opacity-100 hover:bg-[#dbe4f8]"
+                : undefined
+            }
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.assign_head_label ?? "+ Assign head"}
-          </button>
+            {assignHeadEnabled ? <PlusIcon className="size-3.5" aria-hidden /> : null}
+            {collegeAdminActionLabel(data?.assign_head_label ?? "Assign head")}
+          </CollegeAdminPrimaryButton>
         </div>
       </div>
 
@@ -200,33 +202,38 @@ export function DepartmentHeadAssignmentDashboard() {
         isEmpty={false}
       >
         {data && form ? (
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className={cn("grid gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]", isFetching && "opacity-95")}>
             <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between border-b border-[#f1f5f9] px-5 py-3.5">
                 <h3 className="text-[14px] font-semibold text-[#111827]">{data.current_heads_section_title}</h3>
                 <span className="text-[12px] text-[#6b7280]">{data.departments_count_label}</span>
               </div>
-              {data.table_rows.length ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[36rem] text-left text-[13px]">
-                    <thead>
-                      <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                        {headers.map((header, index) => (
-                          <th
-                            key={header}
-                            className={cn("pb-3 font-medium", index === 0 ? "px-5" : "pr-3", index === headers.length - 1 ? "pr-5" : "")}
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
+
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[36rem] text-left text-[13px]">
+                  <thead>
+                    <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
+                      {headers.map((header, index) => (
+                        <th
+                          key={header}
+                          className={cn(
+                            "pb-3 pt-3 font-medium",
+                            index === 0 ? "px-5" : "pr-3",
+                            index === headers.length - 1 ? "pr-5" : "",
+                          )}
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  {!data.setup_empty_state ? (
                     <tbody className="divide-y divide-[#f1f5f9]">
                       {data.table_rows.map((row) => (
                         <tr
                           key={row.department_id}
                           className={cn(
-                            "cursor-pointer hover:bg-[#f9fafb]",
+                            assignHeadEnabled && "cursor-pointer hover:bg-[#f9fafb]",
                             row.is_selected && "bg-[#f8fafc]",
                           )}
                           onClick={() => handleSelectDepartment(row.department_id)}
@@ -241,11 +248,13 @@ export function DepartmentHeadAssignmentDashboard() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </div>
-              ) : (
-                <p className="px-5 py-8 text-sm text-[#9ca3af]">No departments found.</p>
-              )}
+                  ) : null}
+                </table>
+              </div>
+              {data.setup_empty_state ? (
+                <OrganizationSetupEmptyState state={data.setup_empty_state} embedded />
+              ) : null}
+
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                 <span>{data.departments_count_label}</span>
                 {data.pagination.total_pages > 0 ? (
@@ -293,44 +302,58 @@ export function DepartmentHeadAssignmentDashboard() {
             </section>
 
             <aside className="space-y-4">
-              <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+              <section
+                className={cn(
+                  "rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
+                  !formInteractive && "opacity-90",
+                )}
+              >
                 <h3 className="text-[14px] font-semibold text-[#111827]">{data.assign_panel_title}</h3>
                 <p className="mt-1 text-[12px] text-[#6b7280]">{data.assign_panel_subtitle}</p>
                 <div className="mt-4 space-y-3">
                   <FieldSelect
+                    fieldKey="faculty_user_id"
                     label={data.faculty_field_label}
                     required
                     value={form.faculty_user_id}
                     options={data.faculty_options}
+                    disabled={!formInteractive}
                     onChange={(value) => updateForm({ faculty_user_id: value })}
                   />
                   <FieldSelect
+                    fieldKey="appointment_type"
                     label={data.appointment_type_field_label}
                     required
                     value={form.appointment_type}
                     options={data.appointment_type_options}
+                    disabled={!formInteractive}
                     onChange={(value) => updateForm({ appointment_type: value })}
                   />
                   <FieldDate
+                    fieldKey="effective_from"
                     label={data.effective_from_field_label}
                     required
                     value={isoToDateInput(form.effective_from)}
+                    disabled={!formInteractive}
                     onChange={(value) => updateForm({ effective_from: value })}
                   />
                   <FieldDate
+                    fieldKey="term_end"
                     label={data.term_end_field_label}
                     required
                     value={isoToDateInput(form.term_end)}
+                    disabled={!formInteractive}
                     onChange={(value) => updateForm({ term_end: value })}
                   />
-                  <div className="space-y-1">
+                  <div className="space-y-1" data-field-key="order_reference">
                     <Label className="text-[12px] text-[#374151]">
                       {data.order_reference_field_label} <span className="text-[#dc2626]">*</span>
                     </Label>
                     <Input
                       value={form.order_reference}
+                      disabled={!formInteractive}
                       onChange={(e) => updateForm({ order_reference: e.target.value })}
-                      className="h-9 border-[#dce3ec] text-[13px]"
+                      className="h-9 border-[#dce3ec] text-[13px] disabled:cursor-not-allowed disabled:bg-[#f9fafb]"
                     />
                   </div>
                 </div>
@@ -362,58 +385,55 @@ export function DepartmentHeadAssignmentDashboard() {
         ) : null}
       </QueryState>
 
-      <footer className="flex flex-col gap-3 border-t border-[#e8ecf2] pt-4 lg:flex-row lg:items-center lg:justify-between">
-        <p className="text-[12px] text-[#6b7280]">{data?.footer_note}</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="h-9 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151]"
-            onClick={() => router.push("/college-admin/organization/department-management-dashboard")}
-          >
-            {data?.cancel_label ?? "Cancel"}
-          </button>
-          <button
-            type="button"
-            className="h-9 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
-            disabled={!data?.can_submit || !form?.faculty_user_id || submit.isPending || isFetching}
-            onClick={handleSubmit}
-          >
-            {data?.submit_label ?? "Send to Principal for approval"}
-          </button>
-        </div>
-      </footer>
-
       {data ? (
-        <p className="text-right text-[11px] tabular-nums text-[#9ca3af]">
-          {data.footer_disclaimer} · {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-        </p>
+        <footer className="flex flex-col gap-3 border-t border-[#e8ecf2] pt-4 lg:flex-row lg:items-center lg:justify-between">
+          <p className="text-[12px] text-[#6b7280]">{data.footer_note}</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <CollegeAdminOutlineButton
+              onClick={() => router.push("/college-admin/organization/department-management-dashboard")}
+            >
+              {data.cancel_label}
+            </CollegeAdminOutlineButton>
+            <CollegeAdminPrimaryButton
+              disabled={!data.can_submit || !form?.faculty_user_id || !selectedDepartmentId || submit.isPending || isFetching}
+              onClick={handleSubmit}
+            >
+              {data.submit_label}
+            </CollegeAdminPrimaryButton>
+          </div>
+        </footer>
       ) : null}
     </div>
   );
 }
 
 function FieldSelect({
+  fieldKey,
   label,
   required,
   value,
   options,
+  disabled,
   onChange,
 }: {
+  fieldKey: string;
   label: string;
   required?: boolean;
   value: string;
   options: { value: string; label: string }[];
+  disabled?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1" data-field-key={fieldKey}>
       <Label className="text-[12px] text-[#374151]">
         {label} {required ? <span className="text-[#dc2626]">*</span> : null}
       </Label>
       <select
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#374151]"
+        className="h-9 w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#374151] disabled:cursor-not-allowed disabled:bg-[#f9fafb]"
       >
         {options.map((opt) => (
           <option key={`${opt.value}-${opt.label}`} value={opt.value}>
@@ -426,26 +446,31 @@ function FieldSelect({
 }
 
 function FieldDate({
+  fieldKey,
   label,
   required,
   value,
+  disabled,
   onChange,
 }: {
+  fieldKey: string;
   label: string;
   required?: boolean;
   value: string;
+  disabled?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1" data-field-key={fieldKey}>
       <Label className="text-[12px] text-[#374151]">
         {label} {required ? <span className="text-[#dc2626]">*</span> : null}
       </Label>
       <Input
         type="date"
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 border-[#dce3ec] text-[13px]"
+        className="h-9 border-[#dce3ec] text-[13px] disabled:cursor-not-allowed disabled:bg-[#f9fafb]"
       />
     </div>
   );

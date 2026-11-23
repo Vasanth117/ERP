@@ -54,7 +54,6 @@ export function AttendanceCorrectionRequestsDashboard() {
           </h2>
           <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "—"}</p>
         </div>
-        <p className="text-[12px] tabular-nums text-[#6b7280]">{data?.updated_at_label ?? "—"}</p>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -137,10 +136,6 @@ export function AttendanceCorrectionRequestsDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-wrap justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>{data.footer_snapshot_label}</span>
-            </footer>
           </>
         ) : null}
       </QueryState>

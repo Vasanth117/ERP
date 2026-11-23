@@ -20,18 +20,22 @@ export function SectionPanel({
 }) {
   return (
     <section
-      className={`rounded-xl border border-[#dce3ec] bg-white p-5 shadow-[0px_1px_1px_rgba(23,43,69,0.04)] ${className ?? ""}`}
+      className={`overflow-hidden rounded-2xl border border-[#e3e9f2] bg-white shadow-[0_2px_12px_rgba(15,39,69,0.05)] ${className ?? ""}`}
     >
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-2 border-b border-[#eef2f7] bg-gradient-to-b from-[#fafbfd] to-white px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-[#172b45]">{title}</h2>
+          <h2 className="text-[15px] font-bold tracking-[-0.02em] text-[#0f2744]">
+            {title}
+          </h2>
           {description ? (
-            <p className="mt-1 text-xs text-[#607086]">{description}</p>
+            <p className="mt-0.5 text-[12px] leading-snug text-[#64748b]">
+              {description}
+            </p>
           ) : null}
         </div>
         {actions}
       </div>
-      {children}
+      <div className="p-5">{children}</div>
     </section>
   );
 }
@@ -90,7 +94,7 @@ export function DataTable({
 }) {
   if (rows.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-[#dce3ec] px-4 py-8 text-center text-sm text-[#607086]">
+      <p className="rounded-xl border border-dashed border-[#dce3ec] bg-[#f8fafc] px-4 py-10 text-center text-[13px] font-medium text-[#64748b]">
         {emptyMessage}
       </p>
     );

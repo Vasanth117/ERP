@@ -335,20 +335,43 @@ async def save_add_new_faculty_employee_draft(
 
 
 def _validate_create(form: AddNewFacultyEmployeeFormValues) -> None:
+    from app.modules.college_admin.form_validation_details import (
+        navigate_field,
+        raise_validation_error,
+        scroll_field,
+    )
+
+    details: list[dict] = []
     if not form.full_name.strip():
-        raise AppError(code="VALIDATION_ERROR", message="Full name is required", status_code=422)
+        details.append(scroll_field("full_name", label="Full name", message="Enter the employee's full name."))
     if not form.official_email.strip():
-        raise AppError(code="VALIDATION_ERROR", message="Official email is required", status_code=422)
+        details.append(
+            scroll_field("official_email", label="Official email", message="Enter the institutional email address.")
+        )
     if not form.department_id:
-        raise AppError(code="VALIDATION_ERROR", message="Department is required", status_code=422)
+        details.append(
+            navigate_field(
+                "department_id",
+                label="Department",
+                message="Select the department this employee belongs to, or create a department first.",
+                action_label="Create department",
+                action_href="/college-admin/organization/create-department",
+            )
+        )
     if not form.designation:
-        raise AppError(code="VALIDATION_ERROR", message="Designation is required", status_code=422)
+        details.append(scroll_field("designation", label="Designation", message="Select or enter the designation."))
     if not form.joining_date:
-        raise AppError(code="VALIDATION_ERROR", message="Joining date is required", status_code=422)
+        details.append(scroll_field("joining_date", label="Joining date", message="Enter the date of joining."))
     if not form.password or len(form.password) < 8:
-        raise AppError(code="VALIDATION_ERROR", message="Password must be at least 8 characters", status_code=422)
+        details.append(
+            scroll_field("password", label="Password", message="Password must be at least 8 characters.")
+        )
     if form.password != form.confirm_password:
-        raise AppError(code="VALIDATION_ERROR", message="Passwords do not match", status_code=422)
+        details.append(
+            scroll_field("confirm_password", label="Confirm password", message="Passwords must match.")
+        )
+    if details:
+        raise_validation_error("Complete the required fields before creating the employee.", details)
 
 
 async def create_add_new_faculty_employee(

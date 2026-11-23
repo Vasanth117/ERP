@@ -34,7 +34,7 @@ export function QueryState({
   if (isLoading) {
     return (
       <StatusPanel
-        className="rounded-xl border border-[#dce3ec] bg-white p-8 text-center text-sm text-[#607086]"
+        className="rounded-2xl border border-[#e3e9f2] bg-[#f8fafc] p-10 text-center text-[13px] font-medium text-[#64748b]"
         message="Loading…"
       />
     );
@@ -72,7 +72,7 @@ export function QueryState({
   if (isEmpty) {
     return (
       <StatusPanel
-        className="rounded-xl border border-dashed border-[#dce3ec] bg-white p-8 text-center text-sm text-[#607086]"
+        className="rounded-2xl border border-dashed border-[#dce3ec] bg-[#f8fafc] p-10 text-center text-[13px] font-medium text-[#64748b]"
         message={emptyMessage}
       />
     );

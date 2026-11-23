@@ -31,6 +31,7 @@ import {
 } from "@/lib/auth/login-portal";
 import { homePathForRole } from "@/lib/auth/role-home";
 import { setAccessToken } from "@/lib/auth/token-store";
+import { userFacingErrorMessage } from "@/lib/errors/user-message";
 
 type PerformanceMode = "student" | "parent";
 
@@ -72,7 +73,9 @@ function InstitutionLoginForm({
       router.replace(nextPath);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(
+        userFacingErrorMessage(error, "Could not sign in. Please try again."),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -86,12 +89,12 @@ function InstitutionLoginForm({
 
   return (
     <LoginPageChrome portal={portal}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <LoginField
           id="email"
           label="Email"
           type="email"
-          placeholder="Enter your email"
+          placeholder="name@college.edu"
           autoComplete="email"
           disabled={submitting}
           error={errors.email?.message}
@@ -100,7 +103,7 @@ function InstitutionLoginForm({
         <PasswordField
           id="password"
           label="Password"
-          placeholder="Enter your password"
+          placeholder="Your password"
           disabled={submitting}
           error={errors.password?.message}
           register={register("password")}
@@ -108,7 +111,7 @@ function InstitutionLoginForm({
         <LoginField
           id="tenant_code"
           label="College code"
-          placeholder="Enter college code"
+          placeholder="e.g. DEMO"
           autoComplete="organization"
           disabled={submitting}
           error={errors.tenant_code?.message}
@@ -167,7 +170,9 @@ function StudentPerformanceLoginForm({
       router.replace(destination);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(
+        userFacingErrorMessage(error, "Could not sign in. Please try again."),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -251,7 +256,9 @@ function DefaultLoginForm({
       router.replace(target);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(
+        userFacingErrorMessage(error, "Could not sign in. Please try again."),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -265,12 +272,12 @@ function DefaultLoginForm({
 
   return (
     <LoginPageChrome portal={portal}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
         <LoginField
           id="email"
           label="Email"
           type="email"
-          placeholder="Enter your email"
+          placeholder="name@college.edu"
           autoComplete="email"
           disabled={submitting}
           error={errors.email?.message}
@@ -279,7 +286,7 @@ function DefaultLoginForm({
         <PasswordField
           id="password"
           label="Password"
-          placeholder="Enter your password"
+          placeholder="Your password"
           disabled={submitting}
           error={errors.password?.message}
           register={register("password")}
@@ -289,7 +296,7 @@ function DefaultLoginForm({
           label={
             requireTenantCode ? "College code" : "College code (optional)"
           }
-          placeholder="Enter college code"
+          placeholder="e.g. DEMO"
           autoComplete="organization"
           disabled={submitting}
           error={errors.tenant_code?.message}

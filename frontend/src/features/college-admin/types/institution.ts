@@ -114,6 +114,7 @@ export type BrandingAssetRow = {
   status_label: string;
   editable: boolean;
   file_name: string | null;
+  file_id: string | null;
 };
 
 export type BrandingDocumentTemplateRow = {
@@ -135,7 +136,11 @@ export type InstitutionBrandingFormValues = {
 
 export type InstitutionBrandingPage = {
   form: InstitutionBrandingFormValues;
-  primary_logo: { upload_hint: string; current_summary: string | null };
+  primary_logo: {
+    upload_hint: string;
+    current_summary: string | null;
+    file_id: string | null;
+  };
   color_fields: { key: string; label: string; value: string | null; required: boolean }[];
   document_templates: BrandingDocumentTemplateRow[];
   template_count_label: string;
@@ -280,6 +285,7 @@ export type AcademicYearConfigurationPage = {
   copy_from_previous_label: string;
   new_academic_year_label: string;
   save_label: string;
+  cancel_label: string;
   academic_years_table_title: string;
   archive_view_href: string;
   archive_view_label: string;
@@ -375,6 +381,21 @@ export type InstitutionCalendarTimeOption = {
   label: string;
 };
 
+export type InstitutionHolidayCreatePayload = {
+  academic_year_id: string;
+  title: string;
+  start_date: string;
+  end_date?: string | null;
+  holiday_type?: string;
+  applies_to?: string;
+};
+
+export type InstitutionHolidayCreateResult = {
+  holiday_id: string;
+  title: string;
+  message: string;
+};
+
 export type InstitutionCalendarSettingsPage = {
   page_title: string;
   page_subtitle: string;
@@ -384,6 +405,12 @@ export type InstitutionCalendarSettingsPage = {
   holidays_section_title: string;
   add_holiday_label: string;
   add_holiday_href: string;
+  add_holiday_dialog_title?: string;
+  add_holiday_dialog_subtitle?: string;
+  create_holiday_save_label?: string;
+  create_holiday_cancel_label?: string;
+  create_holiday_type_options?: InstitutionFieldOption[];
+  create_holiday_applies_options?: InstitutionFieldOption[];
   holiday_table_headers: string[];
   holidays: InstitutionCalendarHolidayRow[];
   holiday_count_label: string;
@@ -406,12 +433,37 @@ export type InstitutionCalendarSettingsPage = {
   generated_at: string;
 };
 
+export type InstitutionPolicyCreatePayload = {
+  title: string;
+  category: string;
+  audience: string;
+  version_label?: string;
+  effective_from?: string | null;
+  status?: string;
+  owner_label?: string | null;
+  approved_by_label?: string | null;
+  acknowledgement_requirement?: string | null;
+};
+
+export type InstitutionPolicyCreateResult = {
+  policy_id: string;
+  title: string;
+  message: string;
+};
+
 export type InstitutionPoliciesPage = {
   page_title: string;
   page_subtitle: string;
   export_label: string;
   add_policy_label: string;
   add_policy_href: string;
+  create_dialog_title?: string;
+  create_dialog_subtitle?: string;
+  create_save_label?: string;
+  create_cancel_label?: string;
+  create_category_options?: InstitutionPolicyFilterOption[];
+  create_audience_options?: InstitutionPolicyFilterOption[];
+  create_status_options?: InstitutionPolicyFilterOption[];
   search_placeholder: string;
   category_filter_label: string;
   audience_filter_label: string;

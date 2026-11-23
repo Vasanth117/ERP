@@ -1,12 +1,21 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  CollegeAdminPrimaryButton,
+  CollegeAdminSecondaryButton,
+} from "@/features/college-admin/components/ui/college-admin-action-button";
+import {
+  CollegeAdminPanelChromeFooter,
+  CollegeAdminPanelChromeHeader,
+  CollegeAdminPanelShell,
+} from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useAddBatchSection,
@@ -198,30 +207,20 @@ export function BatchSectionConfigurationDashboard() {
   };
 
   return (
-    <div className="space-y-5 pb-24" data-figma-frame="69:142356">
+    <div className="space-y-5" data-figma-frame="69:142356">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{data?.page_title ?? "Batch & Section Configuration"}</h2>
           <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={autoAllocate.isPending}
-            onClick={handleAutoAllocate}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
-          >
+          <CollegeAdminSecondaryButton disabled={autoAllocate.isPending} onClick={handleAutoAllocate}>
             <RefreshCwIcon className="size-3.5" aria-hidden />
             {data?.auto_allocate_label ?? "Auto-allocate sections"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowAdd((v) => !v)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.add_section_label ?? "Add section"}
-          </button>
+          </CollegeAdminSecondaryButton>
+          <CollegeAdminPrimaryButton onClick={() => setShowAdd((v) => !v)}>
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_section_label ?? "Add section" } />
+          </CollegeAdminPrimaryButton>
         </div>
       </div>
 
@@ -386,9 +385,9 @@ export function BatchSectionConfigurationDashboard() {
                 </div>
               </section>
 
-              <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                <h3 className="text-[14px] font-semibold text-[#111827]">{data.allocation_rules.section_title}</h3>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <CollegeAdminPanelShell>
+                <CollegeAdminPanelChromeHeader title={data.allocation_rules.section_title} />
+                <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
                   {data.allocation_rules.fields.map((field) => (
                     <RuleField
                       key={field.key}
@@ -398,7 +397,16 @@ export function BatchSectionConfigurationDashboard() {
                     />
                   ))}
                 </div>
-              </section>
+                <CollegeAdminPanelChromeFooter className="flex-col gap-3 sm:flex-row sm:items-center">
+                  <p className="text-[12px] font-normal text-[#64748b]">{data.footer_note}</p>
+                  <div className="flex shrink-0 gap-2 sm:ml-auto">
+                    <CollegeAdminSecondaryButton onClick={handleCancel}>{data.cancel_label}</CollegeAdminSecondaryButton>
+                    <CollegeAdminPrimaryButton disabled={saveRules.isPending} onClick={handleSave}>
+                      {data.save_label}
+                    </CollegeAdminPrimaryButton>
+                  </div>
+                </CollegeAdminPanelChromeFooter>
+              </CollegeAdminPanelShell>
             </div>
 
             <div className="flex flex-col gap-5">
@@ -450,33 +458,6 @@ export function BatchSectionConfigurationDashboard() {
         ) : null}
       </QueryState>
 
-      {data ? (
-        <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-[#e8ecf2] bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
-          <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[11px] text-[#6b7280]">{data.footer_note}</p>
-            <div className="flex gap-2">
-              <button type="button" onClick={handleCancel} className="h-9 rounded-md border border-[#dce3ec] px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]">
-                {data.cancel_label}
-              </button>
-              <button
-                type="button"
-                disabled={saveRules.isPending}
-                onClick={handleSave}
-                className="h-9 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
-              >
-                {data.save_label}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {data ? (
-        <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p className="tabular-nums">{data.footer_snapshot_label}</p>
-        </footer>
-      ) : null}
     </div>
   );
 }

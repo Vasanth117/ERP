@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -165,13 +166,13 @@ export function PermissionManagementDashboard() {
         setDisplayGroups(cloneGroups(saved.groups));
         toast.success("Permission matrix saved");
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   }, [data?.can_save, dirtyChanges, saveMutation]);
 
   const handleExport = useCallback(() => {
     downloadMutation.mutate(undefined, {
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   }, [downloadMutation]);
 
@@ -208,6 +209,12 @@ export function PermissionManagementDashboard() {
           </button>
         </div>
       </div>
+
+      {data?.matrix_read_only_reason ? (
+        <div className="rounded-xl border border-[#e8ecf2] bg-[#f9fafb] px-4 py-3 text-[13px] text-[#6b7280]">
+          {data.matrix_read_only_reason}
+        </div>
+      ) : null}
 
       {data && unsavedCount > 0 ? (
         <div className="rounded-xl border border-[#fde68a] bg-[#fffbeb] px-4 py-3.5">
@@ -300,13 +307,6 @@ export function PermissionManagementDashboard() {
           </section>
         ) : null}
       </QueryState>
-
-      {data ? (
-        <footer className="flex flex-col gap-1 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p>{data.footer_snapshot_label}</p>
-        </footer>
-      ) : null}
     </div>
   );
 }

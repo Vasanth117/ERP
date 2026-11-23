@@ -1,11 +1,11 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { UploadIcon } from "@/components/icons/erp/generated/upload";
 import { CollegeAdminKpiGrid, CollegeAdminUserDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
@@ -127,17 +127,6 @@ function SecurityCountBadge({ item }: { item: UserDashboardSecurityItem }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function UserManagementDashboard() {
   const [dateRange, setDateRange] = useState("last_30_days");
@@ -158,32 +147,7 @@ export function UserManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:124928">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "User Management Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Link
-            href={data?.bulk_invite_href ?? "/college-admin/users/bulk-user-invitation"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
-          >
-            <UploadIcon className="size-3.5" aria-hidden />
-            {data?.bulk_invite_label ?? "Bulk invite"}
-          </Link>
-          <Link
-            href={data?.create_user_href ?? "/college-admin/users/create-new-user"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_user_label ?? "Create user"}
-          </Link>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
             icon={<CalendarDaysIcon className="size-4" aria-hidden />}
@@ -206,14 +170,22 @@ export function UserManagementDashboard() {
             onChange={setDepartmentId}
             options={data?.department_options ?? [{ value: "", label: "All departments" }]}
           />
-          <span className="text-[12px] font-medium text-[#245dd8]">
-            <span className="mr-1 text-[#3b82f6]">•</span>
-            {data?.scope_indicator_label ?? "College scope"}
-          </span>
         </div>
-        <p className="text-[12px] text-[#9ca3af]">
-          Updated {data?.updated_at_label}
-        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Link
+            href={data?.bulk_invite_href ?? "/college-admin/users/bulk-user-invitation"}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
+          >
+            <UploadIcon className="size-3.5" aria-hidden />
+            {data?.bulk_invite_label ?? "Bulk invite"}
+          </Link>
+          <Link
+            href={data?.create_user_href ?? "/college-admin/users/create-new-user"}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_user_label ?? "Create user" } />
+          </Link>
+        </div>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -329,12 +301,6 @@ export function UserManagementDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

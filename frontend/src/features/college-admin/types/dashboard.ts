@@ -14,6 +14,20 @@ export type HeadcountStatistics = {
   programme_count: number;
 };
 
+export type CollegeDashboardAttendanceTrendPoint = {
+  label: string;
+  students_pct: number | null;
+  faculty_pct: number | null;
+};
+
+export type CollegeDashboardFeeMonthPoint = {
+  year: number;
+  month: number;
+  label: string;
+  amount_inr: number;
+  is_month_to_date: boolean;
+};
+
 export type CollegeDashboardOverview = {
   filters: {
     anchor_date: string | null;
@@ -62,6 +76,8 @@ export type CollegeDashboardOverview = {
     last_check_at: string | null;
     detail: string | null;
   }[];
+  attendance_trend: CollegeDashboardAttendanceTrendPoint[];
+  fee_monthly_collection: CollegeDashboardFeeMonthPoint[];
 };
 
 export type OperationalSummariesRead = {

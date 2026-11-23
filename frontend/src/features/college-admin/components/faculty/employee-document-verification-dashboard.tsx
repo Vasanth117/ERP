@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -50,17 +51,6 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function EmployeeDocumentVerificationDashboard() {
   const router = useRouter();
@@ -97,7 +87,7 @@ export function EmployeeDocumentVerificationDashboard() {
       { document_id: activeDocId, result, remarks: remarks || undefined },
       {
         onSuccess: () => toast.success("Decision saved"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -105,7 +95,7 @@ export function EmployeeDocumentVerificationDashboard() {
   const handleVerifyAll = () => {
     verifyAll.mutate(undefined, {
       onSuccess: () => toast.success("Pending documents marked verified"),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -280,12 +270,6 @@ export function EmployeeDocumentVerificationDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

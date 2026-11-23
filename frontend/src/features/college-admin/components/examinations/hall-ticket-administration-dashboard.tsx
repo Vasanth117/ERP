@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { FileTextIcon } from "@/components/icons/erp/generated/file-text";
@@ -43,13 +44,6 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function HallTicketAdministrationDashboard() {
   const [page, setPage] = useState(1);
@@ -63,7 +57,7 @@ export function HallTicketAdministrationDashboard() {
     if (!data?.selected_session_id) return;
     generateAll.mutate(payload(), {
       onSuccess: () => toast.success("Hall tickets generated."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -71,7 +65,7 @@ export function HallTicketAdministrationDashboard() {
     if (!data?.selected_session_id) return;
     release.mutate(payload(), {
       onSuccess: () => toast.success("Hall tickets released."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -161,12 +155,6 @@ export function HallTicketAdministrationDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

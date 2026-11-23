@@ -1,5 +1,6 @@
 import type { InstitutionFieldOption } from "@/features/college-admin/types/institution";
 import type { PoliciesPagination } from "@/features/college-admin/types/institution";
+import type { OrganizationModuleEmptyState } from "@/features/college-admin/types/organization-module";
 
 export type DepartmentHeadAssignmentTableRow = {
   department_id: string;
@@ -60,6 +61,9 @@ export type DepartmentHeadAssignmentPage = {
   footer_disclaimer: string;
   footer_snapshot_label: string;
   can_submit: boolean;
+  assign_head_enabled: boolean;
+  form_interactive: boolean;
+  setup_empty_state?: OrganizationModuleEmptyState | null;
   generated_at: string;
 };
 

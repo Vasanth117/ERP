@@ -1,15 +1,25 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { UploadIcon } from "@/components/icons/erp/generated/upload";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  InstitutionPageActionFooter,
+  institutionActionButtonOutline,
+  institutionActionButtonPrimary,
+} from "@/features/college-admin/components/institution/institution-page-action-footer";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
+  defaultHolidayCreateForm,
+  InstitutionHolidayCreateDialog,
+  type HolidayCreateFormState,
+} from "@/features/college-admin/components/institution/institution-holiday-create-dialog";
+import {
+  useCreateInstitutionHoliday,
   useImportInstitutionCalendarHolidays,
   useInstitutionCalendarSettingsPage,
   useSaveInstitutionCalendarSettingsPage,
@@ -20,19 +30,11 @@ import type {
   InstitutionFieldMeta,
   InstitutionFieldOption,
 } from "@/features/college-admin/types/institution";
+import { normalizeFormPayload } from "@/lib/form-values";
 import { cn } from "@/lib/utils";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { toast } from "sonner";
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function SelectField({
   meta,
@@ -107,6 +109,9 @@ function ToggleRow({
 export function InstitutionalCalendarSettingsDashboard() {
   const [page, setPage] = useState(1);
   const [academicYearId, setAcademicYearId] = useState<string | undefined>();
+  const [addHolidayOpen, setAddHolidayOpen] = useState(false);
+  const [holidayForm, setHolidayForm] = useState<HolidayCreateFormState>(() => defaultHolidayCreateForm());
+
   const { data, isLoading, isError, error, refetch } = useInstitutionCalendarSettingsPage({
     page,
     academic_year_id: academicYearId,
@@ -128,6 +133,65 @@ export function InstitutionalCalendarSettingsDashboard() {
 
   const save = useSaveInstitutionCalendarSettingsPage(saveContext);
   const importHolidays = useImportInstitutionCalendarHolidays();
+  const createHoliday = useCreateInstitutionHoliday();
+
+  const openAddHoliday = useCallback(() => {
+    if (!data?.selected_academic_year_id) {
+      toast.error("Create an academic year before adding holidays");
+      return;
+    }
+    setHolidayForm(defaultHolidayCreateForm(data));
+    setAddHolidayOpen(true);
+    if (typeof window !== "undefined" && window.location.hash === "#add-holiday") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (!data) return;
+    if (typeof window !== "undefined" && window.location.hash === "#add-holiday") {
+      openAddHoliday();
+    }
+  }, [data, openAddHoliday]);
+
+  const closeAddHoliday = () => {
+    if (createHoliday.isPending) return;
+    setAddHolidayOpen(false);
+  };
+
+  const submitAddHoliday = () => {
+    const yearId = data?.selected_academic_year_id;
+    if (!yearId) {
+      toast.error("No academic year selected");
+      return;
+    }
+    const normalized = normalizeFormPayload(holidayForm as unknown as Record<string, unknown>);
+    createHoliday.mutate(
+      {
+        academic_year_id: yearId,
+        title: holidayForm.title.trim(),
+        start_date: holidayForm.start_date,
+        end_date: (normalized.end_date as string | null) ?? null,
+        holiday_type: holidayForm.holiday_type,
+        applies_to: holidayForm.applies_to,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success(res.message);
+          setAddHolidayOpen(false);
+          setPage(1);
+          void refetch();
+        },
+        onError: onCollegeAdminMutationError,
+      },
+    );
+  };
+
+  const academicYearLabel = useMemo(() => {
+    if (!data?.holidays_section_title) return undefined;
+    const match = data.holidays_section_title.match(/Holidays – (.+)/);
+    return match?.[1];
+  }, [data?.holidays_section_title]);
 
   const form = useForm<InstitutionCalendarFormValues>({
     defaultValues: data?.form,
@@ -146,48 +210,27 @@ export function InstitutionalCalendarSettingsDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="72:9653">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Institutional Calendar Settings"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs"
-            disabled={importHolidays.isPending}
-            onClick={() => importHolidays.mutate()}
-          >
-            <UploadIcon className="size-3.5" aria-hidden />
-            {data?.import_holidays_label ?? "Import holidays"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-            disabled={!data || save.isPending}
-            onClick={() => void submit()}
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            {data?.save_label ?? "Save settings"}
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
+          {data?.page_title ?? "Institutional Calendar Settings"}
+        </h2>
+        <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
-          <form onSubmit={submit} className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
+          <form onSubmit={submit} className="space-y-5">
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
             <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <div className="flex items-center justify-between border-b border-[#f1f5f9] px-5 py-3.5">
                 <h3 className="text-[14px] font-semibold text-[#111827]">{data.holidays_section_title}</h3>
-                <Link
-                  href={data.add_holiday_href}
+                <button
+                  type="button"
+                  onClick={openAddHoliday}
                   className="text-[12px] font-medium text-[#245dd8] hover:underline"
                 >
                   {data.add_holiday_label} →
-                </Link>
+                </button>
               </div>
               {data.holidays.length ? (
                 <div className="overflow-x-auto">
@@ -316,38 +359,50 @@ export function InstitutionalCalendarSettingsDashboard() {
                 </div>
               </section>
             </div>
-
-            <div className="col-span-full flex flex-col gap-3 border-t border-[#e8ecf2] pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[12px] text-[#6b7280]">{data.footer_note}</p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    if (data.form) form.reset(data.form);
-                  }}
-                >
-                  {data.cancel_label}
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-[#245dd8] hover:bg-[#1f4fb8]"
-                  disabled={save.isPending}
-                >
-                  {data.save_label}
-                </Button>
-              </div>
             </div>
 
-            <footer className="col-span-full flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
+            <InstitutionPageActionFooter note={data.footer_note}>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                disabled={importHolidays.isPending}
+                onClick={() => importHolidays.mutate()}
+              >
+                <UploadIcon className="size-3.5" aria-hidden />
+                {data.import_holidays_label}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                onClick={() => {
+                  if (data.form) form.reset(data.form);
+                }}
+              >
+                {data.cancel_label}
+              </Button>
+              <Button type="submit" className={institutionActionButtonPrimary} disabled={save.isPending}>
+                <CheckIcon className="size-3.5" aria-hidden />
+                {data.save_label}
+              </Button>
+            </InstitutionPageActionFooter>
           </form>
         ) : null}
       </QueryState>
+
+      {data ? (
+        <InstitutionHolidayCreateDialog
+          open={addHolidayOpen}
+          onClose={closeAddHoliday}
+          page={data}
+          form={holidayForm}
+          onChange={(patch) => setHolidayForm((prev) => ({ ...prev, ...patch }))}
+          onSubmit={submitAddHoliday}
+          isSubmitting={createHoliday.isPending}
+          academicYearLabel={academicYearLabel}
+        />
+      ) : null}
     </div>
   );
 }

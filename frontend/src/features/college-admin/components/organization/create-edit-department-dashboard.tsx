@@ -5,12 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import {
+  onCollegeAdminMutationError,
+  useCollegeAdminValidation,
+} from "@/features/college-admin/context/college-admin-validation-context";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { XIcon } from "@/components/icons/erp/generated/x";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { validateCreateEditDepartmentForm } from "@/features/college-admin/utils/create-edit-department-validation";
 import {
   useCreateEditDepartmentPage,
   useSaveCreateEditDepartment,
@@ -29,7 +34,7 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" data-field-key={meta.key}>
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -88,6 +93,7 @@ export function CreateEditDepartmentDashboard() {
 
   const pageQuery = useCreateEditDepartmentPage(departmentId);
   const saveMutation = useSaveCreateEditDepartment(departmentId);
+  const { showValidation } = useCollegeAdminValidation();
 
   const form = useForm<CreateEditDepartmentFormValues>({
     values: pageQuery.data?.form,
@@ -101,6 +107,17 @@ export function CreateEditDepartmentDashboard() {
     (mode: "create" | "draft") => {
       void form.handleSubmit((values) => {
         if (!data?.can_save) return;
+        const clientMissing = validateCreateEditDepartmentForm(values, data, mode);
+        if (clientMissing.length) {
+          showValidation(
+            "Missing required information",
+            mode === "draft"
+              ? "Department name and code are required to save a draft."
+              : "Complete the required fields below before saving.",
+            clientMissing,
+          );
+          return;
+        }
         saveMutation.mutate(
           { mode, form: values },
           {
@@ -112,12 +129,12 @@ export function CreateEditDepartmentDashboard() {
                 void pageQuery.refetch();
               }
             },
-            onError: (err: Error) => toast.error(err.message),
+            onError: onCollegeAdminMutationError,
           },
         );
       })();
     },
-    [data, form, pageQuery, router, saveMutation],
+    [data, form, pageQuery, router, saveMutation, showValidation],
   );
 
   const applyTemplate = (templateDepartmentId: string) => {
@@ -144,15 +161,17 @@ export function CreateEditDepartmentDashboard() {
             <XIcon className="size-3.5" aria-hidden />
             {data?.cancel_label ?? "Cancel"}
           </Link>
-          <button
-            type="button"
-            disabled={!data || saveMutation.isPending}
-            onClick={() => submit("create")}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            {data?.save_label ?? "Create department"}
-          </button>
+          {data && !data.is_create ? (
+            <button
+              type="button"
+              disabled={saveMutation.isPending}
+              onClick={() => submit("create")}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
+            >
+              <CheckIcon className="size-3.5" aria-hidden />
+              {data.save_label}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -303,12 +322,12 @@ export function CreateEditDepartmentDashboard() {
 
               <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <h3 className="mb-3 text-[14px] font-semibold text-[#111827]">{data.checklist_title}</h3>
-                <ol className="space-y-4">
+                <ul className="space-y-3 border-l border-[#e5e7eb] pl-4">
                   {data.checklist_steps.map((step) => (
-                    <li key={step.key} className="flex gap-3">
+                    <li key={step.key} className="relative pl-2">
                       <span
                         className={cn(
-                          "mt-1.5 size-2 shrink-0 rounded-full",
+                          "absolute -left-[21px] top-1.5 size-2.5 rounded-full ring-4 ring-white",
                           step.state === "current"
                             ? "bg-[#245dd8]"
                             : step.state === "complete"
@@ -316,13 +335,11 @@ export function CreateEditDepartmentDashboard() {
                               : "bg-[#d1d5db]",
                         )}
                       />
-                      <div>
-                        <p className="text-[13px] font-medium text-[#111827]">{step.label}</p>
-                        <p className="text-[12px] text-[#6b7280]">{step.hint}</p>
-                      </div>
+                      <p className="text-[13px] font-medium text-[#111827]">{step.label}</p>
+                      <p className="text-[12px] text-[#6b7280]">{step.hint}</p>
                     </li>
                   ))}
-                </ol>
+                </ul>
               </section>
             </div>
           </form>
@@ -351,9 +368,10 @@ export function CreateEditDepartmentDashboard() {
               type="button"
               disabled={saveMutation.isPending}
               onClick={() => submit("create")}
-              className="inline-flex h-9 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
             >
-              {data.create_label}
+              <CheckIcon className="size-3.5" aria-hidden />
+              {data.save_label}
             </button>
           </div>
         </div>

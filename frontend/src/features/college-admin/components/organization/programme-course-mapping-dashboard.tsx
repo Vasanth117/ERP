@@ -6,6 +6,11 @@ import { useCallback, useEffect, useState } from "react";
 
 import { LinkIcon } from "@/components/icons/erp/generated/link";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import {
+  CollegeAdminOutlineButton,
+  CollegeAdminPrimaryLink,
+} from "@/features/college-admin/components/ui/college-admin-page-buttons";
+import { OrganizationSetupEmptyState } from "@/features/college-admin/components/ui/organization-setup-empty-state";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useProgrammeCourseMappingPage } from "@/features/college-admin/hooks/use-programme-course-mapping";
 import { cn } from "@/lib/utils";
@@ -43,17 +48,6 @@ function ActionPill({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function ProgrammeCourseMappingDashboard() {
   const router = useRouter();
@@ -106,26 +100,18 @@ export function ProgrammeCourseMappingDashboard() {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
+          <CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export"}
-          </button>
-          <Link
-            href={data?.map_programme_href ?? "/college-admin/academics/academic-configuration-dashboard"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
+          </CollegeAdminOutlineButton>
+          <CollegeAdminPrimaryLink href={data?.map_programme_href ?? "/college-admin/academics/academic-configuration-dashboard"}>
             <LinkIcon className="size-3.5" aria-hidden />
             {data?.map_programme_label ?? "Map programme"}
-          </Link>
+          </CollegeAdminPrimaryLink>
         </div>
       </div>
 
-      {data ? (
+      {data && !data.setup_empty_state ? (
         <div className="flex flex-wrap items-center gap-2">
           {data.department_tabs.map((tab) => (
             <button
@@ -179,18 +165,25 @@ export function ProgrammeCourseMappingDashboard() {
                 <div className="border-b border-[#f1f5f9] px-5 py-3.5">
                   <h3 className="text-[14px] font-semibold text-[#111827]">{data.programmes_section_title}</h3>
                 </div>
-                {data.programmes.length ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[40rem] text-left text-[13px]">
-                      <thead>
-                        <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                          {progHeaders.map((h, i) => (
-                            <th key={h} className={cn("pb-3 font-medium", i === 0 ? "px-5" : "pr-3", i === progHeaders.length - 1 ? "pr-5" : "")}>
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[40rem] text-left text-[13px]">
+                    <thead>
+                      <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
+                        {progHeaders.map((h, i) => (
+                          <th
+                            key={h}
+                            className={cn(
+                              "pb-3 font-medium",
+                              i === 0 ? "px-5" : "pr-3",
+                              i === progHeaders.length - 1 ? "pr-5" : "",
+                            )}
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    {!data.setup_empty_state && data.programmes.length ? (
                       <tbody className="divide-y divide-[#f1f5f9]">
                         {data.programmes.map((row) => (
                           <tr key={row.programme_id} className="hover:bg-[#f9fafb]">
@@ -205,11 +198,14 @@ export function ProgrammeCourseMappingDashboard() {
                           </tr>
                         ))}
                       </tbody>
-                    </table>
-                  </div>
-                ) : (
+                    ) : null}
+                  </table>
+                </div>
+                {data.setup_empty_state ? (
+                  <OrganizationSetupEmptyState state={data.setup_empty_state} embedded />
+                ) : !data.programmes.length ? (
                   <p className="px-5 py-8 text-sm text-[#9ca3af]">No programmes mapped to this department yet.</p>
-                )}
+                ) : null}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                   <span>{data.programmes_count_label}</span>
                   <Link href={data.academic_configuration_href} className="font-medium text-[#245dd8] hover:underline">
@@ -303,15 +299,6 @@ export function ProgrammeCourseMappingDashboard() {
           </div>
         ) : null}
       </QueryState>
-
-      {data ? (
-        <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p className="tabular-nums">
-            {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-          </p>
-        </footer>
-      ) : null}
     </div>
   );
 }

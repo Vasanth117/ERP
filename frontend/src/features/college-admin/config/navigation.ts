@@ -7,6 +7,8 @@ export type CollegeAdminNavItem = {
   /** ERP icon library slug (`components/icons/erp/generated`). */
   icon: ErpIconName;
   figmaPage?: string;
+  /** Child routes that belong to this sidebar item (defaults to same module segment). */
+  activePrefixes?: string[];
 };
 
 export type CollegeAdminNavGroup = {

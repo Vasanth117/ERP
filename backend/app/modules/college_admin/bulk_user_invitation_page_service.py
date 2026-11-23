@@ -33,7 +33,12 @@ from app.modules.college_admin.schemas import (
     BulkUserInvitationUploadPayload,
     BulkUserInvitationWizardStep,
 )
-from app.modules.college_admin.user_management_service import invite_institution_user
+from app.modules.college_admin.create_new_user_page_service import (
+    _coerce_form_values,
+    apply_user_provisioning,
+)
+from app.modules.college_admin.identity_schemas import InstitutionUserCreate
+from app.modules.college_admin.user_management_service import create_institution_user, invite_institution_user
 from app.modules.tenants.models import Department
 from app.repositories.user_repository import UserRepository
 
@@ -48,8 +53,9 @@ _WIZARD_STEPS = [
 ]
 
 _TEMPLATE_CSV = (
-    "name,email,role,department,employee_id\n"
-    "Priya Natarajan,priya.n@example.edu.in,Faculty,Computer Science,EMP-1342\n"
+    "name,email,role,department,employee_id,password,previous_school,guardian_mobile,mobile\n"
+    "Priya Natarajan,priya.n@example.edu.in,Faculty,Computer Science,EMP-1342,ChangeMe123!,,,9876543210\n"
+    "Vasanth M,vasanth.m2024@example.edu.in,Student,Computer Science,24CS263,StudentPass123!,ABC School,9840012345,9840012345\n"
 )
 
 _ROLE_MAP: dict[str, Role] = {
@@ -140,14 +146,18 @@ async def _validate_rows(
         role_label = _row_field(row, "role", "role_label")
         dept_label = _row_field(row, "department", "department_name")
         emp_id = _row_field(row, "employee_id", "public_id", "employee_id")
+        password = _row_field(row, "password", "initial_password")
 
         status_code = "ready"
         status_label = "Ready"
         status_tone = "success"
+        role = _resolve_role(role_label)
 
         if not name or not email or "@" not in email:
             status_code, status_label, status_tone = "invalid", "Invalid row", "error"
-        elif required_domain and not email.endswith(f"@{required_domain}"):
+        elif password and len(password) < 8:
+            status_code, status_label, status_tone = "invalid", "Weak password", "error"
+        elif required_domain and role != Role.STUDENT and not email.endswith(f"@{required_domain}"):
             status_code, status_label, status_tone = "domain", "Invalid domain", "error"
         elif await _user_repo.find_by_email_in_tenant(email, tenant_id) is not None:
             status_code, status_label, status_tone = "duplicate", "Duplicate email", "warning"
@@ -159,7 +169,6 @@ async def _validate_rows(
             seen_employee.add(emp_id.lower())
 
         dept = dept_by_name.get(dept_label.lower()) if dept_label else None
-        role = _resolve_role(role_label)
 
         validated.append(
             {
@@ -171,6 +180,10 @@ async def _validate_rows(
                 "department_id": str(dept.id) if dept else None,
                 "role": role.value if role else None,
                 "employee_id": emp_id or None,
+                "password": password or None,
+                "mobile_number": _row_field(row, "mobile", "mobile_number"),
+                "previous_school": _row_field(row, "previous_school", "school"),
+                "guardian_mobile": _row_field(row, "guardian_mobile"),
                 "status_code": status_code,
                 "status_label": status_label,
                 "status_tone": status_tone,
@@ -270,7 +283,7 @@ async def get_bulk_user_invitation_page(scope: AccessScope, *, page: int = 1) ->
 
     return BulkUserInvitationPageRead(
         page_title="Bulk User Invitation",
-        page_subtitle="Invite many staff or students at once from a spreadsheet",
+        page_subtitle="Create accounts from CSV/Excel (save as CSV) with optional admin-set passwords",
         download_template_label="Download template",
         send_invitations_label="Send invitations",
         cancel_href="/college-admin/users/user-management-dashboard",
@@ -280,7 +293,7 @@ async def get_bulk_user_invitation_page(scope: AccessScope, *, page: int = 1) ->
         fix_errors_label="Fix errors",
         send_ready_label=f"Send {ready_count} invitations",
         browse_files_label="Browse files",
-        upload_drop_hint="Upload a CSV file matching the template",
+        upload_drop_hint="Upload CSV or Excel (save spreadsheet as CSV) using the template columns",
         preview_section_title=f"Preview – {draft.file_name or 'spreadsheet'}",
         preview_summary_label=preview_summary,
         validation_summary_title="Validation summary",
@@ -303,6 +316,12 @@ async def get_bulk_user_invitation_page(scope: AccessScope, *, page: int = 1) ->
                 label="Require MFA on first login",
                 description="Recommended for staff",
                 default_on=draft.require_mfa_first_login,
+            ),
+            BulkUserInvitationToggle(
+                key="use_admin_password",
+                label="Use password column to create accounts",
+                description="Rows with password are created immediately; others get email invites",
+                default_on=draft.use_admin_password,
             ),
         ],
         preview_rows=preview_rows,
@@ -352,6 +371,8 @@ async def update_bulk_user_invitation_settings(
         draft.skip_rows_with_errors = payload.skip_rows_with_errors
     if payload.require_mfa_first_login is not None:
         draft.require_mfa_first_login = payload.require_mfa_first_login
+    if payload.use_admin_password is not None:
+        draft.use_admin_password = payload.use_admin_password
     if payload.step_key:
         draft.step_key = payload.step_key
     draft.updated_at = utcnow()
@@ -368,6 +389,11 @@ async def send_bulk_user_invitations(scope: AccessScope) -> BulkUserInvitationSe
 
     sent = 0
     skipped = 0
+    from beanie import PydanticObjectId
+    from app.common.ids import to_object_id
+
+    tenant_id = require_college_tenant_scope(scope)
+
     for row in rows:
         if row.get("status_code") != "ready":
             if draft.skip_rows_with_errors:
@@ -384,16 +410,55 @@ async def send_bulk_user_invitations(scope: AccessScope) -> BulkUserInvitationSe
         except ValueError:
             skipped += 1
             continue
+        password = row.get("password")
+        use_password = bool(draft.use_admin_password and password)
         try:
-            await invite_institution_user(
-                scope,
-                InstitutionUserInvite(
-                    email=row["email"],
-                    full_name=row["full_name"],
-                    role=role,
-                    department_id=row.get("department_id"),
-                ),
-            )
+            if use_password:
+                created = await create_institution_user(
+                    scope,
+                    InstitutionUserCreate(
+                        email=row["email"],
+                        password=password,
+                        full_name=row["full_name"],
+                        role=role,
+                        department_id=row.get("department_id"),
+                    ),
+                )
+                user_type = "student" if role == Role.STUDENT else "teaching_staff"
+                form = _coerce_form_values(
+                    {
+                        "user_type": user_type,
+                        "public_id": row.get("employee_id") or "",
+                        "mobile_number": row.get("mobile_number") or "",
+                        "previous_school": row.get("previous_school") or "",
+                        "guardian_mobile": row.get("guardian_mobile") or "",
+                        "send_invitation_email": False,
+                    },
+                )
+                dept_oid = (
+                    to_object_id(row["department_id"], "department_id")
+                    if row.get("department_id")
+                    else None
+                )
+                await apply_user_provisioning(
+                    tenant_id,
+                    to_object_id(created.user_id, "user id"),
+                    role,
+                    form,
+                    department_id=dept_oid,
+                    campus_id=None,
+                )
+            else:
+                await invite_institution_user(
+                    scope,
+                    InstitutionUserInvite(
+                        email=row["email"],
+                        full_name=row["full_name"],
+                        role=role,
+                        department_id=row.get("department_id"),
+                        provisioning_reference_id=row.get("employee_id"),
+                    ),
+                )
             sent += 1
         except AppError as exc:
             if exc.code == "CONFLICT":

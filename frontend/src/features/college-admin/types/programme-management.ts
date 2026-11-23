@@ -12,6 +12,7 @@ export type ProgrammeManagementTableRow = {
   status_code: string;
   status_label: string;
   status_tone: string;
+  detail_href: string;
 };
 
 export type ProgrammeManagementFilterOption = {
@@ -31,6 +32,10 @@ export type ProgrammeManagementPage = {
   page_subtitle: string;
   export_label: string;
   add_programme_label: string;
+  new_programme_href: string;
+  create_level_options: ProgrammeManagementFilterOption[];
+  create_regulation_options: ProgrammeManagementFilterOption[];
+  create_mode_options: ProgrammeManagementFilterOption[];
   search_placeholder: string;
   level_filter_label: string;
   department_filter_label: string;
@@ -60,7 +65,20 @@ export type ProgrammeManagementPage = {
 export type ProgrammeManagementCreatePayload = {
   programme_code: string;
   name: string;
+  short_name?: string | null;
+  description?: string | null;
   department_id?: string | null;
+  programme_level?: string | null;
+  regulation_code?: string | null;
+  mode_of_study?: string;
+  approved_intake?: number | null;
+  entry_qualification?: string | null;
   duration_semesters: number;
   credits_required: number;
+};
+
+export type ProgrammeManagementCreateResult = {
+  programme_id: string;
+  detail_href: string;
+  message: string;
 };

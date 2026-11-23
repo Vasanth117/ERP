@@ -7,6 +7,7 @@ export type AcademicYearManagementTableRow = {
   status_code: string;
   status_label: string;
   status_tone: string;
+  detail_href: string;
 };
 
 export type AcademicYearClosingChecklistItem = {
@@ -49,6 +50,7 @@ export type AcademicYearManagementPage = {
   close_current_year_enabled: boolean;
   close_target_year_label: string | null;
   new_academic_year_label: string;
+  new_academic_year_href: string;
   academic_years_table_title: string;
   table_headers: string[];
   academic_years: AcademicYearManagementTableRow[];

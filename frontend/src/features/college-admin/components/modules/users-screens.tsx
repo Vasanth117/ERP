@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -182,7 +184,7 @@ function CreateUserForm() {
       toast.success("User created");
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.all });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
 
   return (
@@ -219,7 +221,7 @@ function EditUserPicker() {
       toast.success("User updated");
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.all });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
 
   return (
@@ -250,12 +252,12 @@ function BulkInviteForm() {
   const invite = useMutation({
     mutationFn: inviteUser,
     onSuccess: () => toast.success("Invitation sent"),
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
   const bulk = useMutation({
     mutationFn: bulkCreateUsers,
     onSuccess: (rows) => toast.success(`Created ${rows.length} users`),
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
 
   return (
@@ -331,7 +333,7 @@ function CreateRoleForm() {
   const create = useMutation({
     mutationFn: createRole,
     onSuccess: () => toast.success("Role created"),
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
   return (
     <form
@@ -391,7 +393,7 @@ function RoleAssignmentPicker() {
   const assign = useMutation({
     mutationFn: (role: string) => assignUserRoles(userId, { primary_role: role }),
     onSuccess: () => toast.success("Roles assigned"),
-    onError: (e: Error) => toast.error(e.message),
+    onError: onCollegeAdminMutationError,
   });
   return (
     <div className="max-w-md space-y-3">

@@ -30,11 +30,16 @@ from app.modules.college_admin.academic_config_schemas import (
 from app.modules.college_admin.academic_configuration_dashboard_page_service import (
     get_academic_configuration_dashboard_page,
 )
+from app.modules.college_admin.academic_year_details_page_service import get_academic_year_details_page
 from app.modules.college_admin.academic_year_management_page_service import (
     close_current_academic_year,
     create_academic_year_management,
     get_academic_year_management_page,
     save_academic_year_management_rules,
+)
+from app.modules.college_admin.new_academic_year_wizard_page_service import (
+    get_new_academic_year_wizard_page,
+    save_academic_year_wizard_draft,
 )
 from app.modules.college_admin.course_curriculum_page_service import (
     get_course_configuration_page,
@@ -67,6 +72,7 @@ from app.modules.college_admin.credit_grading_page_service import (
     save_credit_configuration,
     save_grading_system_configuration,
 )
+from app.modules.college_admin.programme_details_page_service import get_programme_details_page
 from app.modules.college_admin.programme_management_page_service import (
     create_programme_management,
     get_programme_management_page,
@@ -95,9 +101,13 @@ from app.modules.college_admin.academic_config_service import (
 )
 from app.modules.college_admin.schemas import (
     AcademicConfigurationDashboardPageRead,
+    AcademicYearDetailsPageRead,
     AcademicYearManagementCreate,
     AcademicYearManagementPageRead,
     AcademicYearManagementRulesSave,
+    AcademicYearWizardDraftUpdate,
+    NewAcademicYearWizardPageRead,
+    NewAcademicYearWizardSaveResult,
     CourseConfigurationPageRead,
     CourseConfigurationSave,
     CreditConfigurationPageRead,
@@ -115,7 +125,9 @@ from app.modules.college_admin.schemas import (
     ConfigurationHistoryPageRead,
     RegulationManagementCreate,
     RegulationManagementPageRead,
+    ProgrammeDetailsPageRead,
     ProgrammeManagementCreate,
+    ProgrammeManagementCreateResult,
     ProgrammeManagementPageRead,
     SubjectManagementPageRead,
     SemesterManagementCreate,
@@ -188,6 +200,51 @@ async def academic_year_management_rules_route(
 
 
 @router.get(
+    "/years/management/create-wizard/page",
+    response_model=ApiResponse[NewAcademicYearWizardPageRead],
+)
+async def new_academic_year_wizard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    draft_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[NewAcademicYearWizardPageRead]:
+    return success_response(
+        await get_new_academic_year_wizard_page(scope, draft_id=draft_id),
+        request_id=get_request_id(),
+    )
+
+
+@router.post(
+    "/years/management/create-wizard/draft",
+    response_model=ApiResponse[NewAcademicYearWizardSaveResult],
+)
+async def new_academic_year_wizard_draft_route(
+    payload: AcademicYearWizardDraftUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[NewAcademicYearWizardSaveResult]:
+    return success_response(
+        await save_academic_year_wizard_draft(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/years/management/details/page",
+    response_model=ApiResponse[AcademicYearDetailsPageRead],
+)
+async def academic_year_details_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    year_id: Annotated[str, Query(min_length=1)],
+) -> ApiResponse[AcademicYearDetailsPageRead]:
+    return success_response(
+        await get_academic_year_details_page(scope, year_id),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
     "/semesters/management/page",
     response_model=ApiResponse[SemesterManagementPageRead],
 )
@@ -252,16 +309,31 @@ async def programme_management_page_route(
 
 @router.post(
     "/programmes/management/create",
-    response_model=ApiResponse[ProgrammeManagementPageRead],
+    response_model=ApiResponse[ProgrammeManagementCreateResult],
     status_code=status.HTTP_201_CREATED,
 )
 async def programme_management_create_route(
     payload: ProgrammeManagementCreate,
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(college_admin_user)],
-) -> ApiResponse[ProgrammeManagementPageRead]:
+) -> ApiResponse[ProgrammeManagementCreateResult]:
     return success_response(
         await create_programme_management(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.get(
+    "/programmes/details/page",
+    response_model=ApiResponse[ProgrammeDetailsPageRead],
+)
+async def programme_details_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    programme_id: Annotated[str, Query(min_length=1)],
+) -> ApiResponse[ProgrammeDetailsPageRead]:
+    return success_response(
+        await get_programme_details_page(scope, programme_id=programme_id),
         request_id=get_request_id(),
     )
 

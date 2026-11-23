@@ -31,7 +31,9 @@ export function CollegeAdminAuthGate({ children }: { children: ReactNode }) {
           <code className="text-[#245dd8]">bootstrap_dev_college_admin.py</code>.
         </p>
         <p className="mt-2 text-xs text-[#9ca3af]">
-          Email: admin@demo-college.edu · Tenant: demo-college
+          Dev: admin@demo-college.edu · demo-college — or admin@ghit-demo.edu · ghit-demo after{" "}
+          <code className="text-[#245dd8]">seed_demo_college.py --profile enterprise</code>. Enable
+          Demo mode in the sidebar to browse showcase data.
         </p>
         <Link
           href={`/login?portal=institution&next=${returnUrl}`}

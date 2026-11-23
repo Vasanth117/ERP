@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -6,7 +7,6 @@ import { useForm } from "react-hook-form";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { CopyIcon } from "@/components/icons/erp/generated/copy";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +14,11 @@ import {
   getCollegeAdminErpIcon,
   resolveCollegeAdminIconSlug,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import {
+  InstitutionPageActionFooter,
+  institutionActionButtonOutline,
+  institutionActionButtonPrimary,
+} from "@/features/college-admin/components/institution/institution-page-action-footer";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useAcademicYearConfigurationPage,
@@ -27,6 +32,9 @@ import type {
   AcademicYearTimelineItem,
 } from "@/features/college-admin/types/institution";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+const SEMESTER_FORM_ID = "academic-year-semester-form";
 
 function StatusPill({ label, tone }: { label: string; tone: string }) {
   const styles: Record<string, string> = {
@@ -94,17 +102,6 @@ function TimelineItem({ item }: { item: AcademicYearTimelineItem }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function AcademicYearConfigurationDashboard() {
   const [selectedYearId, setSelectedYearId] = useState<string | undefined>();
@@ -112,7 +109,8 @@ export function AcademicYearConfigurationDashboard() {
     useAcademicYearConfigurationPage(selectedYearId);
   const copyYear = useCopyAcademicYearFromPrevious();
   const createYear = useCreateInstitutionAcademicYear();
-  const save = useSaveAcademicYearConfiguration(data?.selected_year_id ?? "");
+  const save = useSaveAcademicYearConfiguration();
+  const activeYearId = selectedYearId ?? data?.selected_year_id ?? "";
 
   useEffect(() => {
     if (data?.selected_year_id && !selectedYearId) {
@@ -154,50 +152,41 @@ export function AcademicYearConfigurationDashboard() {
     setSelectedYearId(row.year_id);
   };
 
+  const submitSemesterForm = form.handleSubmit((values) => {
+    if (!activeYearId) {
+      toast.error("Select an academic year first");
+      return;
+    }
+    const payload: AcademicYearSemesterForm = {
+      ...values,
+      odd_semester_start: values.odd_semester_start || null,
+      odd_semester_end: values.odd_semester_end || null,
+      even_semester_start: values.even_semester_start || null,
+      even_semester_end: values.even_semester_end || null,
+      summer_term_start: values.summer_term_start || null,
+      summer_term_end: values.summer_term_end || null,
+      year_end_closing: values.year_end_closing || null,
+    };
+    if (!payload.odd_semester_start || !payload.odd_semester_end) {
+      toast.error("Enter odd semester start and end dates");
+      return;
+    }
+    if (!payload.even_semester_start || !payload.even_semester_end) {
+      toast.error("Enter even semester start and end dates");
+      return;
+    }
+    save.mutate({ yearId: activeYearId, form: payload });
+  });
+
   return (
     <div className="space-y-5" data-figma-frame="72:9235">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Academic Year Configuration"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Define academic years, semesters and their key dates"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs"
-            disabled={copyYear.isPending}
-            onClick={() =>
-              copyYear.mutate(undefined, {
-                onSuccess: (page) => {
-                  if (page.selected_year_id) setSelectedYearId(page.selected_year_id);
-                },
-              })
-            }
-          >
-            <CopyIcon className="size-3.5" aria-hidden />
-            {data?.copy_from_previous_label ?? "Copy from previous year"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-            disabled={createYear.isPending}
-            onClick={() =>
-              createYear.mutate(undefined, {
-                onSuccess: (page) => {
-                  if (page.selected_year_id) setSelectedYearId(page.selected_year_id);
-                },
-              })
-            }
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.new_academic_year_label ?? "New academic year"}
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
+          {data?.page_title ?? "Academic Year Configuration"}
+        </h2>
+        <p className="mt-1 text-[14px] text-[#6b7280]">
+          {data?.page_subtitle ?? "Define academic years, semesters and their key dates"}
+        </p>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -229,7 +218,7 @@ export function AcademicYearConfigurationDashboard() {
                               key={row.year_id}
                               className={cn(
                                 "cursor-pointer hover:bg-[#f9fafb]",
-                                data.selected_year_id === row.year_id && "bg-[#eff6ff]",
+                                activeYearId === row.year_id && "bg-[#eff6ff]",
                               )}
                               onClick={() => pickYear(row)}
                             >
@@ -256,28 +245,20 @@ export function AcademicYearConfigurationDashboard() {
                   </div>
                 </section>
 
-                {data.semester_form && data.selected_year_id ? (
+                {data.semester_form && activeYearId ? (
                   <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                     <div className="border-b border-[#f1f5f9] px-5 py-3.5">
                       <h3 className="text-[14px] font-semibold text-[#111827]">
                         {data.semester_section_title}
                       </h3>
+                      <p className="mt-1 text-[12px] text-[#6b7280]">
+                        Set semester dates for the selected year. Required fields are marked with *.
+                      </p>
                     </div>
                     <form
+                      id={SEMESTER_FORM_ID}
                       className="grid gap-4 px-5 py-4 sm:grid-cols-2"
-                      onSubmit={form.handleSubmit((values) => {
-                        const payload: AcademicYearSemesterForm = {
-                          ...values,
-                          odd_semester_start: values.odd_semester_start || null,
-                          odd_semester_end: values.odd_semester_end || null,
-                          even_semester_start: values.even_semester_start || null,
-                          even_semester_end: values.even_semester_end || null,
-                          summer_term_start: values.summer_term_start || null,
-                          summer_term_end: values.summer_term_end || null,
-                          year_end_closing: values.year_end_closing || null,
-                        };
-                        save.mutate(payload);
-                      })}
+                      onSubmit={submitSemesterForm}
                     >
                       {data.semester_field_meta.map((meta) => {
                         if (meta.key === "summer_term") {
@@ -285,35 +266,41 @@ export function AcademicYearConfigurationDashboard() {
                             <div key={meta.key} className="sm:col-span-2">
                               <Label className="text-[13px] text-[#374151]">{meta.label}</Label>
                               <div className="mt-1.5 grid gap-2 sm:grid-cols-2">
-                                <Input type="date" {...form.register("summer_term_start")} />
-                                <Input type="date" {...form.register("summer_term_end")} />
+                                <div>
+                                  <span className="text-[11px] text-[#9ca3af]">Start</span>
+                                  <Input type="date" className="mt-1 h-9" {...form.register("summer_term_start")} />
+                                </div>
+                                <div>
+                                  <span className="text-[11px] text-[#9ca3af]">End</span>
+                                  <Input type="date" className="mt-1 h-9" {...form.register("summer_term_end")} />
+                                </div>
                               </div>
                             </div>
                           );
                         }
                         const fieldKey = meta.key as keyof AcademicYearSemesterForm;
-                        if (meta.key === "summer_term") return null;
                         return (
                           <div key={meta.key}>
                             <Label className="text-[13px] text-[#374151]">
                               {meta.label}
                               {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
                             </Label>
-                            <Input type="date" className="mt-1.5 h-9" {...form.register(fieldKey)} />
+                            <Input
+                              type="date"
+                              className="mt-1.5 h-9"
+                              required={meta.required}
+                              {...form.register(fieldKey)}
+                            />
                           </div>
                         );
                       })}
-                      <div className="sm:col-span-2">
-                        <Button
-                          type="submit"
-                          className="bg-[#245dd8] hover:bg-[#1f4fb8]"
-                          disabled={save.isPending}
-                        >
-                          <CheckIcon className="mr-1.5 size-3.5" aria-hidden />
-                          {data.save_label}
-                        </Button>
-                      </div>
                     </form>
+                  </section>
+                ) : !data.academic_years.length ? (
+                  <section className="rounded-xl border border-dashed border-[#dce3ec] bg-[#f9fafb] px-5 py-8 text-center">
+                    <p className="text-sm text-[#6b7280]">
+                      Create a new academic year to configure semesters and dates.
+                    </p>
                   </section>
                 ) : null}
               </div>
@@ -369,12 +356,70 @@ export function AcademicYearConfigurationDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
+            <InstitutionPageActionFooter>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                disabled={copyYear.isPending || !data.academic_years.length}
+                onClick={() =>
+                  copyYear.mutate(undefined, {
+                    onSuccess: (page) => {
+                      if (page.selected_year_id) setSelectedYearId(page.selected_year_id);
+                    },
+                  })
+                }
+              >
+                <CopyIcon className="size-3.5" aria-hidden />
+                {data.copy_from_previous_label}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                disabled={createYear.isPending}
+                onClick={() =>
+                  createYear.mutate(undefined, {
+                    onSuccess: (page) => {
+                      if (page.selected_year_id) setSelectedYearId(page.selected_year_id);
+                    },
+                  })
+                }
+              >
+                <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.new_academic_year_label } />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                disabled={!activeYearId || !data.semester_form}
+                onClick={() => {
+                  if (data.semester_form) {
+                    form.reset({
+                      ...defaults,
+                      odd_semester_start: toInputDate(defaults.odd_semester_start),
+                      odd_semester_end: toInputDate(defaults.odd_semester_end),
+                      even_semester_start: toInputDate(defaults.even_semester_start),
+                      even_semester_end: toInputDate(defaults.even_semester_end),
+                      summer_term_start: toInputDate(defaults.summer_term_start),
+                      summer_term_end: toInputDate(defaults.summer_term_end),
+                      year_end_closing: toInputDate(defaults.year_end_closing),
+                    } as AcademicYearSemesterForm);
+                  }
+                }}
+              >
+                {data.cancel_label}
+              </Button>
+              <Button
+                type="submit"
+                form={SEMESTER_FORM_ID}
+                className={institutionActionButtonPrimary}
+                disabled={save.isPending || !activeYearId || !data.semester_form}
+              >
+                <CheckIcon className="size-3.5" aria-hidden />
+                {data.save_label}
+              </Button>
+            </InstitutionPageActionFooter>
           </>
         ) : null}
       </QueryState>

@@ -15,11 +15,11 @@ export function LoginPageChrome({ portal, children }: LoginPageChromeProps) {
 
   return (
     <div
-      className="flex h-full items-center justify-center px-4 py-4 font-sans sm:px-6"
+      className="flex h-full min-h-0 items-center justify-center overflow-hidden px-4 py-4 font-sans sm:px-6"
       style={{ backgroundColor: colors.pageBackground }}
     >
       <article
-        className="grid w-full max-w-[920px] overflow-hidden rounded-2xl border bg-white shadow-[0_8px_40px_rgba(23,43,69,0.08)] max-lg:h-auto lg:h-[520px] lg:grid-cols-2"
+        className="grid w-full max-w-[960px] overflow-hidden rounded-2xl border bg-white shadow-[0_8px_40px_rgba(23,43,69,0.08)] max-lg:h-auto lg:h-[min(560px,calc(100dvh-2rem))] lg:max-h-[560px] lg:grid-cols-2 lg:min-h-0"
         style={{ borderColor: colors.cardBorder }}
       >
         <LoginBrandPanel portal={portal} />

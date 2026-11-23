@@ -2,12 +2,15 @@ import { academicsTabs as academicsSectionTabs } from "@/features/college-admin/
 import { attendanceSectionTabs } from "@/features/college-admin/config/attendance-section-tabs";
 import { examinationsSectionTabs } from "@/features/college-admin/config/examinations-section-tabs";
 import { facultySectionTabs } from "@/features/college-admin/config/faculty-section-tabs";
+import { financeSectionTabs } from "@/features/college-admin/config/finance-section-tabs";
 import { studentsSectionTabs } from "@/features/college-admin/config/students-section-tabs";
 
 export type CollegeAdminTab = {
   label: string;
   href: string;
   figmaFrame: string;
+  /** Full screen title for breadcrumbs when the frame registry route differs from `href`. */
+  pageTitle?: string;
   /** Extra path prefixes that should keep this tab highlighted (e.g. detail routes). */
   activePrefixes?: string[];
 };
@@ -23,56 +26,67 @@ export const dashboardTabs: CollegeAdminTab[] = [
     label: "Institution",
     href: "/college-admin/dashboard/institutional-overview",
     figmaFrame: "65:185",
+    pageTitle: "Institutional Overview",
   },
   {
     label: "Students",
     href: "/college-admin/dashboard/student-statistics",
     figmaFrame: "65:618",
+    pageTitle: "Student Statistics",
   },
   {
     label: "Faculty",
     href: "/college-admin/dashboard/faculty-statistics",
     figmaFrame: "65:1116",
+    pageTitle: "Faculty & Employee Statistics",
   },
   {
     label: "Departments",
     href: "/college-admin/dashboard/department-performance",
     figmaFrame: "65:1592",
+    pageTitle: "Department Performance Overview",
   },
   {
     label: "Academics",
     href: "/college-admin/dashboard/academic-analytics",
     figmaFrame: "66:1973",
+    pageTitle: "Academic Performance Analytics",
   },
   {
     label: "Attendance",
     href: "/college-admin/dashboard/attendance-overview",
     figmaFrame: "66:2485",
+    pageTitle: "Attendance Overview",
   },
   {
     label: "Exams",
     href: "/college-admin/dashboard/examination-overview",
     figmaFrame: "66:2970",
+    pageTitle: "Examination Overview",
   },
   {
     label: "Finance",
     href: "/college-admin/dashboard/finance-summary",
     figmaFrame: "66:3440",
+    pageTitle: "Finance Summary",
   },
   {
     label: "Approvals",
     href: "/college-admin/dashboard/pending-approvals",
     figmaFrame: "67:3905",
+    pageTitle: "Pending Approvals Dashboard",
   },
   {
     label: "Activities",
     href: "/college-admin/dashboard/recent-activities",
     figmaFrame: "67:4394",
+    pageTitle: "Recent Institutional Activities",
   },
   {
     label: "Alerts",
     href: "/college-admin/dashboard/alerts",
     figmaFrame: "67:4882",
+    pageTitle: "Important Alerts & Notifications",
   },
 ];
 
@@ -240,6 +254,8 @@ export const attendanceTabs: CollegeAdminTab[] = [...attendanceSectionTabs];
 
 export const examinationsTabs: CollegeAdminTab[] = [...examinationsSectionTabs];
 
+export const financeTabs: CollegeAdminTab[] = [...financeSectionTabs];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -269,6 +285,9 @@ export function resolveSectionTabs(
   }
   if (pathname.startsWith("/college-admin/examinations")) {
     return { section: "Examinations", tabs: examinationsTabs };
+  }
+  if (pathname.startsWith("/college-admin/finance")) {
+    return { section: "Finance", tabs: financeTabs };
   }
   return null;
 }

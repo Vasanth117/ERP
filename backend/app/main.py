@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 from pymongo.errors import DuplicateKeyError
 
 from app import __version__
@@ -61,7 +62,13 @@ def create_app() -> FastAPI:
         allow_origins=settings.cors_origin_list,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Tenant-Id", "X-Request-Id"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "X-Tenant-Id",
+            "X-Demo-College-View",
+            "X-Request-Id",
+        ],
     )
 
     @app.middleware("http")
@@ -85,6 +92,18 @@ def create_app() -> FastAPI:
             request_id=request_id,
         )
         return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+
+    @app.exception_handler(ValidationError)
+    async def pydantic_validation_handler(request: Request, exc: ValidationError) -> JSONResponse:
+        request_id = request.headers.get("x-request-id")
+        details = [{"loc": list(error["loc"]), "msg": error["msg"]} for error in exc.errors()]
+        body = error_response(
+            code="VALIDATION_ERROR",
+            message="Request validation failed",
+            details=details,
+            request_id=request_id,
+        )
+        return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=body.model_dump())
 
     @app.exception_handler(RequestValidationError)
     async def validation_handler(request: Request, exc: RequestValidationError) -> JSONResponse:

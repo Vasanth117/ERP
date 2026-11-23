@@ -1,10 +1,10 @@
 "use client";
+import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
-import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminDownload,
@@ -127,17 +127,6 @@ function PendingRow({ item }: { item: StudentAdminWorkQueueItem }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function ExaminationDashboard() {
   const [page, setPage] = useState(1);
@@ -180,19 +169,11 @@ export function ExaminationDashboard() {
             href={data?.create_examination_href ?? "/college-admin/examinations/examination-session-management"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_examination_label ?? "Create examination"}
+            <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_examination_label ?? "Create examination" } />
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 text-[12px] text-[#6b7280]">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8ecf2] bg-white px-2.5 py-1">
-          <span className="size-1.5 rounded-full bg-[#245dd8]" />
-          {data?.scope_indicator_label ?? "College scope"}
-        </span>
-        <span className="tabular-nums">{data?.updated_at_label ?? "—"}</span>
-      </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
@@ -305,12 +286,6 @@ export function ExaminationDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

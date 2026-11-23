@@ -35,6 +35,7 @@ from app.modules.college_admin.schemas import (
     DepartmentHeadAssignmentTableRow,
     DepartmentHeadEligibilityRow,
     InstitutionFieldOption,
+    OrganizationModuleEmptyState,
     PoliciesPagination,
 )
 from app.modules.faculty.models import FacultyProfile
@@ -340,6 +341,8 @@ async def get_department_head_assignment_page(
     selected_dept = next((d for d in active_departments if d.id == selected_oid), None)
     panel_title = f"Assign head – {selected_dept.name}" if selected_dept else "Assign head"
     panel_subtitle = "Complete the form and send for Principal approval"
+    assign_head_enabled = total > 0
+    form_interactive = total > 0 and selected_dept is not None
 
     faculty_oid: PydanticObjectId | None = None
     if faculty_user_id:
@@ -390,12 +393,64 @@ async def get_department_head_assignment_page(
         InstitutionFieldOption(value="extension", label="Extension"),
     ]
 
+    setup_empty: OrganizationModuleEmptyState | None = None
+    if total == 0:
+        setup_empty = OrganizationModuleEmptyState(
+            title="No departments yet",
+            description="Add departments before you can assign or rotate heads of department.",
+            highlights=[
+                "Current heads, terms, and acting status",
+                "Faculty appointment with order reference",
+                "Principal approval workflow",
+            ],
+            primary_label="Create department",
+            primary_href="/college-admin/organization/create-department",
+            secondary_label="View all departments",
+            secondary_href="/college-admin/organization/all-departments",
+        )
+        panel_title = "Assign head"
+        panel_subtitle = "Add a department first, then choose faculty and send for Principal approval."
+        faculty_options = [InstitutionFieldOption(value="", label="No departments available")]
+        eligibility_rows = [
+            DepartmentHeadEligibilityRow(
+                key="phd",
+                label="Ph.D. qualification",
+                detail="Required when appointing a head",
+                status_code="muted",
+                status_label="—",
+                status_tone="muted",
+            ),
+            DepartmentHeadEligibilityRow(
+                key="teaching_years",
+                label="10+ years teaching",
+                detail="Checked against faculty record",
+                status_code="muted",
+                status_label="—",
+                status_tone="muted",
+            ),
+            DepartmentHeadEligibilityRow(
+                key="disciplinary",
+                label="No pending disciplinary case",
+                detail="Checked against HR record",
+                status_code="muted",
+                status_label="—",
+                status_tone="muted",
+            ),
+        ]
+        form = DepartmentHeadAssignmentFormValues(
+            faculty_user_id="",
+            appointment_type="regular",
+            effective_from=default_from.isoformat(),
+            term_end=default_term_end.isoformat(),
+            order_reference="",
+        )
+
     return DepartmentHeadAssignmentPageRead(
         page_title="Department Head Assignment",
         page_subtitle="Assign, change or rotate heads of department",
         rotation_policy_label="Rotation policy",
         rotation_policy_href="/college-admin/institution/policies",
-        assign_head_label="+ Assign head",
+        assign_head_label="Assign head",
         current_heads_section_title="Current heads of department",
         table_headers=["Department", "Head of department", "Since", "Term ends", "Status"],
         table_rows=table_rows,
@@ -427,9 +482,12 @@ async def get_department_head_assignment_page(
         footer_note="Changes are saved to the audit log with your name and time.",
         footer_disclaimer="Live institutional data · Head appointments and HR records · All times IST",
         footer_snapshot_label="Live snapshot",
-        can_submit=bool(selected_dept)
+        can_submit=form_interactive
         and bool(form.faculty_user_id)
         and bool((form.order_reference or "").strip()),
+        assign_head_enabled=assign_head_enabled,
+        form_interactive=form_interactive,
+        setup_empty_state=setup_empty,
         generated_at=utcnow(),
     )
 
@@ -445,10 +503,23 @@ async def save_department_head_assignment(
     if dept is None or dept.tenant_id != tenant_id:
         raise AppError(code="NOT_FOUND", message="Department not found", status_code=404)
 
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
+    missing: list[dict] = []
     if not payload.form.faculty_user_id:
-        raise AppError(code="VALIDATION_ERROR", message="Faculty member is required", status_code=422)
+        missing.append(
+            scroll_field("faculty_user_id", label="Faculty member", message="Select the faculty member to appoint.")
+        )
     if not (payload.form.order_reference or "").strip():
-        raise AppError(code="VALIDATION_ERROR", message="Order reference is required", status_code=422)
+        missing.append(
+            scroll_field(
+                "order_reference",
+                label="Order reference",
+                message="Enter the official order reference number.",
+            )
+        )
+    if missing:
+        raise_validation_error("Complete the appointment form before submitting.", missing)
 
     effective_from = _parse_iso_date(payload.form.effective_from) or utcnow().date()
     effective_to = _parse_iso_date(payload.form.term_end)

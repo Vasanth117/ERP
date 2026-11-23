@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 
 import type { ErpIconName } from "@/components/icons/erp/names";
+import { erpIconRegistry } from "@/components/icons/erp/registry";
 import { BackendLogoIcon } from "@/components/icons/erp/generated/backend-logo";
 import { BenchlogoNameIcon } from "@/components/icons/erp/generated/benchlogo_name";
 import { BellIcon } from "@/components/icons/erp/generated/bell";
@@ -8,6 +9,7 @@ import { BookOpenIcon } from "@/components/icons/erp/generated/book-open";
 import { Building2Icon } from "@/components/icons/erp/generated/building-2";
 import { ContactIcon } from "@/components/icons/erp/generated/contact";
 import { CalendarCheckIcon } from "@/components/icons/erp/generated/calendar-check";
+import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days";
 import { ChartBarIcon } from "@/components/icons/erp/generated/chart-bar";
 import { ChevronDownIcon } from "@/components/icons/erp/generated/chevron-down";
 import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
@@ -16,6 +18,7 @@ import { CircleIcon } from "@/components/icons/erp/generated/circle";
 import { ClipboardListIcon } from "@/components/icons/erp/generated/clipboard-list";
 import { DatabaseIcon } from "@/components/icons/erp/generated/database";
 import { DownloadIcon } from "@/components/icons/erp/generated/download";
+import { GitBranchIcon } from "@/components/icons/erp/generated/git-branch";
 import { GraduationCapIcon } from "@/components/icons/erp/generated/graduation-cap";
 import { HotelIcon } from "@/components/icons/erp/generated/hotel";
 import { IdCardIcon } from "@/components/icons/erp/generated/id-card";
@@ -34,6 +37,7 @@ import { ReceiptIcon } from "@/components/icons/erp/generated/receipt";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Settings2Icon } from "@/components/icons/erp/generated/settings-2";
+import { ScaleIcon } from "@/components/icons/erp/generated/scale";
 import { SchoolIcon } from "@/components/icons/erp/generated/school";
 import { ShieldCheckIcon } from "@/components/icons/erp/generated/shield-check";
 import { ShieldIcon } from "@/components/icons/erp/generated/shield";
@@ -92,9 +96,11 @@ const ERP_ICON_COMPONENTS: Partial<Record<ErpIconName, ErpIconComponent>> = {
   users: UsersIcon,
   network: NetworkIcon,
   "book-open": BookOpenIcon,
+  "git-branch": GitBranchIcon,
   "graduation-cap": GraduationCapIcon,
   "id-card": IdCardIcon,
   "calendar-check": CalendarCheckIcon,
+  "calendar-days": CalendarDaysIcon,
   "clipboard-list": ClipboardListIcon,
   "monitor-play": MonitorPlayIcon,
   wallet: WalletIcon,
@@ -121,6 +127,7 @@ const ERP_ICON_COMPONENTS: Partial<Record<ErpIconName, ErpIconComponent>> = {
   contact: ContactIcon,
   hotel: HotelIcon,
   landmark: LandmarkIcon,
+  scale: ScaleIcon,
   school: SchoolIcon,
   "shield-check": ShieldCheckIcon,
   "sliders-horizontal": SlidersHorizontalIcon,
@@ -142,7 +149,7 @@ export function resolveCollegeAdminIconSlug(name: string): ErpIconName {
 export function getCollegeAdminErpIcon(
   slug: ErpIconName,
 ): ErpIconComponent | undefined {
-  return ERP_ICON_COMPONENTS[slug];
+  return ERP_ICON_COMPONENTS[slug] ?? erpIconRegistry[slug];
 }
 
 export const CollegeAdminChevronLeft = ChevronLeftIcon;

@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminChevronDown,
   CollegeAdminDownload,
-  CollegeAdminMegaphone,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { fetchDepartments } from "@/features/college-admin/api/organization";
 import {
@@ -17,6 +16,10 @@ import {
 } from "@/features/college-admin/hooks/use-dashboard";
 import { useCampuses } from "@/features/college-admin/hooks/use-institution";
 import { CollegeAdminDashboardKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
+import {
+  CollegeAdminDashboardPanel as Panel,
+  CollegeAdminDashboardSideList as SideList,
+} from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import type { DashboardDateRange } from "@/features/college-admin/types/dashboard";
 import { cn } from "@/lib/utils";
@@ -67,7 +70,7 @@ function attendanceCompliancePercent(
 }
 
 export function CollegeOverviewDashboard() {
-  const [range, setRange] = useState<DashboardDateRange>("semester");
+  const [range, setRange] = useState<DashboardDateRange>("month");
   const [departmentId, setDepartmentId] = useState("");
   const [campusId, setCampusId] = useState("");
 
@@ -126,24 +129,25 @@ export function CollegeOverviewDashboard() {
     return null;
   }, [data?.notifications, pendingQ.data?.items]);
 
-  const feeBars = useMemo(() => {
-    const labels = ["Jun", "Jul", "Aug", "Sep", "Oct", "Nov"];
-    const current = finance?.collected_amount ?? 0;
-    return labels.map((label, i) => ({
-      label,
-      value: i === labels.length - 1 ? current : Math.round(current * 0.12 * (i + 1) * 0.15),
-      mtd: i === labels.length - 1,
-    }));
-  }, [finance?.collected_amount]);
+  const feeBars = useMemo(
+    () =>
+      (data?.fee_monthly_collection ?? []).map((m) => ({
+        label: m.label.replace(/\s*\(MTD\)$/i, ""),
+        value: m.amount_inr,
+        mtd: m.is_month_to_date,
+      })),
+    [data?.fee_monthly_collection],
+  );
 
-  const trendPoints = useMemo(() => {
-    const base = attendancePct ?? 75;
-    return [0.92, 0.94, 0.93, 0.96, 0.95, 0.97, 0.98, 1].map((m, i) => ({
-      label: `W${i + 7}`,
-      students: Math.min(100, base * m),
-      faculty: Math.min(100, (base - 5) * m),
-    }));
-  }, [attendancePct]);
+  const trendPoints = useMemo(
+    () =>
+      (data?.attendance_trend ?? []).map((p) => ({
+        label: p.label,
+        students: p.students_pct,
+        faculty: p.faculty_pct,
+      })),
+    [data?.attendance_trend],
+  );
 
   const handleExport = useCallback(() => {
     if (!data) return;
@@ -310,10 +314,10 @@ export function CollegeOverviewDashboard() {
         <div className="grid gap-4 xl:grid-cols-3">
           <div className="space-y-4 xl:col-span-2">
             <Panel title="Attendance trend" actionHref="/college-admin/dashboard/attendance-overview" actionLabel="View report">
-              <AttendanceTrendChart points={trendPoints} />
-              <p className="mt-2 text-[11px] text-[#9ca3af]">
-                Student vs faculty session compliance (derived from current term data).
-              </p>
+              <AttendanceTrendChart
+                points={trendPoints}
+                footnote="Weekly average attendance % (students vs teaching staff). Change the date filter for a different window."
+              />
             </Panel>
 
             <Panel title="Fee collection by month" actionHref="/college-admin/dashboard/finance-summary">
@@ -322,18 +326,23 @@ export function CollegeOverviewDashboard() {
           </div>
 
           <div className="space-y-4">
-            <Panel title="Pending approvals" actionHref="/college-admin/approvals/pending-approval-requests">
+            <Panel flushBody title="Pending approvals" actionHref="/college-admin/approvals/pending-approval-requests">
               <SideList
-                items={(pendingQ.data?.items ?? []).map((p) => ({
+                items={(pendingQ.data?.items ?? []).map((p, i) => ({
                   title: p.title,
                   meta: p.category,
-                  badge: "Pending",
+                  badge: i === 0 ? "Up next" : "Pending",
+                  badgeTone: i === 0 ? ("primary" as const) : ("warning" as const),
+                  iconSlug: i === 0 ? "square-check" : "clock",
                 }))}
-                empty="No pending approvals."
+                empty="No items waiting — you're all caught up."
+                emptyTitle="Review approval queue"
+                emptyIconSlug="square-check"
+                emptyBadgeLabel="Not started"
               />
             </Panel>
 
-            <Panel title="Upcoming academic events" actionHref="/college-admin/institution/calendar">
+            <Panel flushBody title="Upcoming academic events" actionHref="/college-admin/institution/calendar">
               <SideList
                 items={(data?.upcoming_events ?? []).slice(0, 5).map((ev) => {
                   const e = ev as { title?: string; event_type?: string; event_at?: string };
@@ -343,18 +352,24 @@ export function CollegeOverviewDashboard() {
                     badge: e.event_at ? formatDate(e.event_at) : undefined,
                   };
                 })}
-                empty="No upcoming events in this window."
+                empty="Nothing scheduled in the selected window."
+                emptyTitle="View academic calendar"
+                emptyIconSlug="calendar-days"
+                emptyBadgeLabel="Not started"
               />
             </Panel>
 
-            <Panel title="Recent announcements" actionHref="/college-admin/communication/communication-dashboard">
+            <Panel flushBody title="Recent announcements" actionHref="/college-admin/communication/communication-dashboard">
               <SideList
                 items={(data?.notifications ?? []).slice(0, 4).map((n) => ({
                   title: n.title,
                   meta: n.message.slice(0, 48) + (n.message.length > 48 ? "…" : ""),
-                  icon: true,
+                  iconSlug: "megaphone",
                 }))}
-                empty="No announcements yet."
+                empty="Campus updates will show here when published."
+                emptyTitle="Post an announcement"
+                emptyIconSlug="megaphone"
+                emptyBadgeLabel="Not started"
               />
             </Panel>
           </div>
@@ -419,152 +434,178 @@ function FilterSelect({
   );
 }
 
-function Panel({
-  title,
-  children,
-  actionHref,
-  actionLabel = "View all →",
-}: {
-  title: string;
-  children: React.ReactNode;
-  actionHref?: string;
-  actionLabel?: string;
-}) {
-  return (
-    <section className="rounded-xl border border-[#e8ecf2] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
-        {actionHref ? (
-          <Link href={actionHref} className="text-[12px] font-medium text-[#245dd8] hover:underline">
-            {actionLabel}
-          </Link>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
+function seriesPolylines(
+  points: { students: number | null; faculty: number | null }[],
+  value: (p: (typeof points)[number]) => number | null,
+  toX: (i: number) => number,
+  toY: (v: number) => number,
+): string[] {
+  const segments: string[] = [];
+  let run: string[] = [];
+  points.forEach((p, i) => {
+    const v = value(p);
+    if (v == null || Number.isNaN(v)) {
+      if (run.length) {
+        segments.push(run.join(" "));
+        run = [];
+      }
+      return;
+    }
+    run.push(`${toX(i)},${toY(v)}`);
+  });
+  if (run.length) segments.push(run.join(" "));
+  return segments;
 }
 
 function AttendanceTrendChart({
   points,
+  footnote,
 }: {
-  points: { label: string; students: number; faculty: number }[];
+  points: { label: string; students: number | null; faculty: number | null }[];
+  footnote?: string;
 }) {
-  const w = 560;
-  const h = 160;
-  const pad = 24;
-  const maxY = 100;
-  const toX = (i: number) => pad + (i / Math.max(points.length - 1, 1)) * (w - pad * 2);
-  const toY = (v: number) => h - pad - (v / maxY) * (h - pad * 2);
+  const plotted = points.filter((p) => p.students != null || p.faculty != null);
+  if (plotted.length === 0) {
+    return (
+      <div className="space-y-3">
+        <p className="min-h-[11rem] rounded-lg border border-dashed border-[#e5e7eb] bg-[#f9fafb] px-4 py-8 text-center text-sm text-[#6b7280]">
+          No attendance sessions in this range yet. Mark attendance or widen the date filter to see the trend.
+        </p>
+        {footnote ? <p className="text-[10px] text-[#9ca3af]">{footnote}</p> : null}
+      </div>
+    );
+  }
 
-  const studentLine = points.map((p, i) => `${toX(i)},${toY(p.students)}`).join(" ");
-  const facultyLine = points.map((p, i) => `${toX(i)},${toY(p.faculty)}`).join(" ");
+  const w = 560;
+  const h = 200;
+  const padLeft = 36;
+  const padRight = 16;
+  const padY = 28;
+  const values = points.flatMap((p) => [p.students, p.faculty].filter((v): v is number => v != null));
+  const dataMax = Math.max(...values, 0);
+  const dataMin = Math.min(...values, dataMax);
+  const yMax = Math.min(100, Math.ceil((dataMax + 4) / 5) * 5);
+  const yMin = Math.max(0, Math.floor((Math.min(dataMin, yMax - 12) - 4) / 5) * 5);
+  const ySpan = Math.max(yMax - yMin, 8);
+
+  const toX = (i: number) => padLeft + (i / Math.max(points.length - 1, 1)) * (w - padLeft - padRight);
+  const toY = (v: number) => h - padY - ((v - yMin) / ySpan) * (h - padY * 2);
+
+  const studentSegments = seriesPolylines(points, (p) => p.students, toX, toY);
+  const facultySegments = seriesPolylines(points, (p) => p.faculty, toX, toY);
+  const yTicks = [yMin, yMin + ySpan / 2, yMax];
 
   return (
-    <div>
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-40 w-full" role="img" aria-label="Attendance trend">
-        <line x1={pad} y1={h - pad} x2={w - pad} y2={h - pad} stroke="#e8ecf2" />
-        <polyline fill="none" stroke="#245dd8" strokeWidth="2.5" points={studentLine} />
-        <polyline
-          fill="none"
-          stroke="#93c5fd"
-          strokeWidth="2"
-          strokeDasharray="6 4"
-          points={facultyLine}
-        />
-      </svg>
-      <div className="mt-1 flex justify-between text-[10px] text-[#9ca3af]">
+    <div className="space-y-3">
+      <div className="min-h-[12rem] w-full">
+        <svg
+          viewBox={`0 0 ${w} ${h}`}
+          className="h-full min-h-[12rem] w-full"
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="Attendance trend"
+        >
+          {yTicks.map((tick) => {
+            const y = toY(tick);
+            return (
+              <g key={tick}>
+                <line x1={padLeft} y1={y} x2={w - padRight} y2={y} stroke="#eef2f7" strokeDasharray="4 4" />
+                <text x={padLeft - 6} y={y + 3} textAnchor="end" className="fill-[#9ca3af]" fontSize="9">
+                  {tick}%
+                </text>
+              </g>
+            );
+          })}
+          <line x1={padLeft} y1={h - padY} x2={w - padRight} y2={h - padY} stroke="#e8ecf2" />
+          {studentSegments.map((seg, idx) => (
+            <polyline
+              key={`student-${idx}`}
+              fill="none"
+              stroke="#245dd8"
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              points={seg}
+            />
+          ))}
+          {facultySegments.map((seg, idx) => (
+            <polyline
+              key={`faculty-${idx}`}
+              fill="none"
+              stroke="#93c5fd"
+              strokeWidth="2"
+              strokeDasharray="6 4"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              points={seg}
+            />
+          ))}
+        </svg>
+      </div>
+      <div
+        className="grid gap-1 text-center text-[10px] leading-tight text-[#9ca3af]"
+        style={{ gridTemplateColumns: `repeat(${points.length}, minmax(0, 1fr))` }}
+      >
         {points.map((p) => (
-          <span key={p.label}>{p.label}</span>
+          <span key={p.label} className="truncate px-0.5" title={p.label}>
+            {p.label}
+          </span>
         ))}
       </div>
-      <div className="mt-2 flex gap-4 text-[11px] text-[#6b7280]">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-[#6b7280]">
         <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 bg-[#245dd8]" /> Students
+          <span className="h-0.5 w-4 bg-[#245dd8]" aria-hidden /> Students
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 border-t-2 border-dashed border-[#93c5fd]" /> Faculty
+          <span className="h-0.5 w-4 border-t-2 border-dashed border-[#93c5fd]" aria-hidden />{" "}
+          Faculty
         </span>
       </div>
+      {footnote ? (
+        <p className="border-t border-[#f1f5f9] pt-3 text-[11px] leading-relaxed text-[#9ca3af]">
+          {footnote}
+        </p>
+      ) : null}
     </div>
   );
 }
 
 function FeeBarChart({ bars }: { bars: { label: string; value: number; mtd?: boolean }[] }) {
+  if (bars.length === 0) {
+    return (
+      <p className="min-h-[12rem] rounded-lg border border-dashed border-[#e5e7eb] bg-[#f9fafb] px-4 py-8 text-center text-sm text-[#6b7280]">
+        No verified fee payments recorded for this academic year yet.
+      </p>
+    );
+  }
+
   const max = Math.max(...bars.map((b) => b.value), 1);
   return (
-    <div className="flex h-36 items-end justify-between gap-2">
-      {bars.map((b) => (
-        <div key={b.label} className="flex flex-1 flex-col items-center gap-1">
+    <div className="flex min-h-[12rem] items-end justify-between gap-2 pb-1 pt-2">
+      {bars.map((b) => {
+        const barHeight = Math.max(12, (b.value / max) * 100);
+        return (
           <div
-            className={cn(
-              "w-full max-w-[48px] rounded-t-md",
-              b.mtd ? "bg-[#93c5fd]" : "bg-[#245dd8]",
-            )}
-            style={{ height: `${Math.max(8, (b.value / max) * 100)}%` }}
-          />
-          <span className="text-[10px] text-[#9ca3af]">
-            {b.label}
-            {b.mtd ? " (MTD)" : ""}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SideList({
-  items,
-  empty,
-}: {
-  items: { title: string; meta?: string; badge?: string; icon?: boolean }[];
-  empty: string;
-}) {
-  if (!items.length) {
-    return <p className="text-sm text-[#9ca3af]">{empty}</p>;
-  }
-  return (
-    <ul className="space-y-3">
-      {items.map((item) => (
-        <li key={item.title} className="flex gap-2 text-sm">
-          {item.icon ? (
-            <CollegeAdminMegaphone
-              className="mt-0.5 size-4 shrink-0 text-[#245dd8]"
-              aria-hidden
-            />
-          ) : null}
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-[#111827]">{item.title}</p>
-            {item.meta ? <p className="text-[12px] text-[#9ca3af]">{item.meta}</p> : null}
+            key={b.label}
+            className="flex min-h-[10rem] flex-1 flex-col items-center justify-end gap-2"
+          >
+            <div className="flex h-32 w-full max-w-[52px] items-end justify-center">
+              <div
+                className={cn(
+                  "w-full rounded-t-md transition-[height]",
+                  b.mtd ? "bg-[#93c5fd]" : "bg-[#245dd8]",
+                )}
+                style={{ height: `${barHeight}%`, minHeight: 8 }}
+              />
+            </div>
+            <span className="max-w-full truncate text-center text-[10px] leading-tight text-[#9ca3af]">
+              {b.label}
+              {b.mtd ? " (MTD)" : ""}
+            </span>
           </div>
-          {item.badge ? (
-            <StatusPill
-              label={item.badge}
-              tone={item.badge === "Pending" ? "warning" : "info"}
-            />
-          ) : null}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function StatusPill({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: "success" | "warning" | "info";
-}) {
-  const styles = {
-    success: "bg-[#ecfdf3] text-[#15803d]",
-    warning: "bg-[#fff7ed] text-[#c2410c]",
-    info: "bg-[#eef4ff] text-[#245dd8]",
-  };
-  return (
-    <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", styles[tone])}>
-      {label}
-    </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -572,7 +613,7 @@ function QuickAction({ href, children }: { href: string; children: React.ReactNo
   return (
     <Link
       href={href}
-      className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-2 text-xs font-medium text-[#374151] transition-colors hover:border-[#d1d5db] hover:bg-[#f9fafb]"
+      className="inline-flex items-center rounded-xl border border-[#dce3ec] bg-white px-3.5 py-2 text-[12px] font-semibold text-[#334155] shadow-[0_1px_2px_rgba(15,39,69,0.05)] transition-colors hover:border-[#c7dafc] hover:bg-[#f4f8ff] hover:text-[#245dd8]"
     >
       {children}
     </Link>

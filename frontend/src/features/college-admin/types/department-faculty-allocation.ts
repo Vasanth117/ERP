@@ -1,5 +1,6 @@
 import type { InstitutionFieldOption } from "@/features/college-admin/types/institution";
 import type { PoliciesPagination } from "@/features/college-admin/types/institution";
+import type { OrganizationModuleEmptyState } from "@/features/college-admin/types/organization-module";
 
 export type DepartmentFacultyCapacityRow = {
   department_id: string;
@@ -33,6 +34,9 @@ export type DepartmentFacultyAllocationFormValues = {
   allocate_to_department_id: string;
   allocation_type: string;
   effective_from: string;
+  effective_to: string;
+  order_reference: string;
+  semester_label: string;
 };
 
 export type DepartmentFacultyAllocationPage = {
@@ -59,13 +63,17 @@ export type DepartmentFacultyAllocationPage = {
   capacity_rows: DepartmentFacultyCapacityRow[];
   pagination: PoliciesPagination;
   move_share_section_title: string;
+  move_share_section_subtitle: string;
   faculty_field_label: string;
   faculty_options: InstitutionFieldOption[];
   allocate_to_field_label: string;
   department_allocate_options: InstitutionFieldOption[];
   allocation_type_field_label: string;
   allocation_type_options: InstitutionFieldOption[];
+  allocation_type_hint: string;
   effective_from_field_label: string;
+  effective_to_field_label: string;
+  order_reference_field_label: string;
   form: DepartmentFacultyAllocationFormValues;
   move_footer_note: string;
   cancel_label: string;
@@ -77,8 +85,11 @@ export type DepartmentFacultyAllocationPage = {
   designation_mix_section_title: string;
   designation_bars: DepartmentFacultyDesignationBar[];
   can_save: boolean;
+  allocate_faculty_enabled: boolean;
+  form_interactive: boolean;
   footer_disclaimer: string;
   footer_snapshot_label: string;
+  setup_empty_state?: OrganizationModuleEmptyState | null;
   generated_at: string;
 };
 
