@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -32,7 +33,10 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className={cn("space-y-1.5", meta.field_type === "textarea" ? "sm:col-span-2" : undefined)}>
+    <div
+      className={cn("space-y-1.5", meta.field_type === "textarea" ? "sm:col-span-2" : undefined)}
+      data-field-key={meta.key}
+    >
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -216,7 +220,7 @@ export function CampusCreationWizardDashboard() {
       { draft_id: data.draft_id, step_key: activeStep, values: toPayload(values) },
       {
         onSuccess: () => toast.success("Draft saved — you can continue later"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -230,7 +234,7 @@ export function CampusCreationWizardDashboard() {
           persistStepUrl(res.current_step_key);
           toast.success("Step saved");
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -276,11 +280,11 @@ export function CampusCreationWizardDashboard() {
                 toast.success(res.message);
                 router.push(res.detail_href);
               },
-              onError: (e: Error) => toast.error(e.message),
+              onError: onCollegeAdminMutationError,
             },
           );
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });

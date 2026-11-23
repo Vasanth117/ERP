@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -103,7 +104,7 @@ export function ExaminationHallSeatingManagementDashboard() {
     if (!data?.selected_session_id) return;
     autoAllocate.mutate(payload(), {
       onSuccess: () => toast.success("Seating auto-allocated."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -111,7 +112,7 @@ export function ExaminationHallSeatingManagementDashboard() {
     if (!data?.selected_session_id) return;
     confirm.mutate(payload(), {
       onSuccess: () => toast.success("Seating confirmed."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

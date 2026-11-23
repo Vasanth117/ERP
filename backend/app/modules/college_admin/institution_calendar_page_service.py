@@ -334,9 +334,20 @@ async def create_institution_holiday(
 ) -> InstitutionHolidayCreateResult:
     authorize(scope, Permission.INSTITUTION_SETTINGS_MANAGE)
     tenant_id = require_college_tenant_scope(scope)
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
     title = payload.title.strip()
     if len(title) < 2:
-        raise AppError(code="VALIDATION_ERROR", message="Holiday title is required", status_code=422)
+        raise_validation_error(
+            "Complete the required holiday fields before saving.",
+            [
+                scroll_field(
+                    "title",
+                    label="Holiday title",
+                    message="Enter a name for this holiday.",
+                )
+            ],
+        )
 
     year_oid = to_object_id(payload.academic_year_id, "academic_year_id")
     year = await AcademicYear.find_one(
@@ -349,7 +360,16 @@ async def create_institution_holiday(
     end = payload.end_date
     start = payload.start_date
     if end is not None and end < start:
-        raise AppError(code="VALIDATION_ERROR", message="End date cannot be before start date", status_code=422)
+        raise_validation_error(
+            "Check the holiday date range.",
+            [
+                scroll_field(
+                    "end_date",
+                    label="End date",
+                    message="End date cannot be before the start date.",
+                )
+            ],
+        )
 
     holiday_id = await _unique_holiday_id(tenant_id, title)
     sort_order = await InstitutionHoliday.find(

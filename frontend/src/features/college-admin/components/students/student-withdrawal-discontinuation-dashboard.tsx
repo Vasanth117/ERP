@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -214,7 +215,7 @@ export function StudentWithdrawalDiscontinuationDashboard() {
       },
       {
         onSuccess: () => toast.success("Withdrawal request submitted for approval."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

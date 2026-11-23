@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -169,7 +170,7 @@ export function BulkUserInvitationDashboard() {
             toast.success("File uploaded and validated");
             setPage(1);
           },
-          onError: (e: Error) => toast.error(e.message),
+          onError: onCollegeAdminMutationError,
         },
       );
     },
@@ -201,7 +202,7 @@ export function BulkUserInvitationDashboard() {
         toast.success(res.message);
         router.push(res.href);
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

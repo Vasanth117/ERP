@@ -32,6 +32,7 @@ import type {
 } from "@/features/college-admin/types/institution";
 import { normalizeFormPayload } from "@/lib/form-values";
 import { cn } from "@/lib/utils";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 
@@ -181,7 +182,7 @@ export function InstitutionalCalendarSettingsDashboard() {
           setPage(1);
           void refetch();
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

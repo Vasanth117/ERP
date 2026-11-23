@@ -1924,8 +1924,13 @@ async def organizational_hierarchy_page_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     _: Annotated[User, Depends(college_admin_user)],
     selected_node_id: Annotated[str | None, Query()] = None,
+    edit: Annotated[bool, Query()] = False,
 ) -> ApiResponse[OrganizationalHierarchyPageRead]:
-    data = await get_organizational_hierarchy_page(scope, selected_node_id=selected_node_id)
+    data = await get_organizational_hierarchy_page(
+        scope,
+        selected_node_id=selected_node_id,
+        edit_mode=edit,
+    )
     return success_response(data, request_id=get_request_id())
 
 

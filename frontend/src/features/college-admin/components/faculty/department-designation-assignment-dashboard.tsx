@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -107,7 +108,7 @@ export function DepartmentDesignationAssignmentDashboard() {
         toast.success("Assignment saved");
         form.reset(values);
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   });
 

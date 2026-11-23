@@ -38,34 +38,66 @@ export async function POST(request: Request) {
     );
   }
 
-  const upstream = await fetch(`${apiBaseUrl()}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email,
-      password,
-      tenant_code: tenant_code ?? null,
-    }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${apiBaseUrl()}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        password,
+        tenant_code: tenant_code ?? null,
+      }),
+    });
+  } catch {
+    return NextResponse.json(
+      {
+        message:
+          "Authentication service is unavailable. Please try again later.",
+      },
+      { status: 503 },
+    );
+  }
 
-  const envelope = (await upstream.json()) as ApiResponse<TokenPair>;
+  const raw = await upstream.text();
+  let envelope: ApiResponse<TokenPair> | null = null;
+  if (raw.trim()) {
+    try {
+      envelope = JSON.parse(raw) as ApiResponse<TokenPair>;
+    } catch {
+      return NextResponse.json(
+        {
+          message:
+            "Authentication service returned an invalid response. Please try again later.",
+        },
+        { status: 502 },
+      );
+    }
+  }
 
   if (!upstream.ok) {
     let message =
-      envelope.error?.message ??
+      envelope?.error?.message ??
       "Invalid credentials or tenant configuration";
     if (
       upstream.status === 401 &&
-      envelope.error?.code === "INVALID_CREDENTIALS"
+      envelope?.error?.code === "INVALID_CREDENTIALS"
     ) {
       message = "Invalid email or password.";
     }
     return NextResponse.json(
       {
         message,
-        code: envelope.error?.code,
+        code: envelope?.error?.code,
       },
       { status: upstream.status },
+    );
+  }
+
+  if (!envelope) {
+    return NextResponse.json(
+      { message: "Authentication service returned an empty response." },
+      { status: 502 },
     );
   }
 

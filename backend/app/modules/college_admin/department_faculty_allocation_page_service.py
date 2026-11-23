@@ -38,6 +38,7 @@ from app.modules.college_admin.schemas import (
     DepartmentFacultyDesignationBar,
     DepartmentFacultyVacancyItem,
     InstitutionFieldOption,
+    OrganizationModuleEmptyState,
     PoliciesPagination,
 )
 from app.modules.hr.enums import HrJobOpeningStatus
@@ -57,6 +58,8 @@ _ACTIVE_EMPLOYMENT = frozenset(
         FacultyEmploymentStatus.ON_LEAVE,
     }
 )
+
+_ALLOCATION_TYPES = frozenset({"primary", "shared_50", "shared_25", "visiting"})
 
 _DESIGNATION_BUCKETS: tuple[tuple[str, str], ...] = (
     ("professor", "Professors"),
@@ -83,6 +86,14 @@ def _designation_bucket(designation: str | None) -> str | None:
     if re.search(r"\bprofessor\b", d) and "assistant" not in d and "associate" not in d:
         return "professor"
     return None
+
+
+def _assignment_active(*, effective_from: date | None, effective_to: date | None, today: date) -> bool:
+    if effective_from and effective_from > today:
+        return False
+    if effective_to and effective_to < today:
+        return False
+    return True
 
 
 def _parse_iso_date(raw: str | None) -> date:
@@ -151,14 +162,31 @@ async def get_department_faculty_allocation_page(
     ).sort("+department_code").to_list()
 
     faculty_records = await FacultyRecord.find(Eq(FacultyRecord.tenant_id, tenant_id)).to_list()
-    faculty_by_dept: dict[str, list[FacultyRecord]] = defaultdict(list)
+    records_by_user = {rec.user_id: rec for rec in faculty_records}
+    today = utcnow().date()
+    assignments = await FacultyDepartmentAssignment.find(Eq(FacultyDepartmentAssignment.tenant_id, tenant_id)).to_list()
+
+    faculty_by_dept: dict[str, set[PydanticObjectId]] = defaultdict(set)
     for rec in faculty_records:
-        if rec.employment_status not in _ACTIVE_EMPLOYMENT or rec.department_id is None:
+        if rec.employment_status not in _ACTIVE_EMPLOYMENT:
             continue
         bucket = _designation_bucket(rec.designation)
         if designation_filter and bucket != designation_filter:
             continue
-        faculty_by_dept[str(rec.department_id)].append(rec)
+        if rec.department_id is not None:
+            faculty_by_dept[str(rec.department_id)].add(rec.user_id)
+    for row in assignments:
+        if not _assignment_active(effective_from=row.effective_from, effective_to=row.effective_to, today=today):
+            continue
+        if row.is_primary:
+            continue
+        rec = records_by_user.get(row.user_id)
+        if rec is None or rec.employment_status not in _ACTIVE_EMPLOYMENT:
+            continue
+        bucket = _designation_bucket(rec.designation)
+        if designation_filter and bucket != designation_filter:
+            continue
+        faculty_by_dept[str(row.department_id)].add(row.user_id)
 
     openings = await HrJobOpening.find(
         Eq(HrJobOpening.tenant_id, tenant_id),
@@ -191,18 +219,20 @@ async def get_department_faculty_allocation_page(
     capacity_rows: list[DepartmentFacultyCapacityRow] = []
     for dept in filtered_departments:
         did = str(dept.id)
-        in_position = len(faculty_by_dept.get(did, []))
+        dept_user_ids = faculty_by_dept.get(did, set())
+        in_position = len(dept_user_ids)
         vacant = vacant_by_dept.get(did, 0)
         sanctioned = sanction_by_dept.get(did, in_position + vacant)
         hours: list[float] = []
-        for rec in faculty_by_dept.get(did, []):
-            if rec.user_id in workload_by_user:
-                hours.append(workload_by_user[rec.user_id])
+        for uid in dept_user_ids:
+            if uid in workload_by_user:
+                hours.append(workload_by_user[uid])
         if hours:
             avg_hours = sum(hours) / len(hours)
             workload_pct = round((avg_hours / _WORKLOAD_TARGET_HOURS) * 100)
         elif in_position:
-            workload_pct = round((sum(workload_by_user.get(r.user_id, 0) for r in faculty_by_dept[did]) / max(in_position, 1) / _WORKLOAD_TARGET_HOURS) * 100)
+            total_hours = sum(workload_by_user.get(uid, 0) for uid in dept_user_ids)
+            workload_pct = round((total_hours / max(in_position, 1) / _WORKLOAD_TARGET_HOURS) * 100)
         else:
             workload_pct = None
         status_code, status_label, status_tone = _workload_status(
@@ -305,11 +335,23 @@ async def get_department_faculty_allocation_page(
     for key, label in _DESIGNATION_BUCKETS:
         designation_options.append(InstitutionFieldOption(value=key, label=label))
 
+    faculty_choice_count = max(0, len(faculty_options) - 1)
+    has_departments = bool(departments)
+    allocate_enabled = has_departments and faculty_choice_count > 0
+    form_interactive = allocate_enabled
+
+    default_allocate_dept = department_id or ""
+    if not default_allocate_dept and len(departments) == 1:
+        default_allocate_dept = str(departments[0].id)
+
     form = DepartmentFacultyAllocationFormValues(
         faculty_user_id="",
-        allocate_to_department_id="",
+        allocate_to_department_id=default_allocate_dept,
         allocation_type="shared_50",
         effective_from=utcnow().date().isoformat(),
+        effective_to="",
+        order_reference="",
+        semester_label=selected_semester,
     )
 
     generated = utcnow()
@@ -319,11 +361,46 @@ async def get_department_faculty_allocation_page(
     if not sanction_note:
         sanction_note = "Sanctioned = in-position plus published vacancies (or institution staffing settings)"
 
+    setup_empty: OrganizationModuleEmptyState | None = None
+    if not has_departments:
+        setup_empty = OrganizationModuleEmptyState(
+            title="No departments yet",
+            description="Create departments before you allocate faculty or review capacity.",
+            highlights=[
+                "Sanctioned posts vs in-position and vacancies",
+                "Move or share faculty across departments",
+                "Designation mix and workload balance",
+            ],
+            primary_label="Create department",
+            primary_href="/college-admin/organization/create-department",
+            secondary_label="Add faculty employee",
+            secondary_href="/college-admin/faculty/add-new-faculty-employee",
+        )
+        allocate_enabled = False
+        form_interactive = False
+
+    can_save = (
+        form_interactive
+        and bool(form.faculty_user_id)
+        and bool(form.allocate_to_department_id)
+        and bool((form.order_reference or "").strip())
+    )
+
+    panel_subtitle = (
+        "Choose faculty, target department, allocation type, and order reference. Changes are audited."
+        if form_interactive
+        else (
+            "Add faculty employees first, then return here to allocate them to departments."
+            if has_departments
+            else "Add departments and faculty records to enable allocations."
+        )
+    )
+
     return DepartmentFacultyAllocationPageRead(
         page_title="Department Faculty Allocation",
         page_subtitle="Allocate faculty to departments and balance teaching capacity",
         export_label="Export",
-        allocate_faculty_label="+ Allocate faculty",
+        allocate_faculty_label="Allocate faculty",
         allocate_faculty_href="#move-share-faculty",
         semester_filter_label="Semester",
         department_filter_label="Departments",
@@ -351,6 +428,7 @@ async def get_department_faculty_allocation_page(
             has_next=page < total_pages,
         ),
         move_share_section_title="Move or share faculty",
+        move_share_section_subtitle=panel_subtitle,
         faculty_field_label="Faculty member",
         faculty_options=faculty_options,
         allocate_to_field_label="Allocate to",
@@ -362,18 +440,24 @@ async def get_department_faculty_allocation_page(
             InstitutionFieldOption(value="shared_25", label="Shared (25%)"),
             InstitutionFieldOption(value="visiting", label="Visiting"),
         ],
-        effective_from_field_label="From",
+        effective_from_field_label="Effective from",
+        effective_to_field_label="Effective to (optional)",
+        order_reference_field_label="Order / reference",
+        allocation_type_hint="Primary moves the faculty home department. Shared and visiting keep the primary post and add a secondary assignment.",
         form=form,
         move_footer_note="Changes are saved to the audit log with your name and time.",
         cancel_label="Cancel",
         save_label="Save allocation",
+        allocate_faculty_enabled=allocate_enabled,
+        form_interactive=form_interactive,
         vacancies_section_title="Vacancies",
         hr_recruitment_label="HR recruitment →",
         hr_recruitment_href="/college-admin/hr/recruitment-management",
         vacancy_items=vacancy_items,
         designation_mix_section_title="Designation mix",
         designation_bars=designation_bars,
-        can_save=False,
+        can_save=can_save,
+        setup_empty_state=setup_empty,
         footer_disclaimer="Live institutional data · Faculty records, workload and recruitment · All times IST",
         footer_snapshot_label="Live snapshot",
         generated_at=generated,
@@ -387,10 +471,40 @@ async def save_department_faculty_allocation(
     authorize(scope, Permission.INSTITUTION_ORG_MANAGE)
     tenant_id = require_college_tenant_scope(scope)
     form = payload.form
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
+    missing: list[dict] = []
     if not form.faculty_user_id:
-        raise AppError(code="VALIDATION_ERROR", message="Faculty member is required", status_code=422)
+        missing.append(
+            scroll_field("faculty_user_id", label="Faculty member", message="Select a faculty member to allocate.")
+        )
     if not form.allocate_to_department_id:
-        raise AppError(code="VALIDATION_ERROR", message="Allocate to department is required", status_code=422)
+        missing.append(
+            scroll_field(
+                "allocate_to_department_id",
+                label="Department",
+                message="Choose the department to allocate this faculty to.",
+            )
+        )
+    allocation_type = (form.allocation_type or "shared_50").strip().lower()
+    if allocation_type not in _ALLOCATION_TYPES:
+        missing.append(
+            scroll_field(
+                "allocation_type",
+                label="Allocation type",
+                message="Select a valid allocation type.",
+            )
+        )
+    if not (form.order_reference or "").strip():
+        missing.append(
+            scroll_field(
+                "order_reference",
+                label="Order / reference",
+                message="Enter the appointment order or internal reference for this allocation.",
+            )
+        )
+    if missing:
+        raise_validation_error("Complete the allocation form before saving.", missing)
 
     user_id = to_object_id(form.faculty_user_id, "faculty_user_id")
     dept_id = to_object_id(form.allocate_to_department_id, "department_id")
@@ -406,7 +520,21 @@ async def save_department_faculty_allocation(
         raise AppError(code="NOT_FOUND", message="Faculty record not found", status_code=404)
 
     effective_from = _parse_iso_date(form.effective_from)
-    allocation_type = (form.allocation_type or "shared_50").strip().lower()
+    effective_to: date | None = None
+    if (form.effective_to or "").strip():
+        effective_to = _parse_iso_date(form.effective_to)
+        if effective_to < effective_from:
+            raise_validation_error(
+                "Effective end date must be on or after the start date.",
+                [
+                    scroll_field(
+                        "effective_to",
+                        label="Effective to",
+                        message="Choose an end date on or after the effective from date.",
+                    )
+                ],
+            )
+
     is_primary = allocation_type == "primary"
 
     if is_primary:
@@ -432,17 +560,30 @@ async def save_department_faculty_allocation(
         department_id=dept_id,
         is_primary=is_primary,
         effective_from=effective_from,
+        effective_to=effective_to,
         actor_id=scope.user_id,
     ).insert()
 
+    user = await User.get(user_id)
+    faculty_name = user.full_name if user else "Faculty"
+    order_ref = (form.order_reference or "").strip()
     await FacultyEmploymentHistory(
         tenant_id=tenant_id,
         user_id=user_id,
         event_type="department_allocation",
-        note=f"{allocation_type} allocation to {dept.department_code}",
+        note=f"{allocation_type} allocation to {dept.department_code} · ref {order_ref}",
         effective_date=effective_from,
         actor_id=scope.user_id,
     ).insert()
 
-    page = await get_department_faculty_allocation_page(scope)
-    return DepartmentFacultyAllocationSaveResult(message="Faculty allocation saved", page=page)
+    page = await get_department_faculty_allocation_page(
+        scope,
+        page=max(1, payload.page),
+        semester_label=payload.semester_label or form.semester_label or None,
+        department_id=payload.department_id,
+        designation_filter=payload.designation_filter,
+    )
+    return DepartmentFacultyAllocationSaveResult(
+        message=f"{faculty_name} allocated to {dept.name}",
+        page=page,
+    )

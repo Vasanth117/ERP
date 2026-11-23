@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { BookOpenIcon } from "@/components/icons/erp/generated/book-open";
@@ -39,7 +40,7 @@ function metaFor(fieldMeta: InstitutionFieldMeta[], key: string) {
 function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: React.ReactNode }) {
   if (!meta) return null;
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5" data-field-key={meta.key}>
       <Label className="text-[13px] font-medium text-[#374151]">
         {meta.label}
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
@@ -148,7 +149,7 @@ export function NewStudentRegistrationDashboard() {
       { admission_id: data.admission_id, step_key: activeStep, values: toPayload(values) },
       {
         onSuccess: () => toast.success("Draft saved"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });
@@ -167,7 +168,7 @@ export function NewStudentRegistrationDashboard() {
           setActiveStep(res.current_step_key);
           toast.success("Saved — continue to the next step");
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   });

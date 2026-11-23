@@ -228,12 +228,18 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "student-id-card-management-page", params ?? {}] as const,
   studentAcademicHistoryPage: (recordId?: string) =>
     [...collegeAdminQueryKeys.all, "student-academic-history-page", recordId ?? ""] as const,
+  newAcademicYearWizard: (draftId?: string) =>
+    [...collegeAdminQueryKeys.all, "new-academic-year-wizard", draftId ?? "new"] as const,
+  academicYearDetails: (yearId: string) =>
+    [...collegeAdminQueryKeys.all, "academic-year-details", yearId] as const,
   academicYearManagement: (page?: number) =>
     [...collegeAdminQueryKeys.all, "academic-year-management", page ?? 1] as const,
   semesterManagement: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "semester-management", params ?? {}] as const,
   programmeManagement: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "programme-management", params ?? {}] as const,
+  programmeDetails: (programmeId: string) =>
+    [...collegeAdminQueryKeys.all, "programme-details", programmeId] as const,
   subjectManagement: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "subject-management", params ?? {}] as const,
   curriculumManagement: (params?: Record<string, string | number | undefined>) =>
@@ -258,8 +264,13 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "department-details-page", departmentId ?? "none"] as const,
   departmentHeadAssignmentPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "department-head-assignment-page", params ?? {}] as const,
-  organizationalHierarchyPage: (selectedNodeId?: string) =>
-    [...collegeAdminQueryKeys.all, "organizational-hierarchy-page", selectedNodeId ?? "default"] as const,
+  organizationalHierarchyPage: (selectedNodeId?: string, editMode?: boolean) =>
+    [
+      ...collegeAdminQueryKeys.all,
+      "organizational-hierarchy-page",
+      selectedNodeId ?? "default",
+      editMode ? "edit" : "view",
+    ] as const,
   programmeCourseMappingPage: (departmentId?: string) =>
     [...collegeAdminQueryKeys.all, "programme-course-mapping-page", departmentId ?? "default"] as const,
   departmentFacultyAllocationPage: (params?: Record<string, string | number | undefined>) =>

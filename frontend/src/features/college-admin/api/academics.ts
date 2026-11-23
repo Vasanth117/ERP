@@ -1,10 +1,16 @@
 import { apiRequest } from "@/lib/api/client";
 import type { AcademicConfigurationDashboardPage } from "@/features/college-admin/types/academic-configuration-dashboard";
+import type { AcademicYearDetailsPage } from "@/features/college-admin/types/academic-year-details";
 import type {
   AcademicYearManagementCreatePayload,
   AcademicYearManagementPage,
   AcademicYearManagementRulesPayload,
 } from "@/features/college-admin/types/academic-year-management";
+import type {
+  AcademicYearWizardDraftPayload,
+  NewAcademicYearWizardPage,
+  NewAcademicYearWizardSaveResult,
+} from "@/features/college-admin/types/new-academic-year-wizard";
 import type {
   CourseConfigurationPage,
   CourseConfigurationSavePayload,
@@ -33,8 +39,10 @@ import type {
   RegulationManagementCreatePayload,
   RegulationManagementPage,
 } from "@/features/college-admin/types/regulation-management";
+import type { ProgrammeDetailsPage } from "@/features/college-admin/types/programme-details";
 import type {
   ProgrammeManagementCreatePayload,
+  ProgrammeManagementCreateResult,
   ProgrammeManagementPage,
 } from "@/features/college-admin/types/programme-management";
 import type {
@@ -92,16 +100,34 @@ export function fetchAcademicYearManagementPage(page = 1) {
   return apiRequest<AcademicYearManagementPage>(`/college-admin/academic-config/years/management/page${q}`);
 }
 
+export function fetchNewAcademicYearWizardPage(draftId?: string) {
+  const q = draftId ? `?draft_id=${encodeURIComponent(draftId)}` : "";
+  return apiRequest<NewAcademicYearWizardPage>(`/college-admin/academic-config/years/management/create-wizard/page${q}`);
+}
+
+export function saveAcademicYearWizardDraft(payload: AcademicYearWizardDraftPayload) {
+  return apiRequest<NewAcademicYearWizardSaveResult>("/college-admin/academic-config/years/management/create-wizard/draft", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export function fetchAcademicYearDetailsPage(yearId: string) {
+  return apiRequest<AcademicYearDetailsPage>(
+    `/college-admin/academic-config/years/management/details/page?year_id=${encodeURIComponent(yearId)}`,
+  );
+}
+
 export function createAcademicYearManagement(payload: AcademicYearManagementCreatePayload) {
   return apiRequest<AcademicYearManagementPage>("/college-admin/academic-config/years/management/create", {
     method: "POST",
-    body: JSON.stringify({
+    body: {
       ...payload,
       copy_from_year_id: payload.copy_from_year_id || null,
       start_date: payload.start_date || null,
       end_date: payload.end_date || null,
       admission_intake_opens: payload.admission_intake_opens || null,
-    }),
+    },
   });
 }
 
@@ -167,13 +193,26 @@ export function fetchProgrammeManagementPage(params?: {
 }
 
 export function createProgrammeManagement(payload: ProgrammeManagementCreatePayload) {
-  return apiRequest<ProgrammeManagementPage>("/college-admin/academic-config/programmes/management/create", {
+  return apiRequest<ProgrammeManagementCreateResult>("/college-admin/academic-config/programmes/management/create", {
     method: "POST",
-    body: JSON.stringify({
+    body: {
       ...payload,
       department_id: payload.department_id || null,
-    }),
+      programme_level: payload.programme_level || null,
+      regulation_code: payload.regulation_code || null,
+      short_name: payload.short_name || null,
+      description: payload.description || null,
+      entry_qualification: payload.entry_qualification || null,
+      approved_intake: payload.approved_intake ?? null,
+    },
   });
+}
+
+export function fetchProgrammeDetailsPage(programmeId: string) {
+  const q = new URLSearchParams({ programme_id: programmeId });
+  return apiRequest<ProgrammeDetailsPage>(
+    `/college-admin/academic-config/programmes/details/page?${q.toString()}`,
+  );
 }
 
 export function fetchSubjectManagementPage(params?: {

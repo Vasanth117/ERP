@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { ArrowRightLeftIcon } from "@/components/icons/erp/generated/arrow-right-left";
@@ -117,7 +118,7 @@ export function EmployeeStatusManagementDashboard() {
           toast.success("Status change submitted for approval.");
           if (res.selected_request_id) setSelectedRequestId(res.selected_request_id);
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -136,7 +137,7 @@ export function EmployeeStatusManagementDashboard() {
       { request_id: selectedRequestId, page },
       {
         onSuccess: () => toast.success("Status change approved and applied."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -93,7 +94,7 @@ export function EmployeeProfileManagementDashboard() {
     if (!saveRecordId) return;
     saveMutation.mutate(values as unknown as Record<string, unknown>, {
       onSuccess: () => toast.success("Profile changes saved"),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   });
 

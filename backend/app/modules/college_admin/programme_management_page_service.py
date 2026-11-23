@@ -15,7 +15,11 @@ from app.common.ids import to_object_id
 from app.common.time import utcnow
 from app.core.exceptions import AppError
 from app.modules.audit.service import record_audit
-from app.modules.college_admin.academic_config_models import AcademicProgramme, ConfigPublicationStatus
+from app.modules.college_admin.academic_config_models import (
+    AcademicProgramme,
+    AcademicRegulationCatalog,
+    ConfigPublicationStatus,
+)
 from app.modules.college_admin.department_performance_overview_service import (
     _level_matches,
     _programme_level,
@@ -31,6 +35,7 @@ from app.modules.college_admin.schemas import (
     AcademicYearCreateFormOption,
     PoliciesPagination,
     ProgrammeManagementCreate,
+    ProgrammeManagementCreateResult,
     ProgrammeManagementPageRead,
     InstitutionPolicyFilterOption,
     ProgrammeManagementTableRow,
@@ -44,6 +49,34 @@ _LEVEL_LABEL = {
     "postgraduate": "PG",
     "doctoral": "Doctoral",
 }
+
+_MODE_OPTIONS = [
+    ("full_time", "Full-time"),
+    ("part_time", "Part-time"),
+    ("evening", "Evening / weekend"),
+]
+
+_LEVEL_INPUT_MAP = {
+    "ug": "undergraduate",
+    "undergraduate": "undergraduate",
+    "pg": "postgraduate",
+    "postgraduate": "postgraduate",
+    "doctoral": "doctoral",
+    "phd": "doctoral",
+}
+
+
+def _effective_programme_level(prog: AcademicProgramme) -> str:
+    if prog.programme_level:
+        return prog.programme_level
+    return _programme_level(prog)
+
+
+def _normalize_programme_level(raw: str | None) -> str | None:
+    if not raw:
+        return None
+    key = raw.strip().lower()
+    return _LEVEL_INPUT_MAP.get(key)
 
 
 def _programme_status(prog: AcademicProgramme) -> tuple[str, str, str]:
@@ -72,6 +105,8 @@ def _intake_display(
     students_by_code: dict[str, int],
 ) -> str:
     level = _programme_level(prog)
+    if prog.approved_intake is not None:
+        return str(prog.approved_intake)
     if dept and level == "undergraduate" and dept.approved_intake_ug:
         return str(dept.approved_intake_ug)
     count = students_by_code.get(prog.programme_code.upper(), 0)
@@ -85,10 +120,16 @@ def _matches_search(prog: AcademicProgramme, needle: str) -> bool:
     return needle in hay
 
 
+def _display_regulation(prog: AcademicProgramme, curriculum_by_prog: dict) -> str:
+    if prog.regulation_code:
+        return prog.regulation_code
+    return _regulation_label(prog.programme_code, curriculum_by_prog)
+
+
 def _matches_regulation(prog: AcademicProgramme, regulation_filter: str, curriculum_by_prog: dict) -> bool:
     if not regulation_filter:
         return True
-    label = _regulation_label(prog.programme_code, curriculum_by_prog)
+    label = _display_regulation(prog, curriculum_by_prog)
     return label != "—" and label.lower() == regulation_filter.lower()
 
 
@@ -141,7 +182,7 @@ async def get_programme_management_page(
 
     filtered: list[AcademicProgramme] = []
     for prog in programmes:
-        level = _programme_level(prog)
+        level = _effective_programme_level(prog)
         if needle and not _matches_search(prog, needle):
             continue
         if not _level_matches(level, level_filter):
@@ -168,20 +209,22 @@ async def get_programme_management_page(
         dept = _resolve_department(prog, depts_by_id, code_to_dept)
         department_label = dept.department_code if dept else "—"
         status_code, status_label, status_tone = _programme_status(prog)
-        level = _programme_level(prog)
+        level = _effective_programme_level(prog)
+        pid = str(prog.id)
         table_rows.append(
             ProgrammeManagementTableRow(
-                programme_id=str(prog.id),
+                programme_id=pid,
                 programme_name=prog.name,
                 programme_code=prog.programme_code,
                 level_label=_LEVEL_LABEL.get(level, "UG"),
                 department_label=department_label,
                 duration_label=_duration_label(prog.duration_semesters),
                 intake_label=_intake_display(prog, dept, students_by_code),
-                regulation_label=_regulation_label(prog.programme_code, curriculum_by_prog),
+                regulation_label=_display_regulation(prog, curriculum_by_prog),
                 status_code=status_code,
                 status_label=status_label,
                 status_tone=status_tone,
+                detail_href=f"/college-admin/academics/programme-details?programme_id={pid}",
             )
         )
 
@@ -215,11 +258,39 @@ async def get_programme_management_page(
             AcademicYearCreateFormOption(value=str(dept.id), label=f"{dept.department_code} · {dept.name}")
         )
 
+    catalogs = await AcademicRegulationCatalog.find(
+        Eq(AcademicRegulationCatalog.tenant_id, tenant_id),
+    ).sort("+sort_order").to_list()
+    create_reg_options = [AcademicYearCreateFormOption(value="", label="— Select regulation —")]
+    for entry in catalogs:
+        if entry.is_draft:
+            continue
+        create_reg_options.append(
+            AcademicYearCreateFormOption(value=entry.regulation_code, label=entry.display_label)
+        )
+    for label in sorted(regulation_labels):
+        if not any(o.value == label for o in create_reg_options):
+            create_reg_options.append(AcademicYearCreateFormOption(value=label, label=label))
+
+    create_level_options = [
+        AcademicYearCreateFormOption(value="", label="— Infer from duration —"),
+        AcademicYearCreateFormOption(value="undergraduate", label="Undergraduate (UG)"),
+        AcademicYearCreateFormOption(value="postgraduate", label="Postgraduate (PG)"),
+        AcademicYearCreateFormOption(value="doctoral", label="Doctoral"),
+    ]
+    create_mode_options = [
+        AcademicYearCreateFormOption(value=value, label=label) for value, label in _MODE_OPTIONS
+    ]
+
     return ProgrammeManagementPageRead(
         page_title="Programme Management",
         page_subtitle="Degree programmes, intake and duration offered by the college",
         export_label="Export",
         add_programme_label="Add programme",
+        new_programme_href="/college-admin/academics/create-programme",
+        create_level_options=create_level_options,
+        create_regulation_options=create_reg_options,
+        create_mode_options=create_mode_options,
         search_placeholder="Search programmes...",
         level_filter_label="Level",
         department_filter_label="Department",
@@ -298,7 +369,7 @@ async def get_programme_management_page(
 async def create_programme_management(
     scope: AccessScope,
     payload: ProgrammeManagementCreate,
-) -> ProgrammeManagementPageRead:
+) -> ProgrammeManagementCreateResult:
     authorize(scope, Permission.ACADEMIC_CONFIG_MANAGE)
     tenant_id = require_college_tenant_scope(scope)
     code = payload.programme_code.strip().upper()
@@ -319,11 +390,20 @@ async def create_programme_management(
         if dept is None or dept.tenant_id != tenant_id:
             raise AppError("Department not found", status_code=404)
 
+    level = _normalize_programme_level(payload.programme_level)
+
     doc = AcademicProgramme(
         tenant_id=tenant_id,
         programme_code=code,
         name=payload.name.strip(),
+        short_name=(payload.short_name or "").strip() or None,
+        description=(payload.description or "").strip() or None,
         department_id=dept_id,
+        programme_level=level,
+        regulation_code=(payload.regulation_code or "").strip() or None,
+        mode_of_study=(payload.mode_of_study or "full_time").strip() or "full_time",
+        approved_intake=payload.approved_intake,
+        entry_qualification=(payload.entry_qualification or "").strip() or None,
         duration_semesters=payload.duration_semesters,
         credits_required=payload.credits_required,
         status=ConfigPublicationStatus.DRAFT,
@@ -339,4 +419,9 @@ async def create_programme_management(
         tenant_id=tenant_id,
     )
 
-    return await get_programme_management_page(scope, page=1)
+    pid = str(doc.id)
+    return ProgrammeManagementCreateResult(
+        programme_id=pid,
+        detail_href=f"/college-admin/academics/programme-details?programme_id={pid}",
+        message="Programme created",
+    )

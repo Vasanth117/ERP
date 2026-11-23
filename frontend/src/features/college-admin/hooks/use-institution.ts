@@ -2,6 +2,7 @@
 
 import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import {
@@ -83,7 +84,7 @@ export function useSaveInstitutionInformationDraft() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.informationPage() });
       toast.success("Draft saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -102,7 +103,7 @@ export function useSaveInstitutionBrandingDraft() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.brandingPage() });
       toast.success("Branding draft saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -116,7 +117,7 @@ export function usePublishInstitutionBranding() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.settings() });
       toast.success("Branding published");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -129,7 +130,7 @@ export function useUploadBrandingAsset() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.brandingPage() });
       toast.success("File uploaded");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -143,7 +144,7 @@ export function usePublishInstitutionInformation() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.profilePage() });
       toast.success("Institution information saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -164,9 +165,7 @@ export function useUpdateInstitutionProfile() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.profilePage() });
       toast.success("Institution profile saved");
     },
-    onError: (err: Error) => {
-      toast.error(err.message);
-    },
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -192,7 +191,7 @@ export function useSaveAcademicYearConfiguration() {
       });
       toast.success("Academic year configuration saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -209,7 +208,7 @@ export function useCopyAcademicYearFromPrevious() {
       });
       toast.success("Academic year copied");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -226,7 +225,7 @@ export function useCreateInstitutionAcademicYear() {
       });
       toast.success("Academic year created");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -255,7 +254,7 @@ export function useSaveInstitutionCalendarSettingsPage(
       void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
       toast.success("Calendar settings saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -267,7 +266,7 @@ export function useImportInstitutionCalendarHolidays() {
       void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
       toast.success("Holidays imported");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -278,6 +277,7 @@ export function useCreateInstitutionHoliday() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
     },
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -302,6 +302,7 @@ export function useCreateInstitutionPolicy() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: [...collegeAdminQueryKeys.all, "policies-page"] });
     },
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -321,7 +322,7 @@ export function useSaveAcademicInstitutionSettingsPage() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.academicSettingsPage() });
       toast.success("Academic settings saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -333,7 +334,7 @@ export function useResetAcademicInstitutionSettingsPage() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.academicSettingsPage() });
       toast.success("Academic settings reset to defaults");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -375,7 +376,7 @@ export function useSaveCampusContactPage(campusId: string) {
       });
       toast.success("Campus contact information saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -403,7 +404,7 @@ export function useCreateCampus() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.campusesDashboard() });
       toast.success("Campus created");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -418,7 +419,7 @@ export function useUpdateCampus(campusId: string) {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.campuses() });
       toast.success("Campus updated");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 
@@ -438,7 +439,7 @@ export function useUpdateInstitutionSettings() {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.settings() });
       toast.success("Settings saved");
     },
-    onError: (err: Error) => toast.error(err.message),
+    onError: onCollegeAdminMutationError,
   });
 }
 

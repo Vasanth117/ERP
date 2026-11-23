@@ -96,9 +96,11 @@ function ShortcutRow({ item }: { item: AcademicConfigShortcut }) {
     <li className="flex items-start justify-between gap-3 border-b border-[#f1f5f9] py-3.5 last:border-0">
       <div className="flex min-w-0 gap-3">
         {Icon ? (
-          <Icon className="mt-0.5 size-[18px] shrink-0 text-[#9ca3af]" aria-hidden />
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#f3f4f6]">
+            <Icon className="size-4 text-[#6b7280]" aria-hidden />
+          </span>
         ) : (
-          <span className="mt-1 size-[18px] shrink-0 rounded bg-[#f3f4f6]" aria-hidden />
+          <span className="size-8 shrink-0 rounded-lg bg-[#f3f4f6]" aria-hidden />
         )}
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-[#111827]">{item.title}</p>
@@ -178,31 +180,21 @@ export function AcademicConfigurationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:139646">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Academic Configuration Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Status of academic years, programmes, curricula and grading rules"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Link
-            href={data?.checklist_href ?? "/college-admin/academics/academic-configuration-history"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
-          >
-            <ListChecksIcon className="size-3.5" aria-hidden />
-            {data?.checklist_label ?? "Configuration checklist"}
-          </Link>
-          <Link
-            href={data?.open_current_year_href ?? "/college-admin/academics/academic-year-management"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <CalendarDaysIcon className="size-3.5" aria-hidden />
-            {data?.open_current_year_label ?? "Open current year"}
-          </Link>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Link
+          href={data?.checklist_href ?? "/college-admin/academics/academic-configuration-history"}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
+        >
+          <ListChecksIcon className="size-3.5" aria-hidden />
+          {data?.checklist_label ?? "Configuration checklist"}
+        </Link>
+        <Link
+          href={data?.open_current_year_href ?? "/college-admin/academics/academic-year-management"}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+        >
+          <CalendarDaysIcon className="size-3.5" aria-hidden />
+          {data?.open_current_year_label ?? "Open current year"}
+        </Link>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -241,8 +233,8 @@ export function AcademicConfigurationDashboard() {
                 </section>
 
                 <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                  <h3 className="mb-1 text-[14px] font-semibold text-[#111827]">{data.shortcuts_section_title}</h3>
-                  <ul>{data.shortcuts.map((item) => <ShortcutRow key={item.key} item={item} />)}</ul>
+                  <h3 className="mb-3 text-[14px] font-semibold text-[#111827]">{data.shortcuts_section_title}</h3>
+                  <ul className="-mx-1">{data.shortcuts.map((item) => <ShortcutRow key={item.key} item={item} />)}</ul>
                 </section>
               </div>
             </div>

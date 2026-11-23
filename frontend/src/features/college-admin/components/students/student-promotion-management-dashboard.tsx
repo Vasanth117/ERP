@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -90,7 +91,7 @@ export function StudentPromotionManagementDashboard() {
         if (res.preview_note) toast.message(res.preview_note);
         else toast.success("Preview updated.");
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -104,7 +105,7 @@ export function StudentPromotionManagementDashboard() {
       { transition_key: key, programme_code: programme || undefined },
       {
         onSuccess: () => toast.success("Eligible students promoted for the selected period."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

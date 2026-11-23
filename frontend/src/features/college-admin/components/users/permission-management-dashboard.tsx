@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -165,13 +166,13 @@ export function PermissionManagementDashboard() {
         setDisplayGroups(cloneGroups(saved.groups));
         toast.success("Permission matrix saved");
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   }, [data?.can_save, dirtyChanges, saveMutation]);
 
   const handleExport = useCallback(() => {
     downloadMutation.mutate(undefined, {
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   }, [downloadMutation]);
 

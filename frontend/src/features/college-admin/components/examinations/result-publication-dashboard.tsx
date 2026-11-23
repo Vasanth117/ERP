@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { ClockIcon } from "@/components/icons/erp/generated/clock";
@@ -95,7 +96,7 @@ export function ResultPublicationDashboard() {
             onClick={() =>
               schedule.mutate(payload(), {
                 onSuccess: () => toast.success("Publication scheduled."),
-                onError: (e: Error) => toast.error(e.message),
+                onError: onCollegeAdminMutationError,
               })
             }
           >
@@ -109,7 +110,7 @@ export function ResultPublicationDashboard() {
             onClick={() =>
               publishNow.mutate(payload(), {
                 onSuccess: () => toast.success("Results published."),
-                onError: (e: Error) => toast.error(e.message),
+                onError: onCollegeAdminMutationError,
               })
             }
           >

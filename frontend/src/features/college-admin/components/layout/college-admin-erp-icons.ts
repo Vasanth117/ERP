@@ -8,6 +8,7 @@ import { BookOpenIcon } from "@/components/icons/erp/generated/book-open";
 import { Building2Icon } from "@/components/icons/erp/generated/building-2";
 import { ContactIcon } from "@/components/icons/erp/generated/contact";
 import { CalendarCheckIcon } from "@/components/icons/erp/generated/calendar-check";
+import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days";
 import { ChartBarIcon } from "@/components/icons/erp/generated/chart-bar";
 import { ChevronDownIcon } from "@/components/icons/erp/generated/chevron-down";
 import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
@@ -35,6 +36,7 @@ import { ReceiptIcon } from "@/components/icons/erp/generated/receipt";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Settings2Icon } from "@/components/icons/erp/generated/settings-2";
+import { ScaleIcon } from "@/components/icons/erp/generated/scale";
 import { SchoolIcon } from "@/components/icons/erp/generated/school";
 import { ShieldCheckIcon } from "@/components/icons/erp/generated/shield-check";
 import { ShieldIcon } from "@/components/icons/erp/generated/shield";
@@ -97,6 +99,7 @@ const ERP_ICON_COMPONENTS: Partial<Record<ErpIconName, ErpIconComponent>> = {
   "graduation-cap": GraduationCapIcon,
   "id-card": IdCardIcon,
   "calendar-check": CalendarCheckIcon,
+  "calendar-days": CalendarDaysIcon,
   "clipboard-list": ClipboardListIcon,
   "monitor-play": MonitorPlayIcon,
   wallet: WalletIcon,
@@ -123,6 +126,7 @@ const ERP_ICON_COMPONENTS: Partial<Record<ErpIconName, ErpIconComponent>> = {
   contact: ContactIcon,
   hotel: HotelIcon,
   landmark: LandmarkIcon,
+  scale: ScaleIcon,
   school: SchoolIcon,
   "shield-check": ShieldCheckIcon,
   "sliders-horizontal": SlidersHorizontalIcon,

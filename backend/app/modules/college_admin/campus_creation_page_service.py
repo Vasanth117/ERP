@@ -241,17 +241,37 @@ def _build_address(form: CampusCreationFormValues) -> InstitutionAddress:
 
 
 def _validate_step(step_key: str, form: CampusCreationFormValues, *, edit_mode: bool) -> None:
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
     if step_key == "identity":
+        details: list[dict] = []
         if not edit_mode and (not form.campus_code or len(form.campus_code.strip()) < 2):
-            raise AppError(code="VALIDATION_ERROR", message="Campus code is required (min 2 characters)", status_code=422)
+            details.append(
+                scroll_field(
+                    "campus_code",
+                    label="Campus code",
+                    message="Enter a short campus code (at least 2 characters).",
+                )
+            )
         if not form.name or len(form.name.strip()) < 2:
-            raise AppError(code="VALIDATION_ERROR", message="Campus name is required", status_code=422)
+            details.append(
+                scroll_field("name", label="Campus name", message="Enter the campus display name.")
+            )
+        if details:
+            raise_validation_error("Complete the campus identity step before continuing.", details)
 
 
 def _validate_finalize(form: CampusCreationFormValues, *, edit_mode: bool) -> None:
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
     _validate_step("identity", form, edit_mode=edit_mode)
-    if not form.city.strip() or not form.state.strip():
-        raise AppError(code="VALIDATION_ERROR", message="City and state are required", status_code=422)
+    details: list[dict] = []
+    if not form.city.strip():
+        details.append(scroll_field("city", label="City", message="Enter the campus city."))
+    if not form.state.strip():
+        details.append(scroll_field("state", label="State", message="Enter the campus state."))
+    if details:
+        raise_validation_error("Complete the campus location fields before saving.", details)
 
 
 async def _default_timezone(tenant_id: PydanticObjectId) -> str:

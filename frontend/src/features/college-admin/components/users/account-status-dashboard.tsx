@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { BanIcon } from "@/components/icons/erp/generated/ban";
@@ -13,6 +14,7 @@ import { MailIcon } from "@/components/icons/erp/generated/mail";
 import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Label } from "@/components/ui/label";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminSectionNav } from "@/features/college-admin/components/ui/college-admin-section-nav";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useAccountStatusPage,
@@ -135,7 +137,7 @@ export function AccountStatusDashboard() {
         router.replace("/college-admin/users/user-account-activation-suspension?tab=suspended");
         form.reset(result.page.suspend_form);
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   });
 
@@ -157,7 +159,7 @@ export function AccountStatusDashboard() {
             disabled={!data || isBusy}
             onClick={() =>
               downloadMutation.mutate(undefined, {
-                onError: (e: Error) => toast.error(e.message),
+                onError: onCollegeAdminMutationError,
               })
             }
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
@@ -180,7 +182,14 @@ export function AccountStatusDashboard() {
         {data ? (
           <div className="grid gap-5 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
-              <MotionTabRow tabs={data.tabs} onSelect={switchTab} />
+              <CollegeAdminSectionNav
+                items={data.tabs.map((t) => ({
+                  key: t.key,
+                  label: `${t.label} (${t.count})`,
+                  active: t.active,
+                }))}
+                onSelect={switchTab}
+              />
 
               <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 {data.table_rows.length ? (
@@ -348,32 +357,6 @@ function FormField({ meta, children }: { meta?: InstitutionFieldMeta; children: 
         {meta.required ? <span className="text-[#dc2626]"> *</span> : null}
       </Label>
       {children}
-    </div>
-  );
-}
-
-function MotionTabRow({
-  tabs,
-  onSelect,
-}: {
-  tabs: { key: string; label: string; count: number; active: boolean }[];
-  onSelect: (key: string) => void;
-}) {
-  return (
-    <div className="inline-flex flex-wrap gap-1 rounded-lg border border-[#e5e7eb] bg-[#f3f4f6] p-1">
-      {tabs.map((t) => (
-        <button
-          key={t.key}
-          type="button"
-          onClick={() => onSelect(t.key)}
-          className={cn(
-            "rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors",
-            t.active ? "bg-white text-[#111827] shadow-sm" : "text-[#6b7280] hover:text-[#374151]",
-          )}
-        >
-          {t.label} ({t.count})
-        </button>
-      ))}
     </div>
   );
 }

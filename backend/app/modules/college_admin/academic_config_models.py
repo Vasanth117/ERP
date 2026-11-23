@@ -29,6 +29,22 @@ class AcademicCalendarEventEmbed(BaseModel):
     status: str = Field(default="draft", max_length=16)
 
 
+class AcademicYearWizardDraft(Document):
+    tenant_id: PydanticObjectId
+    current_step_key: str = "year_identity"
+    values: dict[str, Any] = Field(default_factory=dict)
+    completed_steps: list[str] = Field(default_factory=list)
+    created_by: PydanticObjectId | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "academic_year_wizard_drafts"
+        indexes = [
+            IndexModel([("tenant_id", ASCENDING), ("created_at", DESCENDING)], name="academic_year_wizard_drafts_tenant"),
+        ]
+
+
 class AcademicYear(Document):
     tenant_id: PydanticObjectId
     year_code: str = Field(min_length=4, max_length=32)
@@ -111,7 +127,18 @@ class AcademicProgramme(Document):
     tenant_id: PydanticObjectId
     programme_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
+    short_name: str | None = Field(default=None, max_length=64)
+    description: str | None = Field(default=None, max_length=2000)
     department_id: PydanticObjectId | None = None
+    programme_level: str | None = Field(
+        default=None,
+        max_length=32,
+        description="undergraduate | postgraduate | doctoral",
+    )
+    regulation_code: str | None = Field(default=None, max_length=32)
+    mode_of_study: str | None = Field(default="full_time", max_length=32)
+    approved_intake: int | None = Field(default=None, ge=0, le=9999)
+    entry_qualification: str | None = Field(default=None, max_length=500)
     duration_semesters: int = Field(default=8, ge=1, le=20)
     credits_required: float = Field(default=160, ge=0)
     is_active: bool = True

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
@@ -95,7 +96,7 @@ export function InvigilatorAllocationDashboard() {
     if (!data?.selected_session_id) return;
     autoAssign.mutate(payload(), {
       onSuccess: () => toast.success("Invigilators auto-assigned."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -103,7 +104,7 @@ export function InvigilatorAllocationDashboard() {
     if (!data?.selected_session_id) return;
     publish.mutate(payload(), {
       onSuccess: () => toast.success("Duty roster published."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

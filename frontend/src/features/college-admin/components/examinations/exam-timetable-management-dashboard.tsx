@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
@@ -90,7 +91,7 @@ export function ExamTimetableManagementDashboard() {
     if (!data?.selected_session_id) return;
     regenerate.mutate(actionPayload(), {
       onSuccess: () => toast.success("Timetable regenerated."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -98,7 +99,7 @@ export function ExamTimetableManagementDashboard() {
     if (!data?.selected_session_id) return;
     publish.mutate(actionPayload(), {
       onSuccess: () => toast.success("Timetable published."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

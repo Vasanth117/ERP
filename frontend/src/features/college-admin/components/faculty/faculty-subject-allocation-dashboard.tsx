@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -156,7 +157,7 @@ export function FacultySubjectAllocationDashboard() {
       },
       {
         onSuccess: () => toast.success("Suggestions applied"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -182,7 +183,7 @@ export function FacultySubjectAllocationDashboard() {
       },
       {
         onSuccess: () => toast.success("Allocation confirmed"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

@@ -12,7 +12,6 @@ from app.authorization.policy import authorize
 from app.common.access import AccessScope
 from app.common.ids import to_object_id
 from app.common.time import utcnow
-from app.core.exceptions import AppError
 from app.modules.academics.curriculum_models import CourseRecord, EnrollmentRosterEntry
 from app.modules.college_admin.academic_config_models import AcademicProgramme
 from app.modules.college_admin.department_performance_overview_service import _programme_level
@@ -20,6 +19,7 @@ from app.modules.college_admin.identity_models import DepartmentKind, Department
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
     CourseLoadBarItem,
+    OrganizationModuleEmptyState,
     ProgrammeCourseMappingDepartmentTab,
     ProgrammeCourseMappingPageRead,
     ProgrammeOwnedRow,
@@ -80,6 +80,59 @@ def _mapped_status(prog: AcademicProgramme, dept: InstitutionDepartment) -> tupl
     return "draft", "Draft", "warning"
 
 
+def _empty_programme_course_mapping_page() -> ProgrammeCourseMappingPageRead:
+    headers = ["Programme", "Level", "Duration", "Intake", "Regulation", "Status"]
+    service_headers = ["Course", "Taught to", "Semester", "Students"]
+    course_load = [
+        CourseLoadBarItem(key="core", label="Core courses", value=0, max_value=1),
+        CourseLoadBarItem(key="elective", label="Electives", value=0, max_value=1),
+        CourseLoadBarItem(key="service", label="Service courses", value=0, max_value=1),
+    ]
+    return ProgrammeCourseMappingPageRead(
+        page_title="Programme & Course Mapping",
+        page_subtitle="Which programmes and courses each department offers and teaches",
+        export_label="Export",
+        map_programme_label="Map programme",
+        map_programme_href="/college-admin/academics/academic-configuration-dashboard",
+        department_tabs=[],
+        more_departments=[],
+        selected_department_id="",
+        selected_department_name="—",
+        programmes_section_title="Programmes owned by department",
+        programmes_table_headers=headers,
+        programmes=[],
+        programmes_count_label="0 programmes",
+        academic_configuration_label="Academic configuration →",
+        academic_configuration_href="/college-admin/academics/academic-configuration-dashboard",
+        service_courses_section_title="Service courses taught to other departments",
+        service_table_headers=service_headers,
+        service_courses=[],
+        service_courses_count_label="0 service courses",
+        service_view_all_label="View all →",
+        service_view_all_href="/college-admin/organization/programme-course-mapping",
+        unmapped_section_title="Unmapped items",
+        unmapped_items=[],
+        course_load_section_title="Course load",
+        course_load_bars=course_load,
+        footer_disclaimer="Live institutional data · Programmes, courses and catalog · All times IST",
+        footer_snapshot_label="Live snapshot",
+        setup_empty_state=OrganizationModuleEmptyState(
+            title="No departments yet",
+            description="Create academic departments first, then map programmes and service courses to them.",
+            highlights=[
+                "Programmes owned by each department",
+                "Service courses taught across programmes",
+                "Unmapped catalog items and course load",
+            ],
+            primary_label="Create department",
+            primary_href="/college-admin/organization/create-department",
+            secondary_label="View all departments",
+            secondary_href="/college-admin/organization/all-departments",
+        ),
+        generated_at=utcnow(),
+    )
+
+
 def _taught_to_label(programme_codes: set[str], prog_by_code: dict[str, AcademicProgramme]) -> str:
     if not programme_codes:
         return "—"
@@ -123,7 +176,7 @@ async def get_programme_course_mapping_page(
     if selected_oid is None or not any(d.id == selected_oid for d in academic_departments):
         selected_oid = academic_departments[0].id if academic_departments else None
     if selected_oid is None:
-        raise AppError(code="NOT_FOUND", message="No departments available", status_code=404)
+        return _empty_programme_course_mapping_page()
 
     dept = next(d for d in academic_departments if d.id == selected_oid)
 

@@ -135,6 +135,7 @@ def document_models() -> list[type]:
         AcademicRegulationCatalog,
         AcademicTerm,
         AcademicYear,
+        AcademicYearWizardDraft,
     )
     from app.modules.college_admin.student_admin_models import (
         StudentAdmission,
@@ -1285,6 +1286,7 @@ def document_models() -> list[type]:
         DepartmentProjectReview,
         DomainOutboxEvent,
         AcademicYear,
+        AcademicYearWizardDraft,
         AcademicTerm,
         AcademicCalendar,
         AcademicProgramme,

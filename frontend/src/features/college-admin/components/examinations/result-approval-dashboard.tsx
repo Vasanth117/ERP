@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -111,7 +112,7 @@ export function ResultApprovalDashboard() {
             onClick={() =>
               returnForCorrections.mutate(payload(), {
                 onSuccess: () => toast.success("Results returned for corrections."),
-                onError: (e: Error) => toast.error(e.message),
+                onError: onCollegeAdminMutationError,
               })
             }
           >
@@ -125,7 +126,7 @@ export function ResultApprovalDashboard() {
             onClick={() =>
               approve.mutate(payload(), {
                 onSuccess: () => toast.success("Results approved."),
-                onError: (e: Error) => toast.error(e.message),
+                onError: onCollegeAdminMutationError,
               })
             }
           >

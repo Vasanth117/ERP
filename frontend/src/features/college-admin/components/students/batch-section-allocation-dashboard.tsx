@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -168,7 +169,7 @@ export function BatchSectionAllocationDashboard() {
       { section_page: sectionPage, unallocated_page: unallocatedPage },
       {
         onSuccess: () => toast.success("Students auto-allocated to open sections."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -176,7 +177,7 @@ export function BatchSectionAllocationDashboard() {
   const handleConfirm = () => {
     confirmMutation.mutate(rulesPayload(), {
       onSuccess: () => toast.success("Allocation rules confirmed."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

@@ -791,8 +791,19 @@ async def submit_create_new_user(
     actor_id = scope.user_id
     form = _coerce_form_values(payload.values)
 
-    if not form.first_name or not form.last_name or not form.official_email:
-        raise AppError(code="VALIDATION_ERROR", message="Name and email are required", status_code=422)
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
+    missing_user: list[dict] = []
+    if not form.first_name:
+        missing_user.append(scroll_field("first_name", label="First name", message="Enter the user's first name."))
+    if not form.last_name:
+        missing_user.append(scroll_field("last_name", label="Last name", message="Enter the user's last name."))
+    if not form.official_email:
+        missing_user.append(
+            scroll_field("official_email", label="Official email", message="Enter the user's official email.")
+        )
+    if missing_user:
+        raise_validation_error("Name and email are required.", missing_user)
 
     validation = await validate_create_new_user(scope, payload.values)
     blocking = [c for c in validation.validation_checks if c.status_code == "invalid"]
@@ -801,7 +812,10 @@ async def submit_create_new_user(
             code="VALIDATION_ERROR",
             message=blocking[0].title,
             status_code=422,
-            details=[{"field": c.key, "message": c.subtitle} for c in blocking],
+            details=[
+                scroll_field(c.key, label=c.title, message=c.subtitle or c.title)
+                for c in blocking
+            ],
         )
 
     full_name = f"{form.first_name} {form.last_name}".strip()
@@ -842,7 +856,16 @@ async def submit_create_new_user(
         message = f"Invitation sent to {form.official_email}"
     else:
         if len(form.initial_password) < 8:
-            raise AppError(code="VALIDATION_ERROR", message="Password must be at least 8 characters", status_code=422)
+            raise_validation_error(
+                "Set a secure initial password.",
+                [
+                    scroll_field(
+                        "initial_password",
+                        label="Initial password",
+                        message="Password must be at least 8 characters.",
+                    )
+                ],
+            )
         created = await create_institution_user(
             scope,
             InstitutionUserCreate(

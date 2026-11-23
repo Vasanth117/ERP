@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { ClockIcon } from "@/components/icons/erp/generated/clock";
@@ -116,7 +117,7 @@ export function RoleAssignmentDashboard() {
         if (result.page.form.institution_role_id) qs.set("roleId", result.page.form.institution_role_id);
         router.replace(`/college-admin/users/role-assignment?${qs.toString()}`);
       },
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   });
 

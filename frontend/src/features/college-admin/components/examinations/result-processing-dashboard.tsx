@@ -1,5 +1,6 @@
 "use client";
 
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
@@ -24,7 +25,7 @@ export function ResultProcessingDashboard() {
       { session_id: data.selected_session_id },
       {
         onSuccess: () => toast.success("Results processed."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

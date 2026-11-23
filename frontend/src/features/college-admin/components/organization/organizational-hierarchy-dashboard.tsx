@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Building2Icon } from "@/components/icons/erp/generated/building-2";
@@ -9,9 +9,17 @@ import { LayersIcon } from "@/components/icons/erp/generated/layers";
 import { PencilIcon } from "@/components/icons/erp/generated/pencil";
 import { UsersIcon } from "@/components/icons/erp/generated/users";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import {
+  CollegeAdminOutlineButton,
+  CollegeAdminOutlineLink,
+  CollegeAdminPrimaryLink,
+} from "@/features/college-admin/components/ui/college-admin-page-buttons";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useOrganizationalHierarchyPage } from "@/features/college-admin/hooks/use-organizational-hierarchy";
-import type { OrganizationalHierarchyNode } from "@/features/college-admin/types/organizational-hierarchy";
+import type {
+  OrganizationalHierarchyEditAction,
+  OrganizationalHierarchyNode,
+} from "@/features/college-admin/types/organizational-hierarchy";
 import { cn } from "@/lib/utils";
 
 function HierarchyIcon({ slug }: { slug: string }) {
@@ -63,11 +71,54 @@ function collectDefaultExpanded(nodes: OrganizationalHierarchyNode[], acc: Set<s
   }
 }
 
+function hierarchyUrlParams(searchParams: URLSearchParams, patch: { selectedNodeId?: string; edit?: boolean }) {
+  const params = new URLSearchParams(searchParams.toString());
+  if (patch.selectedNodeId !== undefined) {
+    if (patch.selectedNodeId) params.set("selected_node_id", patch.selectedNodeId);
+    else params.delete("selected_node_id");
+  }
+  if (patch.edit !== undefined) {
+    if (patch.edit) params.set("edit", "1");
+    else params.delete("edit");
+  }
+  return params.toString();
+}
+
+function HierarchyEditActionLink({ action }: { action: OrganizationalHierarchyEditAction }) {
+  if (action.action_type === "primary") {
+    return (
+      <CollegeAdminPrimaryLink href={action.href} className="w-full">
+        {action.label}
+      </CollegeAdminPrimaryLink>
+    );
+  }
+  return (
+    <CollegeAdminOutlineLink href={action.href} className="w-full">
+      {action.label}
+    </CollegeAdminOutlineLink>
+  );
+}
+
 export function OrganizationalHierarchyDashboard() {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>();
-  const { data, isLoading, isError, error, refetch, isFetching } = useOrganizationalHierarchyPage(selectedNodeId);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editMode = searchParams.get("edit") === "1" || searchParams.get("edit") === "true";
+  const selectedNodeId = searchParams.get("selected_node_id") ?? undefined;
+
+  const { data, isLoading, isError, error, refetch, isFetching } = useOrganizationalHierarchyPage(
+    selectedNodeId,
+    editMode,
+  );
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const selectNode = useCallback(
+    (nodeId: string) => {
+      const qs = hierarchyUrlParams(searchParams, { selectedNodeId: nodeId, edit: editMode ? true : undefined });
+      router.replace(qs ? `?${qs}` : "", { scroll: false });
+    },
+    [editMode, router, searchParams],
+  );
 
   useEffect(() => {
     if (!data?.tree) return;
@@ -79,9 +130,9 @@ export function OrganizationalHierarchyDashboard() {
       return merged;
     });
     if (!selectedNodeId && data.selected_unit?.node_id) {
-      setSelectedNodeId(data.selected_unit.node_id);
+      selectNode(data.selected_unit.node_id);
     }
-  }, [data, selectedNodeId]);
+  }, [data, selectedNodeId, selectNode]);
 
   const handleExport = useCallback(() => {
     if (!data) return;
@@ -111,10 +162,10 @@ export function OrganizationalHierarchyDashboard() {
         expanded={expanded}
         selectedNodeId={data.selected_unit?.node_id}
         onToggle={toggleExpanded}
-        onSelect={setSelectedNodeId}
+        onSelect={selectNode}
       />
     );
-  }, [data, expanded]);
+  }, [data, expanded, selectNode]);
 
   return (
     <div className="space-y-5" data-figma-frame="69:134048">
@@ -128,22 +179,19 @@ export function OrganizationalHierarchyDashboard() {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
+          <CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export chart"}
-          </button>
-          <Link
-            href={data?.edit_structure_href ?? "/college-admin/organization/department-management-dashboard"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          </CollegeAdminOutlineButton>
+          <CollegeAdminPrimaryLink
+            href={
+              data?.edit_structure_href ??
+              "/college-admin/organization/organizational-hierarchy?edit=1"
+            }
           >
             <PencilIcon className="size-3.5" aria-hidden />
             {data?.edit_structure_label ?? "Edit structure"}
-          </Link>
+          </CollegeAdminPrimaryLink>
         </div>
       </div>
 
@@ -159,6 +207,22 @@ export function OrganizationalHierarchyDashboard() {
             </section>
 
             <aside className="space-y-4">
+              {data.edit_mode && data.edit_panel_title ? (
+                <section className="rounded-xl border border-[#dbeafe] bg-[#f8fafc] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                  <h3 className="text-[14px] font-semibold text-[#111827]">{data.edit_panel_title}</h3>
+                  {data.edit_panel_hint ? (
+                    <p className="mt-1.5 text-[12px] leading-relaxed text-[#6b7280]">{data.edit_panel_hint}</p>
+                  ) : null}
+                  {data.setup_edit_actions.length > 0 ? (
+                    <div className="mt-4 flex flex-col gap-2">
+                      {data.setup_edit_actions.map((action) => (
+                        <HierarchyEditActionLink key={action.action_key} action={action} />
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
+
               {data.selected_unit ? (
                 <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                   <h3 className="text-[14px] font-semibold text-[#111827]">Selected unit</h3>
@@ -168,6 +232,16 @@ export function OrganizationalHierarchyDashboard() {
                     <DetailRow label="Head" value={data.selected_unit.head_label} />
                     <DetailRow label="Members" value={data.selected_unit.members_label} />
                   </dl>
+                  {data.edit_mode && data.selected_unit.edit_actions.length > 0 ? (
+                    <div className="mt-4 border-t border-[#f1f5f9] pt-4">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">Unit actions</p>
+                      <div className="mt-2 flex flex-col gap-2">
+                        {data.selected_unit.edit_actions.map((action) => (
+                          <HierarchyEditActionLink key={action.action_key} action={action} />
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </section>
               ) : null}
 

@@ -125,9 +125,20 @@ async def create_institution_policy(
 ) -> InstitutionPolicyCreateResult:
     authorize(scope, Permission.INSTITUTION_PROFILE_MANAGE)
     tenant_id = require_college_tenant_scope(scope)
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
     title = payload.title.strip()
     if len(title) < 2:
-        raise AppError(code="VALIDATION_ERROR", message="Policy title is required", status_code=422)
+        raise_validation_error(
+            "Complete the required policy fields before saving.",
+            [
+                scroll_field(
+                    "title",
+                    label="Policy title",
+                    message="Enter a title for this policy (at least 2 characters).",
+                )
+            ],
+        )
 
     policy_id = await _unique_policy_id(tenant_id, title)
     search_bits = [title, payload.category, payload.audience, policy_id]

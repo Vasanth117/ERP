@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -152,7 +153,7 @@ export function StudentEnrollmentManagementDashboard() {
           toast.success("Selected students enrolled for the term.");
           setSelectedIds(new Set());
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

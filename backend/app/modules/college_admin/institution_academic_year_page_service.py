@@ -308,23 +308,50 @@ async def save_academic_year_configuration(
     if year.status == ConfigPublicationStatus.PUBLISHED:
         raise AppError(code="FORBIDDEN", message="Published academic years are immutable", status_code=403)
 
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
     form = payload.semester_form
-    if not form.odd_semester_start or not form.odd_semester_end:
-        raise AppError(
-            code="VALIDATION_ERROR",
-            message="Odd semester start and end dates are required",
-            status_code=422,
+    details: list[dict] = []
+    if not form.odd_semester_start:
+        details.append(
+            scroll_field("odd_semester_start", label="Odd semester start", message="Select the odd semester start date.")
         )
-    if not form.even_semester_start or not form.even_semester_end:
-        raise AppError(
-            code="VALIDATION_ERROR",
-            message="Even semester start and end dates are required",
-            status_code=422,
+    if not form.odd_semester_end:
+        details.append(
+            scroll_field("odd_semester_end", label="Odd semester end", message="Select the odd semester end date.")
         )
+    if not form.even_semester_start:
+        details.append(
+            scroll_field("even_semester_start", label="Even semester start", message="Select the even semester start date.")
+        )
+    if not form.even_semester_end:
+        details.append(
+            scroll_field("even_semester_end", label="Even semester end", message="Select the even semester end date.")
+        )
+    if details:
+        raise_validation_error("Complete all semester dates before saving.", details)
     if form.odd_semester_end < form.odd_semester_start:
-        raise AppError(code="VALIDATION_ERROR", message="Odd semester end must be on or after start", status_code=422)
+        raise_validation_error(
+            "Check the odd semester date range.",
+            [
+                scroll_field(
+                    "odd_semester_end",
+                    label="Odd semester end",
+                    message="End date must be on or after the start date.",
+                )
+            ],
+        )
     if form.even_semester_end < form.even_semester_start:
-        raise AppError(code="VALIDATION_ERROR", message="Even semester end must be on or after start", status_code=422)
+        raise_validation_error(
+            "Check the even semester date range.",
+            [
+                scroll_field(
+                    "even_semester_end",
+                    label="Even semester end",
+                    message="End date must be on or after the start date.",
+                )
+            ],
+        )
     await _upsert_term(tenant_id, year.id, "ODD", "Odd", form.odd_semester_start, form.odd_semester_end)
     await _upsert_term(tenant_id, year.id, "EVEN", "Even", form.even_semester_start, form.even_semester_end)
     year.summer_term_start = form.summer_term_start

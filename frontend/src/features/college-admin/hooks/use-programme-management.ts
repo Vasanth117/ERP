@@ -9,7 +9,10 @@ import {
   fetchProgrammeManagementPage,
 } from "@/features/college-admin/api/academics";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
-import type { ProgrammeManagementCreatePayload } from "@/features/college-admin/types/programme-management";
+import type {
+  ProgrammeManagementCreatePayload,
+  ProgrammeManagementCreateResult,
+} from "@/features/college-admin/types/programme-management";
 
 export function useProgrammeManagementPage(
   params: {
@@ -31,9 +34,9 @@ export function useCreateProgrammeManagement() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: ProgrammeManagementCreatePayload) => createProgrammeManagement(payload),
-    onSuccess: () => {
+    onSuccess: (result: ProgrammeManagementCreateResult) => {
       void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.programmeManagement() });
-      toast.success("Programme created");
+      toast.success(result.message || "Programme created");
     },
     onError: (err: Error) => {
       toast.error(err.message || "Could not create programme");

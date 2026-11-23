@@ -13,12 +13,20 @@ export type OrganizationalHierarchyNode = {
   children: OrganizationalHierarchyNode[];
 };
 
+export type OrganizationalHierarchyEditAction = {
+  action_key: string;
+  label: string;
+  href: string;
+  action_type: string;
+};
+
 export type OrganizationalHierarchySelectedUnit = {
   node_id: string;
   unit_label: string;
   reports_to_label: string;
   head_label: string;
   members_label: string;
+  edit_actions: OrganizationalHierarchyEditAction[];
 };
 
 export type OrganizationalHierarchySummaryItem = {
@@ -33,6 +41,10 @@ export type OrganizationalHierarchyPage = {
   export_label: string;
   edit_structure_label: string;
   edit_structure_href: string;
+  edit_mode: boolean;
+  edit_panel_title: string;
+  edit_panel_hint: string;
+  setup_edit_actions: OrganizationalHierarchyEditAction[];
   structure_section_title: string;
   structure_section_hint: string;
   tree: OrganizationalHierarchyNode[];

@@ -254,31 +254,71 @@ def _build_next_steps(current_key: str) -> list[NewStudentRegistrationNextStep]:
 
 
 def _validate_student_information(form: NewStudentRegistrationFormValues) -> None:
-    missing: list[str] = []
+    from app.modules.college_admin.form_validation_details import raise_validation_error, scroll_field
+
+    details: list[dict] = []
     if not form.full_name:
-        missing.append("Full name")
-    if not form.date_of_birth:
-        missing.append("Date of birth")
-    if not form.gender:
-        missing.append("Gender")
-    if not form.mobile:
-        missing.append("Mobile")
-    if not form.guardian_name:
-        missing.append("Guardian name")
-    if not form.relationship:
-        missing.append("Relationship")
-    if not form.guardian_mobile:
-        missing.append("Guardian mobile")
-    if not form.email or form.email.endswith("@pending.local"):
-        missing.append("Email")
-    elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", form.email):
-        missing.append("Email")
-    if missing:
-        raise AppError(
-            code="VALIDATION_ERROR",
-            message=f"Complete required fields: {', '.join(missing)}",
-            status_code=422,
+        details.append(
+            scroll_field(
+                "full_name",
+                label="Full name",
+                message="Enter the student's full name as on official documents.",
+            )
         )
+    if not form.date_of_birth:
+        details.append(
+            scroll_field(
+                "date_of_birth",
+                label="Date of birth",
+                message="Select the student's date of birth.",
+            )
+        )
+    if not form.gender:
+        details.append(
+            scroll_field("gender", label="Gender", message="Select the student's gender.")
+        )
+    if not form.mobile:
+        details.append(
+            scroll_field("mobile", label="Mobile", message="Enter a valid mobile number for the student.")
+        )
+    if not form.guardian_name:
+        details.append(
+            scroll_field(
+                "guardian_name",
+                label="Guardian name",
+                message="Enter the parent or guardian name.",
+            )
+        )
+    if not form.relationship:
+        details.append(
+            scroll_field(
+                "relationship",
+                label="Relationship",
+                message="Select the guardian's relationship to the student.",
+            )
+        )
+    if not form.guardian_mobile:
+        details.append(
+            scroll_field(
+                "guardian_mobile",
+                label="Guardian mobile",
+                message="Enter a contact number for the guardian.",
+            )
+        )
+    if not form.email or form.email.endswith("@pending.local"):
+        details.append(
+            scroll_field(
+                "email",
+                label="Email",
+                message="Enter the student's official email address.",
+            )
+        )
+    elif not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", form.email):
+        details.append(
+            scroll_field("email", label="Email", message="Enter a valid email address for the student.")
+        )
+    if details:
+        raise_validation_error("Complete the required student information before continuing.", details)
 
 
 async def _apply_form_to_admission(admission: StudentAdmission, form: NewStudentRegistrationFormValues) -> None:

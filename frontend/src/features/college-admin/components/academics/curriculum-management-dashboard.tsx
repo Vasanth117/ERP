@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { CourseCurriculumSubNav } from "@/features/college-admin/components/academics/course-curriculum-sub-nav";
+import { CollegeAdminSectionNav } from "@/features/college-admin/components/ui/college-admin-section-nav";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useCurriculumManagementPage } from "@/features/college-admin/hooks/use-course-curriculum";
 import { cn } from "@/lib/utils";
@@ -53,12 +54,6 @@ export function CurriculumManagementDashboard() {
           <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Link
-            href={data?.subjects_button_href ?? "/college-admin/academics/subject-management"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
-          >
-            {data?.subjects_button_label ?? "Subjects"}
-          </Link>
           <button
             type="button"
             disabled
@@ -92,23 +87,14 @@ export function CurriculumManagementDashboard() {
       ) : null}
 
       {data?.semester_tabs.length ? (
-        <div className="flex flex-wrap gap-1 rounded-lg border border-[#e8ecf2] bg-[#f9fafb] p-1">
-          {data.semester_tabs.map((tab) => (
-            <button
-              key={tab.semester_number}
-              type="button"
-              onClick={() => setSemester(tab.semester_number)}
-              className={cn(
-                "rounded-md px-3 py-1.5 text-[13px] font-medium",
-                tab.semester_number === semester || tab.is_selected
-                  ? "bg-white text-[#245dd8] shadow-sm"
-                  : "text-[#6b7280] hover:text-[#111827]",
-              )}
-            >
-              {tab.tab_label}
-            </button>
-          ))}
-        </div>
+        <CollegeAdminSectionNav
+          items={data.semester_tabs.map((tab) => ({
+            key: String(tab.semester_number),
+            label: tab.tab_label,
+            active: tab.semester_number === semester || tab.is_selected,
+          }))}
+          onSelect={(key) => setSemester(Number(key))}
+        />
       ) : null}
 
       <QueryState isLoading={isLoading || isFetching} isError={isError} error={error} onRetry={() => void refetch()}>

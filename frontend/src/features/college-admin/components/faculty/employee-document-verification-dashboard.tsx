@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -86,7 +87,7 @@ export function EmployeeDocumentVerificationDashboard() {
       { document_id: activeDocId, result, remarks: remarks || undefined },
       {
         onSuccess: () => toast.success("Decision saved"),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -94,7 +95,7 @@ export function EmployeeDocumentVerificationDashboard() {
   const handleVerifyAll = () => {
     verifyAll.mutate(undefined, {
       onSuccess: () => toast.success("Pending documents marked verified"),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

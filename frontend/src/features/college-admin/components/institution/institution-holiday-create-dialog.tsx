@@ -128,7 +128,7 @@ export function InstitutionHolidayCreateDialog({
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <div className="grid gap-4 px-6 py-5">
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-field-key="title">
               <Label className="text-[13px] font-medium text-[#374151]">
                 Holiday name <span className="text-[#dc2626]">*</span>
               </Label>

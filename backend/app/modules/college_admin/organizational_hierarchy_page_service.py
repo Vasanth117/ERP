@@ -28,6 +28,7 @@ from app.modules.college_admin.institution_service import _ensure_profile, _ensu
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.tenants.models import Tenant
 from app.modules.college_admin.schemas import (
+    OrganizationalHierarchyEditAction,
     OrganizationalHierarchyNodeRead,
     OrganizationalHierarchyPageRead,
     OrganizationalHierarchySelectedUnitRead,
@@ -180,6 +181,104 @@ def _walk_parent_titles(
     return None
 
 
+def _edit_actions_for_node(node_id: str) -> list[OrganizationalHierarchyEditAction]:
+    if node_id.startswith("dept:"):
+        did = node_id.removeprefix("dept:")
+        return [
+            OrganizationalHierarchyEditAction(
+                action_key="edit_department",
+                label="Edit department",
+                href=f"/college-admin/organization/department-edit?departmentId={did}",
+                action_type="primary",
+            ),
+            OrganizationalHierarchyEditAction(
+                action_key="assign_head",
+                label="Assign head of department",
+                href=f"/college-admin/organization/department-head-assignment?departmentId={did}",
+                action_type="outline",
+            ),
+            OrganizationalHierarchyEditAction(
+                action_key="department_details",
+                label="View department",
+                href=f"/college-admin/organization/department-details?departmentId={did}",
+                action_type="outline",
+            ),
+        ]
+    if node_id.startswith("unit:"):
+        return [
+            OrganizationalHierarchyEditAction(
+                action_key="create_department",
+                label="Add department",
+                href="/college-admin/organization/create-department",
+                action_type="primary",
+            ),
+            OrganizationalHierarchyEditAction(
+                action_key="all_departments",
+                label="View all departments",
+                href="/college-admin/organization/all-departments",
+                action_type="outline",
+            ),
+        ]
+    return [
+        OrganizationalHierarchyEditAction(
+            action_key="institution_profile",
+            label="Institution profile",
+            href="/college-admin/institution/information",
+            action_type="primary",
+        ),
+        OrganizationalHierarchyEditAction(
+            action_key="create_department",
+            label="Create department",
+            href="/college-admin/organization/create-department",
+            action_type="outline",
+        ),
+        OrganizationalHierarchyEditAction(
+            action_key="assign_heads",
+            label="Assign department heads",
+            href="/college-admin/organization/department-head-assignment",
+            action_type="outline",
+        ),
+    ]
+
+
+def _default_setup_edit_actions() -> list[OrganizationalHierarchyEditAction]:
+    return [
+        OrganizationalHierarchyEditAction(
+            action_key="create_department",
+            label="Create department",
+            href="/college-admin/organization/create-department",
+            action_type="primary",
+        ),
+        OrganizationalHierarchyEditAction(
+            action_key="institution_profile",
+            label="Institution profile",
+            href="/college-admin/institution/information",
+            action_type="outline",
+        ),
+        OrganizationalHierarchyEditAction(
+            action_key="assign_heads",
+            label="Assign department heads",
+            href="/college-admin/organization/department-head-assignment",
+            action_type="outline",
+        ),
+    ]
+
+
+def _hierarchy_toggle_href(*, edit_mode: bool, selected_node_id: str | None) -> tuple[str, str]:
+    base = "/college-admin/organization/organizational-hierarchy"
+    parts: list[str] = []
+    if not edit_mode:
+        parts.append("edit=1")
+    if selected_node_id:
+        parts.append(f"selected_node_id={selected_node_id}")
+    qs = f"?{'&'.join(parts)}" if parts else ""
+    if edit_mode:
+        exit_parts = [p for p in parts if not p.startswith("edit=")]
+        exit_qs = f"?{'&'.join(exit_parts)}" if exit_parts else ""
+        return "Done editing", f"{base}{exit_qs}"
+    return "Edit structure", f"{base}{qs if qs else '?edit=1'}"
+
+
 def _selected_unit_from_maps(
     *,
     node_id: str,
@@ -190,6 +289,7 @@ def _selected_unit_from_maps(
     staff_by_dept: dict[str, int],
     students_by_dept: dict[str, int],
     user_cache: dict[PydanticObjectId, str],
+    edit_mode: bool = False,
 ) -> OrganizationalHierarchySelectedUnitRead | None:
     node = _node_by_id(nodes, node_id)
     if node is None:
@@ -216,6 +316,7 @@ def _selected_unit_from_maps(
             reports_to_label=reports_label,
             head_label=head or "—",
             members_label=members,
+            edit_actions=_edit_actions_for_node(node_id) if edit_mode else [],
         )
 
     if node_id.startswith("unit:"):
@@ -233,8 +334,9 @@ def _selected_unit_from_maps(
             node_id=node_id,
             unit_label=unit.name,
             reports_to_label=reports_label,
-            head_label=head or node.subtitle.split("·")[0].strip() if node.subtitle else "—",
+            head_label=head or "—",
             members_label=_format_members(faculty=faculty, staff=staff, students=students or None),
+            edit_actions=_edit_actions_for_node(node_id) if edit_mode else [],
         )
 
     return OrganizationalHierarchySelectedUnitRead(
@@ -243,6 +345,7 @@ def _selected_unit_from_maps(
         reports_to_label=reports_label,
         head_label=node.subtitle or "—",
         members_label=node.badge_label or "—",
+        edit_actions=_edit_actions_for_node(node_id) if edit_mode else [],
     )
 
 
@@ -250,6 +353,7 @@ async def get_organizational_hierarchy_page(
     scope: AccessScope,
     *,
     selected_node_id: str | None = None,
+    edit_mode: bool = False,
 ) -> OrganizationalHierarchyPageRead:
     authorize(scope, Permission.INSTITUTION_ORG_READ)
     tenant_id = require_college_tenant_scope(scope)
@@ -590,16 +694,31 @@ async def get_organizational_hierarchy_page(
         staff_by_dept=staff_by_dept,
         students_by_dept=students_by_dept,
         user_cache=user_cache,
+        edit_mode=edit_mode,
     )
+
+    edit_label, edit_href = _hierarchy_toggle_href(edit_mode=edit_mode, selected_node_id=selected_id)
 
     return OrganizationalHierarchyPageRead(
         page_title="Organizational Hierarchy",
         page_subtitle="Reporting structure from governing council to departments",
         export_label="Export chart",
-        edit_structure_label="Edit structure",
-        edit_structure_href="/college-admin/organization/department-management-dashboard",
+        edit_structure_label=edit_label,
+        edit_structure_href=edit_href,
+        edit_mode=edit_mode,
+        edit_panel_title="Manage structure" if edit_mode else "",
+        edit_panel_hint=(
+            "Select a unit in the chart, then use the actions below to edit departments, heads, and reporting lines."
+            if edit_mode
+            else ""
+        ),
+        setup_edit_actions=_default_setup_edit_actions() if edit_mode else [],
         structure_section_title="Organization structure",
-        structure_section_hint="Expand any unit to see its members.",
+        structure_section_hint=(
+            "Select a unit to manage it. Expand nodes to see schools and departments."
+            if edit_mode
+            else "Expand any unit to see its members."
+        ),
         tree=tree,
         selected_unit=selected_unit,
         summary_section_title="Structure summary",

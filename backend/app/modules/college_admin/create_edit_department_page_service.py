@@ -184,7 +184,7 @@ def _checklist(*, is_create: bool, has_head: bool) -> list[CreateEditDepartmentC
     steps = [
         CreateEditDepartmentChecklistStep(
             key="create",
-            label="Create department",
+            label="Department details",
             hint="This step" if is_create else "Completed",
             state="current" if is_create else "complete",
         ),
@@ -266,31 +266,120 @@ async def get_create_edit_department_page(
     )
 
 
-def _validate_form(form: CreateEditDepartmentFormValues, *, strict: bool) -> None:
+def _label_for_field_key(field_key: str) -> str:
+    for row in _DETAILS_META:
+        if row.key == field_key:
+            return row.label
+    return field_key.replace("_", " ").title()
+
+
+def _validation_detail(
+    field_key: str,
+    *,
+    school_selectable: int,
+    campus_selectable: int,
+) -> dict[str, str | None]:
+    label = _label_for_field_key(field_key)
+    if field_key == "organization_unit_id":
+        if school_selectable <= 0:
+            return {
+                "field_key": field_key,
+                "label": label,
+                "message": "No schools or faculties are set up yet. Add one before creating a department.",
+                "action_type": "navigate",
+                "action_label": "Open organization hierarchy",
+                "action_href": "/college-admin/organization/organizational-hierarchy",
+            }
+        return {
+            "field_key": field_key,
+            "label": label,
+            "message": "Select which school or faculty this department belongs to.",
+            "action_type": "scroll",
+            "action_label": "Go to School / faculty",
+            "action_href": None,
+        }
+    if field_key == "campus_id":
+        if campus_selectable <= 0:
+            return {
+                "field_key": field_key,
+                "label": label,
+                "message": "No campuses are configured for this institution.",
+                "action_type": "navigate",
+                "action_label": "Manage campuses",
+                "action_href": "/college-admin/institution/campuses",
+            }
+        return {
+            "field_key": field_key,
+            "label": label,
+            "message": "Select the campus where this department is located.",
+            "action_type": "scroll",
+            "action_label": "Go to Campus",
+            "action_href": None,
+        }
+    messages: dict[str, tuple[str, str]] = {
+        "name": ("Enter the full display name of the department.", "Go to Department name"),
+        "department_code": ("Enter a unique department code (e.g. CSE, MBA).", "Go to Department code"),
+        "establishment_year": ("Enter the year the department was established.", "Go to Year of establishment"),
+    }
+    text, action_label = messages.get(
+        field_key,
+        (f"Complete the required field: {label}.", f"Go to {label}"),
+    )
+    return {
+        "field_key": field_key,
+        "label": label,
+        "message": text,
+        "action_type": "scroll",
+        "action_label": action_label,
+        "action_href": None,
+    }
+
+
+def _validate_form(
+    form: CreateEditDepartmentFormValues,
+    *,
+    strict: bool,
+    school_selectable: int = 0,
+    campus_selectable: int = 0,
+) -> None:
     if strict:
-        missing = [
-            key
-            for key, val in [
-                ("name", form.name.strip()),
-                ("department_code", form.department_code.strip()),
-                ("organization_unit_id", form.organization_unit_id),
-                ("campus_id", form.campus_id),
-            ]
-            if not val
-        ]
+        missing_keys: list[str] = []
+        for key, val in [
+            ("name", form.name.strip()),
+            ("department_code", form.department_code.strip()),
+            ("organization_unit_id", form.organization_unit_id),
+            ("campus_id", form.campus_id),
+        ]:
+            if not val:
+                missing_keys.append(key)
         if form.establishment_year is None:
-            missing.append("establishment_year")
-        if missing:
+            missing_keys.append("establishment_year")
+        if missing_keys:
+            details = [
+                _validation_detail(key, school_selectable=school_selectable, campus_selectable=campus_selectable)
+                for key in missing_keys
+            ]
             raise AppError(
                 code="VALIDATION_ERROR",
-                message=f"Required fields missing: {', '.join(missing)}",
+                message="Complete the required fields below before saving.",
                 status_code=422,
+                details=details,
             )
     elif not form.name.strip() or not form.department_code.strip():
+        draft_keys = []
+        if not form.name.strip():
+            draft_keys.append("name")
+        if not form.department_code.strip():
+            draft_keys.append("department_code")
+        details = [
+            _validation_detail(key, school_selectable=school_selectable, campus_selectable=campus_selectable)
+            for key in draft_keys
+        ]
         raise AppError(
             code="VALIDATION_ERROR",
-            message="Department name and code are required to save a draft",
+            message="Department name and code are required to save a draft.",
             status_code=422,
+            details=details,
         )
 
 
@@ -302,7 +391,15 @@ async def save_create_edit_department(
     tenant_id = require_college_tenant_scope(scope)
     form = payload.form
     strict = payload.mode == "create"
-    _validate_form(form, strict=strict)
+    opts = await _load_options(tenant_id, scope)
+    school_selectable = sum(1 for row in opts["school_options"] if row.value)
+    campus_selectable = sum(1 for row in opts["campus_options"] if row.value)
+    _validate_form(
+        form,
+        strict=strict,
+        school_selectable=school_selectable,
+        campus_selectable=campus_selectable,
+    )
 
     campus_ids = [form.campus_id] if form.campus_id else []
     status = DepartmentStatus.DRAFT if payload.mode == "draft" or not form.head_user_id else DepartmentStatus.ACTIVE

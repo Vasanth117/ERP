@@ -31,6 +31,7 @@ import {
 } from "@/lib/auth/login-portal";
 import { homePathForRole } from "@/lib/auth/role-home";
 import { setAccessToken } from "@/lib/auth/token-store";
+import { userFacingErrorMessage } from "@/lib/errors/user-message";
 
 type PerformanceMode = "student" | "parent";
 
@@ -72,7 +73,9 @@ function InstitutionLoginForm({
       router.replace(nextPath);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(
+        userFacingErrorMessage(error, "Could not sign in. Please try again."),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -167,7 +170,9 @@ function StudentPerformanceLoginForm({
       router.replace(destination);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(
+        userFacingErrorMessage(error, "Could not sign in. Please try again."),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -251,7 +256,9 @@ function DefaultLoginForm({
       router.replace(target);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(
+        userFacingErrorMessage(error, "Could not sign in. Please try again."),
+      );
     } finally {
       setSubmitting(false);
     }

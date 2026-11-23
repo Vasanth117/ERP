@@ -11,13 +11,22 @@ export const academicsTabs = [
     figmaFrame: "69:139876",
     activePrefixes: [
       "/college-admin/academics/academic-year-management",
+      "/college-admin/academics/create-academic-year",
+      "/college-admin/academics/academic-year-details",
       "/college-admin/academics/semester-management",
+      "/college-admin/academics/create-semester",
+      "/college-admin/academics/semester-details",
     ],
   },
   {
     label: "Programmes",
     href: "/college-admin/academics/programme-management",
     figmaFrame: "69:140372",
+    activePrefixes: [
+      "/college-admin/academics/programme-management",
+      "/college-admin/academics/create-programme",
+      "/college-admin/academics/programme-details",
+    ],
   },
   {
     label: "Courses & curriculum",
@@ -47,16 +56,22 @@ export const academicsTabs = [
     label: "Calendar",
     href: "/college-admin/academics/academic-calendar-configuration",
     figmaFrame: "69:142093",
+    activePrefixes: [
+      "/college-admin/academics/academic-calendar-configuration",
+      "/college-admin/academics/create-calendar-event",
+    ],
   },
   {
     label: "Batches",
     href: "/college-admin/academics/batch-section-configuration",
     figmaFrame: "69:142356",
+    activePrefixes: ["/college-admin/academics/batch-section-configuration"],
   },
   {
     label: "History",
     href: "/college-admin/academics/academic-configuration-history",
     figmaFrame: "69:142605",
+    activePrefixes: ["/college-admin/academics/academic-configuration-history"],
   },
 ] satisfies ReadonlyArray<{
   label: string;

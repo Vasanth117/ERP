@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
@@ -60,7 +61,7 @@ export function StudentIdCardManagementDashboard() {
       { page },
       {
         onSuccess: () => toast.success("Pending ID cards queued for bulk print."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
@@ -70,7 +71,7 @@ export function StudentIdCardManagementDashboard() {
       { page },
       {
         onSuccess: () => toast.success("ID card issued for the next eligible student."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

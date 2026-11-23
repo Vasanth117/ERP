@@ -21,6 +21,7 @@ import {
 import type { InstitutionPolicyRow } from "@/features/college-admin/types/institution";
 import { normalizeFormPayload } from "@/lib/form-values";
 import { cn } from "@/lib/utils";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 function StatusPill({ label, tone }: { label: string; tone: string }) {
@@ -176,7 +177,7 @@ export function InstitutionalPoliciesDashboard() {
           setStatus("");
           void refetch();
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

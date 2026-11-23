@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
@@ -134,7 +135,7 @@ export function StudentTransferManagementDashboard() {
           toast.success(approveCollege ? "College approval recorded." : "Review saved.");
           if (res.selected_request_key) setSelectedKey(res.selected_request_key);
         },
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };

@@ -317,3 +317,137 @@ export function CollegeAdminDashboardSideList({
 
 /** @deprecated Use CollegeAdminDashboardPanel — kept as `Panel` for gradual migration */
 export const Panel = CollegeAdminDashboardPanel;
+
+/** Shared shell for table / list / sidebar panels across college-admin dashboards. */
+export const collegeAdminPanelShellClass =
+  "overflow-hidden rounded-2xl border border-[#e5e7eb] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.06)]";
+
+export function CollegeAdminPanelShell({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <section className={cn(collegeAdminPanelShellClass, className)}>{children}</section>;
+}
+
+export function CollegeAdminPanelChromeHeader({
+  title,
+  description,
+  trailing,
+}: {
+  title: string;
+  description?: string;
+  trailing?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#eef2f7] bg-white px-5 py-4">
+      <div className="min-w-0">
+        <h3 className="text-[15px] font-bold tracking-[-0.02em] text-[#0f2744]">{title}</h3>
+        {description ? (
+          <p className="mt-0.5 text-[12px] leading-snug text-[#64748b]">{description}</p>
+        ) : null}
+      </div>
+      {trailing ? <div className="flex shrink-0 items-center gap-2">{trailing}</div> : null}
+    </div>
+  );
+}
+
+export function CollegeAdminPanelChromeFooter({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-2 border-t border-[#eef2f7] bg-[#fafbfc] px-5 py-3.5 text-[12px] font-medium text-[#64748b]",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** Centered empty block for main table/list panels (calendar, semesters, years, etc.). */
+export function CollegeAdminPanelEmptyState({
+  iconSlug = "inbox",
+  title = "Nothing here yet",
+  description,
+  action,
+  className,
+}: {
+  iconSlug?: ErpIconName;
+  title?: string;
+  description: string;
+  action?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex min-h-[min(22rem,50vh)] flex-col items-center justify-center px-6 py-10 text-center sm:px-10",
+        className,
+      )}
+    >
+      <div className="flex size-[3.25rem] items-center justify-center rounded-2xl border border-[#dbeafe] bg-gradient-to-br from-[#eff6ff] via-[#f5f9ff] to-white shadow-[0_4px_16px_rgba(36,93,216,0.1)]">
+        <ErpIcon slug={iconSlug} className="size-7 text-[#245dd8]" />
+      </div>
+      <h4 className="mt-5 text-[15px] font-semibold tracking-[-0.01em] text-[#111827]">{title}</h4>
+      <p className="mt-2 max-w-[26rem] text-[13px] leading-relaxed text-[#6b7280]">{description}</p>
+      {action ? <div className="mt-6 flex flex-wrap items-center justify-center gap-2">{action}</div> : null}
+    </div>
+  );
+}
+
+/** Primary content card: title bar, body (table or empty), optional footer strip. */
+export function CollegeAdminTablePanel({
+  title,
+  description,
+  footer,
+  children,
+  className,
+  bodyClassName,
+}: {
+  title: string;
+  description?: string;
+  footer?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  bodyClassName?: string;
+}) {
+  return (
+    <CollegeAdminPanelShell className={cn("flex min-h-0 flex-col", className)}>
+      <CollegeAdminPanelChromeHeader title={title} description={description} />
+      <div className={cn("min-h-0 flex-1 bg-white", bodyClassName)}>{children}</div>
+      {footer ? <CollegeAdminPanelChromeFooter>{footer}</CollegeAdminPanelChromeFooter> : null}
+    </CollegeAdminPanelShell>
+  );
+}
+
+/** Sidebar / ancillary panel with padded body. */
+export function CollegeAdminSidePanel({
+  title,
+  description,
+  children,
+  className,
+  footer,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+  footer?: ReactNode;
+}) {
+  return (
+    <CollegeAdminPanelShell className={className}>
+      <CollegeAdminPanelChromeHeader title={title} description={description} />
+      <div className="px-5 py-4">{children}</div>
+      {footer ? <CollegeAdminPanelChromeFooter>{footer}</CollegeAdminPanelChromeFooter> : null}
+    </CollegeAdminPanelShell>
+  );
+}

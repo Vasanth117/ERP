@@ -1,22 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { YearsSemestersSubNav } from "@/features/college-admin/components/academics/years-semesters-sub-nav";
-import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
-  useCreateSemesterManagementTerm,
-  useSaveSemesterManagementSettings,
-  useSemesterManagementPage,
-} from "@/features/college-admin/hooks/use-semester-management";
+  CollegeAdminPrimaryLink,
+  CollegeAdminSecondaryButton,
+} from "@/features/college-admin/components/ui/college-admin-action-button";
+import {
+  CollegeAdminPanelEmptyState,
+  CollegeAdminSidePanel,
+  CollegeAdminTablePanel,
+} from "@/features/college-admin/components/ui/dashboard-panel-ui";
+import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { useSemesterManagementPage } from "@/features/college-admin/hooks/use-semester-management";
 import type { SemesterManagementTableRow } from "@/features/college-admin/types/semester-management";
 import { cn } from "@/lib/utils";
 
@@ -42,69 +43,20 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-type SettingsFormValues = {
-  teaching_starts: string;
-  last_instruction_day: string;
-  mid_semester_exam_date: string;
-  end_semester_exam_date: string;
-  course_registration_opens: string;
-  add_drop_deadline: string;
-};
-
-function toInputDate(value: string | null | undefined) {
-  if (!value) return "";
-  return value.length >= 10 ? value.slice(0, 10) : value;
-}
-
-
 export function SemesterManagementDashboard() {
   const searchParams = useSearchParams();
-  const initialYearId = searchParams.get("year_id") ?? undefined;
-  const initialTermId = searchParams.get("term_id") ?? undefined;
+  const initialYearId =
+    searchParams.get("academic_year_id") ?? searchParams.get("year_id") ?? undefined;
 
   const [yearId, setYearId] = useState(initialYearId);
-  const [termId, setTermId] = useState(initialTermId);
 
   const { data, isLoading, isError, error, refetch } = useSemesterManagementPage({
     academic_year_id: yearId,
-    term_id: termId,
   });
-  const saveSettings = useSaveSemesterManagementSettings();
-  const createTerm = useCreateSemesterManagementTerm();
-
-  const form = useForm<SettingsFormValues>({
-    defaultValues: {
-      teaching_starts: "",
-      last_instruction_day: "",
-      mid_semester_exam_date: "",
-      end_semester_exam_date: "",
-      course_registration_opens: "",
-      add_drop_deadline: "",
-    },
-  });
-
-  const defaults = useMemo(() => data?.settings_form, [data?.settings_form]);
-
-  useEffect(() => {
-    if (!defaults) return;
-    form.reset({
-      teaching_starts: toInputDate(defaults.teaching_starts),
-      last_instruction_day: toInputDate(defaults.last_instruction_day),
-      mid_semester_exam_date: toInputDate(defaults.mid_semester_exam_date),
-      end_semester_exam_date: toInputDate(defaults.end_semester_exam_date),
-      course_registration_opens: toInputDate(defaults.course_registration_opens),
-      add_drop_deadline: toInputDate(defaults.add_drop_deadline),
-    });
-  }, [defaults, form]);
 
   useEffect(() => {
     if (data?.selected_academic_year_id) setYearId(data.selected_academic_year_id);
-    if (data?.selected_term_id) setTermId(data.selected_term_id);
-  }, [data?.selected_academic_year_id, data?.selected_term_id]);
-
-  const pickRow = (row: SemesterManagementTableRow) => {
-    setTermId(row.term_id);
-  };
+  }, [data?.selected_academic_year_id]);
 
   const handleExport = useCallback(() => {
     if (!data) return;
@@ -117,14 +69,9 @@ export function SemesterManagementDashboard() {
     URL.revokeObjectURL(url);
   }, [data]);
 
-  const handleNewSemester = () => {
-    if (!data?.selected_academic_year_id) return;
-    const nextIndex = (data.semester_rows.length ?? 0) + 1;
-    createTerm.mutate({
-      academic_year_id: data.selected_academic_year_id,
-      label: `Semester ${nextIndex}`,
-    });
-  };
+  const createHref = yearId
+    ? `/college-admin/academics/create-semester?academic_year_id=${encodeURIComponent(yearId)}`
+    : "/college-admin/academics/create-semester";
 
   return (
     <div className="space-y-5" data-figma-frame="69:140138">
@@ -138,30 +85,14 @@ export function SemesterManagementDashboard() {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Link
-            href={data?.years_button_href ?? "/college-admin/academics/academic-year-management"}
-            className="inline-flex h-9 items-center rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
-          >
-            {data?.years_button_label ?? "Years"}
-          </Link>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
+          <CollegeAdminSecondaryButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export"}
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
-            disabled={!data?.selected_academic_year_id || createTerm.isPending}
-            onClick={handleNewSemester}
-          >
+          </CollegeAdminSecondaryButton>
+          <CollegeAdminPrimaryLink href={createHref}>
             <PlusIcon className="size-3.5" aria-hidden />
             {data?.new_semester_label ?? "New semester"}
-          </button>
+          </CollegeAdminPrimaryLink>
         </div>
       </div>
 
@@ -170,170 +101,179 @@ export function SemesterManagementDashboard() {
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            <div className="flex flex-wrap items-center gap-2">
-              <select
-                aria-label="Academic year"
-                value={yearId ?? ""}
-                onChange={(e) => {
-                  setYearId(e.target.value || undefined);
-                  setTermId(undefined);
-                }}
-                className="h-9 min-w-[12rem] rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#374151]"
-              >
-                {data.year_filter_options.map((opt) => (
-                  <option key={`${opt.value}-${opt.label}`} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <YearFilterBar data={data} yearId={yearId} setYearId={setYearId} />
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
-              <div className="space-y-5">
-                <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                  <div className="border-b border-[#f1f5f9] px-5 py-3.5">
-                    <h3 className="text-[14px] font-semibold text-[#111827]">{data.semesters_panel_title}</h3>
-                  </div>
-                  {data.semester_rows.length ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[36rem] text-left text-[13px]">
-                        <thead>
-                          <tr className="text-[11px] font-medium uppercase tracking-wide text-[#9ca3af]">
-                            {data.table_headers.map((header, index) => (
-                              <th key={header} className={cn("pb-3 font-medium", index === 0 ? "px-5" : "pr-3")}>
-                                {header}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#f1f5f9]">
-                          {data.semester_rows.map((row) => (
-                            <tr
-                              key={row.term_id}
-                              className={cn(
-                                "cursor-pointer hover:bg-[#f9fafb]",
-                                data.selected_term_id === row.term_id && "bg-[#eff6ff]",
-                              )}
-                              onClick={() => pickRow(row)}
-                            >
-                              <td className="px-5 py-3 font-medium text-[#111827]">{row.label}</td>
-                              <td className="py-3 pr-3 text-[#374151]">{row.period_label}</td>
-                              <td className="py-3 pr-3 text-[#374151]">{row.week_label}</td>
-                              <td className="py-3 pr-3 tabular-nums text-[#374151]">{row.course_count}</td>
-                              <td className="py-3 pr-5">
-                                <StatusPill label={row.status_label} tone={row.status_tone} />
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <p className="px-5 py-8 text-sm text-[#9ca3af]">No semesters for this academic year yet.</p>
-                  )}
-                  <div className="flex items-center justify-between border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
-                    <span>{data.semester_count_label}</span>
-                    <Link href={data.manage_terms_href} className="font-medium text-[#245dd8] hover:underline">
-                      {data.manage_terms_label}
-                    </Link>
-                  </div>
-                </section>
-
-                {data.settings_form && data.selected_term_id ? (
-                  <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                    <div className="border-b border-[#f1f5f9] px-5 py-3.5">
-                      <h3 className="text-[14px] font-semibold text-[#111827]">{data.settings_panel_title}</h3>
-                    </div>
-                    <form
-                      className="grid gap-4 px-5 py-4 sm:grid-cols-2"
-                      onSubmit={form.handleSubmit((values) => {
-                        saveSettings.mutate({
-                          term_id: data.selected_term_id!,
-                          settings: {
-                            teaching_starts: values.teaching_starts || null,
-                            last_instruction_day: values.last_instruction_day || null,
-                            mid_semester_exam_date: values.mid_semester_exam_date || null,
-                            end_semester_exam_date: values.end_semester_exam_date || null,
-                            course_registration_opens: values.course_registration_opens || null,
-                            add_drop_deadline: values.add_drop_deadline || null,
-                          },
-                        });
-                      })}
-                    >
-                      {data.settings_field_meta.map((field) => (
-                        <div key={field.key}>
-                          <Label className="text-[13px] text-[#374151]">
-                            {field.label}
-                            {field.required ? <span className="text-[#dc2626]"> *</span> : null}
-                          </Label>
-                          <Input
-                            type="date"
-                            className="mt-1.5 h-9"
-                            {...form.register(field.key as keyof SettingsFormValues)}
-                          />
-                        </div>
-                      ))}
-                      <div className="flex flex-col gap-3 border-t border-[#f1f5f9] pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
-                        <p className="text-[12px] text-[#6b7280]">{data.settings_form_note}</p>
-                        <div className="flex gap-2">
-                          <Button type="button" variant="outline" className="h-9 border-[#dce3ec] text-xs" onClick={() => form.reset()}>
-                            {data.cancel_label}
-                          </Button>
-                          <Button type="submit" className="h-9 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]" disabled={saveSettings.isPending}>
-                            {data.save_label}
-                          </Button>
-                        </div>
-                      </div>
-                    </form>
-                  </section>
-                ) : null}
-              </div>
-
-              <div className="space-y-5">
-                <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                  <h3 className="mb-4 text-[14px] font-semibold text-[#111827]">{data.progress_section_title}</h3>
-                  {data.progress_items.length ? (
-                    <ul className="space-y-4">
-                      {data.progress_items.map((item) => (
-                        <li key={item.key}>
-                          <div className="mb-1.5 flex justify-between text-[13px]">
-                            <span className="text-[#111827]">{item.label}</span>
-                            <span className="tabular-nums text-[#6b7280]">{item.progress_percent}%</span>
-                          </div>
-                          <div className="h-1.5 overflow-hidden rounded-full bg-[#f1f5f9]">
-                            <div
-                              className="h-full rounded-full bg-[#245dd8]"
-                              style={{ width: `${Math.min(100, item.progress_percent)}%` }}
-                            />
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-[#9ca3af]">Select a semester to view progress.</p>
-                  )}
-                </section>
-
-                <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-                  <h3 className="mb-3 text-[14px] font-semibold text-[#111827]">{data.linked_section_title}</h3>
-                  <ul className="divide-y divide-[#f1f5f9]">
-                    {data.linked_items.map((item) => (
-                      <li key={item.key} className="flex items-start justify-between gap-3 py-3 first:pt-0">
-                        <div>
-                          <p className="text-[13px] font-medium text-[#111827]">{item.title}</p>
-                          <p className="text-[12px] text-[#6b7280]">{item.subtitle}</p>
-                        </div>
-                        <StatusPill label={item.status_label} tone={item.status_tone} />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              </div>
+              <SemesterTable data={data} yearId={yearId} createHref={createHref} newSemesterLabel={data.new_semester_label} />
+              <aside className="space-y-5">
+                <ProgressSidebar data={data} />
+                <LinkedSidebar data={data} />
+              </aside>
             </div>
-
           </>
         ) : null}
       </QueryState>
     </div>
+  );
+}
+
+function YearFilterBar({
+  data,
+  yearId,
+  setYearId,
+}: {
+  data: NonNullable<ReturnType<typeof useSemesterManagementPage>["data"]>;
+  yearId: string | undefined;
+  setYearId: (v: string | undefined) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        aria-label="Academic year"
+        value={yearId ?? ""}
+        onChange={(e) => setYearId(e.target.value || undefined)}
+        className="h-9 min-w-[12rem] rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#374151]"
+      >
+        {data.year_filter_options.map((opt) => (
+          <option key={`${opt.value}-${opt.label}`} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SemesterTable({
+  data,
+  yearId,
+  createHref,
+  newSemesterLabel,
+}: {
+  data: NonNullable<ReturnType<typeof useSemesterManagementPage>["data"]>;
+  yearId: string | undefined;
+  createHref: string;
+  newSemesterLabel: string;
+}) {
+  return (
+    <CollegeAdminTablePanel
+      title={data.semesters_panel_title}
+      footer={
+        <>
+          <span>{data.semester_count_label}</span>
+          <Link
+            href={data.manage_terms_href}
+            className="font-semibold text-[#245dd8] transition-colors hover:text-[#1f4fb8] hover:underline"
+          >
+            {data.manage_terms_label}
+          </Link>
+        </>
+      }
+    >
+      {data.semester_rows.length ? (
+        <SemesterTableBody data={data} yearId={yearId} />
+      ) : (
+        <CollegeAdminPanelEmptyState
+          iconSlug="layers"
+          title="No semesters yet"
+          description="Create odd and even semesters for this academic year, then set teaching dates, exams, and registration windows."
+          action={
+            <CollegeAdminPrimaryLink href={createHref}>
+              <PlusIcon className="size-3.5" aria-hidden />
+              {newSemesterLabel}
+            </CollegeAdminPrimaryLink>
+          }
+        />
+      )}
+    </CollegeAdminTablePanel>
+  );
+}
+
+function SemesterTableBody({
+  data,
+  yearId,
+}: {
+  data: NonNullable<ReturnType<typeof useSemesterManagementPage>["data"]>;
+  yearId: string | undefined;
+}) {
+  const detailHref = (row: SemesterManagementTableRow) => {
+    const q = new URLSearchParams({ term_id: row.term_id });
+    if (yearId) q.set("academic_year_id", yearId);
+    return `/college-admin/academics/semester-details?${q.toString()}`;
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[36rem] text-left text-[13px]">
+        <thead>
+          <tr className="border-b border-[#f1f5f9] text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+            {data.table_headers.map((header, index) => (
+              <th key={header} className={cn("pb-3 pt-4 font-medium", index === 0 ? "px-5" : "pr-3")}>
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#f1f5f9]">
+          {data.semester_rows.map((row) => (
+            <tr key={row.term_id} className="transition-colors hover:bg-[#f8fafc]">
+              <td className="px-5 py-3.5 font-medium text-[#111827]">
+                <Link href={detailHref(row)} className="hover:text-[#245dd8]">
+                  {row.label}
+                </Link>
+              </td>
+              <td className="py-3 pr-3 text-[#374151]">{row.period_label}</td>
+              <td className="py-3 pr-3 text-[#374151]">{row.week_label}</td>
+              <td className="py-3 pr-3 tabular-nums text-[#374151]">{row.course_count}</td>
+              <td className="py-3 pr-5">
+                <StatusPill label={row.status_label} tone={row.status_tone} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function ProgressSidebar({ data }: { data: NonNullable<ReturnType<typeof useSemesterManagementPage>["data"]> }) {
+  return (
+    <CollegeAdminSidePanel title={data.progress_section_title}>
+      {data.progress_items.length ? (
+        <ul className="space-y-4">
+          {data.progress_items.map((item) => (
+            <li key={item.key}>
+              <div className="mb-1.5 flex justify-between text-[13px]">
+                <span className="font-medium text-[#111827]">{item.label}</span>
+                <span className="tabular-nums text-[#64748b]">{item.progress_percent}%</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-[#e8ecf2]">
+                <div className="h-full rounded-full bg-[#245dd8]" style={{ width: `${Math.min(100, item.progress_percent)}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[13px] leading-relaxed text-[#94a3b8]">Open a semester from the table to track setup progress.</p>
+      )}
+    </CollegeAdminSidePanel>
+  );
+}
+
+function LinkedSidebar({ data }: { data: NonNullable<ReturnType<typeof useSemesterManagementPage>["data"]> }) {
+  return (
+    <CollegeAdminSidePanel title={data.linked_section_title}>
+      <ul className="divide-y divide-[#f1f5f9]">
+        {data.linked_items.map((item) => (
+          <li key={item.key} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium text-[#111827]">{item.title}</p>
+              <p className="text-[12px] text-[#64748b]">{item.subtitle}</p>
+            </div>
+            <StatusPill label={item.status_label} tone={item.status_tone} />
+          </li>
+        ))}
+      </ul>
+    </CollegeAdminSidePanel>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { FileTextIcon } from "@/components/icons/erp/generated/file-text";
@@ -56,7 +57,7 @@ export function HallTicketAdministrationDashboard() {
     if (!data?.selected_session_id) return;
     generateAll.mutate(payload(), {
       onSuccess: () => toast.success("Hall tickets generated."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 
@@ -64,7 +65,7 @@ export function HallTicketAdministrationDashboard() {
     if (!data?.selected_session_id) return;
     release.mutate(payload(), {
       onSuccess: () => toast.success("Hall tickets released."),
-      onError: (e: Error) => toast.error(e.message),
+      onError: onCollegeAdminMutationError,
     });
   };
 

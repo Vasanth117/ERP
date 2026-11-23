@@ -673,6 +673,7 @@ class AcademicYearManagementTableRow(BaseModel):
     status_code: str
     status_label: str
     status_tone: str
+    detail_href: str
 
 
 class AcademicYearClosingChecklistItem(BaseModel):
@@ -715,6 +716,7 @@ class AcademicYearManagementPageRead(BaseModel):
     close_current_year_enabled: bool
     close_target_year_label: str | None = None
     new_academic_year_label: str
+    new_academic_year_href: str
     academic_years_table_title: str
     table_headers: list[str]
     academic_years: list[AcademicYearManagementTableRow]
@@ -749,11 +751,124 @@ class AcademicYearManagementCreate(BaseModel):
     end_date: date | None = None
     semester_count: int = Field(default=2, ge=1, le=4)
     admission_intake_opens: date | None = None
+    summer_term_start: date | None = None
+    summer_term_end: date | None = None
+    year_end_closing: date | None = None
+
+    @model_validator(mode="after")
+    def _validate_date_order(self) -> "AcademicYearManagementCreate":
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            raise ValueError("End date must be on or after the start date.")
+        return self
 
 
 class AcademicYearManagementRulesSave(BaseModel):
     only_one_current_year: bool = True
     lock_closed_years: bool = True
+
+
+class AcademicYearWizardStep(BaseModel):
+    key: str
+    label: str
+    step_number: int
+    status: str = "pending"
+
+
+class AcademicYearWizardFormSection(BaseModel):
+    key: str
+    title: str
+
+
+class AcademicYearWizardSummaryItem(BaseModel):
+    key: str
+    label: str
+    value: str
+
+
+class AcademicYearWizardFormValues(BaseModel):
+    label: str = ""
+    copy_from_year_id: str | None = None
+    start_date: str | None = None
+    end_date: str | None = None
+    admission_intake_opens: str | None = None
+    summer_term_start: str | None = None
+    summer_term_end: str | None = None
+    year_end_closing: str | None = None
+    semester_count: str = "2"
+
+
+class NewAcademicYearWizardPageRead(BaseModel):
+    draft_id: str
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    save_draft_label: str
+    continue_label: str
+    finalize_label: str
+    current_step_key: str
+    step_position_label: str
+    steps: list[AcademicYearWizardStep]
+    sections: list[AcademicYearWizardFormSection]
+    field_meta: list[InstitutionFieldMeta]
+    copy_from_options: list[AcademicYearCreateFormOption]
+    semester_count_options: list[AcademicYearCreateFormOption]
+    form: AcademicYearWizardFormValues
+    summary_title: str
+    summary_items: list[AcademicYearWizardSummaryItem]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class AcademicYearWizardDraftUpdate(BaseModel):
+    draft_id: str
+    step_key: str | None = None
+    advance: bool = False
+    finalize: bool = False
+    values: dict[str, Any] = Field(default_factory=dict)
+
+
+class NewAcademicYearWizardSaveResult(BaseModel):
+    page: NewAcademicYearWizardPageRead | None = None
+    created_year_id: str | None = None
+    details_href: str | None = None
+
+
+class AcademicYearDetailsKeyValueRow(BaseModel):
+    key: str
+    label: str
+    value: str
+
+
+class AcademicYearDetailsTermRow(BaseModel):
+    term_id: str
+    label: str
+    period_label: str
+    status_label: str
+    status_tone: str
+
+
+class AcademicYearDetailsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    year_id: str
+    year_label: str
+    status_label: str
+    status_tone: str
+    is_current: bool
+    overview_section_title: str
+    overview_rows: list[AcademicYearDetailsKeyValueRow]
+    terms_section_title: str
+    terms_table_headers: list[str]
+    term_rows: list[AcademicYearDetailsTermRow]
+    manage_semesters_label: str
+    manage_semesters_href: str
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
 
 
 class SemesterManagementTableRow(BaseModel):
@@ -853,14 +968,33 @@ class ProgrammeManagementTableRow(BaseModel):
     status_code: str
     status_label: str
     status_tone: str
+    detail_href: str
 
 
 class ProgrammeManagementCreate(BaseModel):
     programme_code: str = Field(min_length=2, max_length=32)
     name: str = Field(min_length=2, max_length=200)
+    short_name: str | None = Field(default=None, max_length=64)
+    description: str | None = Field(default=None, max_length=2000)
     department_id: str | None = None
+    programme_level: str | None = Field(default=None, max_length=32)
+    regulation_code: str | None = Field(default=None, max_length=32)
+    mode_of_study: str = Field(default="full_time", max_length=32)
+    approved_intake: int | None = Field(default=None, ge=0, le=9999)
+    entry_qualification: str | None = Field(default=None, max_length=500)
     duration_semesters: int = Field(default=8, ge=1, le=20)
     credits_required: float = Field(default=160, ge=0)
+
+
+class ProgrammeManagementCreateResult(BaseModel):
+    programme_id: str
+    detail_href: str
+    message: str = "Programme created"
+
+
+class ProgrammeDetailsSummaryRow(BaseModel):
+    label: str
+    value: str
 
 
 class AcademicYearSemesterForm(BaseModel):
@@ -914,6 +1048,24 @@ class AcademicYearLinkedConfig(BaseModel):
     description: str
     href: str
     icon_slug: str
+
+
+class ProgrammeDetailsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    programme_name: str
+    programme_code: str
+    status_label: str
+    status_tone: str
+    back_href: str
+    edit_note: str
+    summary_rows: list[ProgrammeDetailsSummaryRow]
+    description: str | None
+    checklist_title: str
+    checklist_items: list[AcademicYearRuleToggle]
+    linked_title: str
+    linked_items: list[AcademicYearLinkedConfig]
+    generated_at: datetime
 
 
 class AcademicYearConfigurationPageRead(BaseModel):
@@ -1014,6 +1166,10 @@ class ProgrammeManagementPageRead(BaseModel):
     page_subtitle: str
     export_label: str
     add_programme_label: str
+    new_programme_href: str
+    create_level_options: list[AcademicYearCreateFormOption]
+    create_regulation_options: list[AcademicYearCreateFormOption]
+    create_mode_options: list[AcademicYearCreateFormOption]
     search_placeholder: str
     level_filter_label: str
     department_filter_label: str
@@ -3319,6 +3475,16 @@ class DepartmentHeadAssignmentFormValues(BaseModel):
     order_reference: str = ""
 
 
+class OrganizationModuleEmptyState(BaseModel):
+    title: str
+    description: str
+    highlights: list[str] = Field(default_factory=list)
+    primary_label: str
+    primary_href: str
+    secondary_label: str | None = None
+    secondary_href: str | None = None
+
+
 class DepartmentHeadAssignmentPageRead(BaseModel):
     page_title: str
     page_subtitle: str
@@ -3349,6 +3515,9 @@ class DepartmentHeadAssignmentPageRead(BaseModel):
     footer_disclaimer: str
     footer_snapshot_label: str
     can_submit: bool
+    assign_head_enabled: bool = True
+    form_interactive: bool = True
+    setup_empty_state: OrganizationModuleEmptyState | None = None
     generated_at: datetime
 
 
@@ -3378,12 +3547,20 @@ class OrganizationalHierarchyNodeRead(BaseModel):
     children: list["OrganizationalHierarchyNodeRead"] = Field(default_factory=list)
 
 
+class OrganizationalHierarchyEditAction(BaseModel):
+    action_key: str
+    label: str
+    href: str
+    action_type: str = "outline"
+
+
 class OrganizationalHierarchySelectedUnitRead(BaseModel):
     node_id: str
     unit_label: str
     reports_to_label: str
     head_label: str
     members_label: str
+    edit_actions: list[OrganizationalHierarchyEditAction] = Field(default_factory=list)
 
 
 class OrganizationalHierarchySummaryItem(BaseModel):
@@ -3398,6 +3575,10 @@ class OrganizationalHierarchyPageRead(BaseModel):
     export_label: str
     edit_structure_label: str
     edit_structure_href: str
+    edit_mode: bool = False
+    edit_panel_title: str = ""
+    edit_panel_hint: str = ""
+    setup_edit_actions: list[OrganizationalHierarchyEditAction] = Field(default_factory=list)
     structure_section_title: str
     structure_section_hint: str
     tree: list[OrganizationalHierarchyNodeRead]
@@ -3479,6 +3660,7 @@ class ProgrammeCourseMappingPageRead(BaseModel):
     course_load_bars: list[CourseLoadBarItem]
     footer_disclaimer: str
     footer_snapshot_label: str
+    setup_empty_state: OrganizationModuleEmptyState | None = None
     generated_at: datetime
 
 
@@ -3514,6 +3696,9 @@ class DepartmentFacultyAllocationFormValues(BaseModel):
     allocate_to_department_id: str = ""
     allocation_type: str = "shared_50"
     effective_from: str = ""
+    effective_to: str = ""
+    order_reference: str = ""
+    semester_label: str = ""
 
 
 class DepartmentFacultyAllocationPageRead(BaseModel):
@@ -3540,17 +3725,23 @@ class DepartmentFacultyAllocationPageRead(BaseModel):
     capacity_rows: list[DepartmentFacultyCapacityRow]
     pagination: PoliciesPagination
     move_share_section_title: str
+    move_share_section_subtitle: str = ""
     faculty_field_label: str
     faculty_options: list[InstitutionFieldOption]
     allocate_to_field_label: str
     department_allocate_options: list[InstitutionFieldOption]
     allocation_type_field_label: str
     allocation_type_options: list[InstitutionFieldOption]
+    allocation_type_hint: str = ""
     effective_from_field_label: str
+    effective_to_field_label: str = "Effective to"
+    order_reference_field_label: str = "Order / reference"
     form: DepartmentFacultyAllocationFormValues
     move_footer_note: str
     cancel_label: str
     save_label: str
+    allocate_faculty_enabled: bool = True
+    form_interactive: bool = True
     vacancies_section_title: str
     hr_recruitment_label: str
     hr_recruitment_href: str
@@ -3560,11 +3751,16 @@ class DepartmentFacultyAllocationPageRead(BaseModel):
     can_save: bool
     footer_disclaimer: str
     footer_snapshot_label: str
+    setup_empty_state: OrganizationModuleEmptyState | None = None
     generated_at: datetime
 
 
 class DepartmentFacultyAllocationSavePayload(BaseModel):
     form: DepartmentFacultyAllocationFormValues
+    page: int = 1
+    semester_label: str | None = None
+    department_id: str | None = None
+    designation_filter: str | None = None
 
 
 class DepartmentFacultyAllocationSaveResult(BaseModel):

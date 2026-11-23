@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
 
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
@@ -66,7 +67,7 @@ export function SupplementaryExaminationManagementDashboard() {
       { page, session_id: data?.selected_session_id || undefined },
       {
         onSuccess: () => toast.success("Supplementary session created."),
-        onError: (e: Error) => toast.error(e.message),
+        onError: onCollegeAdminMutationError,
       },
     );
   };
