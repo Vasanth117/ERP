@@ -317,13 +317,6 @@ export function AcademicCalendarConfigurationDashboard() {
           </div>
         ) : null}
       </QueryState>
-
-      {data ? (
-        <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p className="tabular-nums">{data.footer_snapshot_label}</p>
-        </footer>
-      ) : null}
     </div>
   );
 }

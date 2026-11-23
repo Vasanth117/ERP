@@ -47,17 +47,6 @@ function CountBadge({ count, tone }: { count: number; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function FilterSelect({
   icon,
@@ -225,7 +214,6 @@ export function DepartmentFacultyAllocationDashboard() {
               {data.resources_nav_label}
             </Link>
           </div>
-          <span className="text-[12px] tabular-nums text-[#9ca3af]">{data.updated_at_label}</span>
         </div>
       ) : null}
 
@@ -423,15 +411,6 @@ export function DepartmentFacultyAllocationDashboard() {
           </div>
         ) : null}
       </QueryState>
-
-      {data ? (
-        <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p className="tabular-nums">
-            {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-          </p>
-        </footer>
-      ) : null}
     </div>
   );
 }

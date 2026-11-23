@@ -268,6 +268,7 @@ export async function updateBulkUserInvitationSettings(payload: {
   step_key?: string;
   skip_rows_with_errors?: boolean;
   require_mfa_first_login?: boolean;
+  use_admin_password?: boolean;
 }): Promise<BulkUserInvitationPage> {
   return apiRequest<BulkUserInvitationPage>("/college-admin/users/bulk-user-invitation/settings", {
     method: "PUT",
@@ -318,6 +319,18 @@ export async function validateCreateNewUser(values: Record<string, unknown>): Pr
   return apiRequest("/college-admin/users/create-new-user/validate", {
     method: "POST",
     body: { values },
+  });
+}
+
+export async function uploadCreateNewUserFile(
+  kind: "profile_photo" | "identity_document" | "supporting_document",
+  file: File,
+): Promise<{ file_id: string; file_name: string; kind: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  return apiRequest(`/college-admin/users/create-new-user/upload?kind=${encodeURIComponent(kind)}`, {
+    method: "POST",
+    rawBody: formData,
   });
 }
 

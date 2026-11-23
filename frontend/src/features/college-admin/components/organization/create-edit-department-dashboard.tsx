@@ -303,12 +303,12 @@ export function CreateEditDepartmentDashboard() {
 
               <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <h3 className="mb-3 text-[14px] font-semibold text-[#111827]">{data.checklist_title}</h3>
-                <ol className="space-y-4">
+                <ul className="space-y-3 border-l border-[#e5e7eb] pl-4">
                   {data.checklist_steps.map((step) => (
-                    <li key={step.key} className="flex gap-3">
+                    <li key={step.key} className="relative pl-2">
                       <span
                         className={cn(
-                          "mt-1.5 size-2 shrink-0 rounded-full",
+                          "absolute -left-[21px] top-1.5 size-2.5 rounded-full ring-4 ring-white",
                           step.state === "current"
                             ? "bg-[#245dd8]"
                             : step.state === "complete"
@@ -316,13 +316,11 @@ export function CreateEditDepartmentDashboard() {
                               : "bg-[#d1d5db]",
                         )}
                       />
-                      <div>
-                        <p className="text-[13px] font-medium text-[#111827]">{step.label}</p>
-                        <p className="text-[12px] text-[#6b7280]">{step.hint}</p>
-                      </div>
+                      <p className="text-[13px] font-medium text-[#111827]">{step.label}</p>
+                      <p className="text-[12px] text-[#6b7280]">{step.hint}</p>
                     </li>
                   ))}
-                </ol>
+                </ul>
               </section>
             </div>
           </form>

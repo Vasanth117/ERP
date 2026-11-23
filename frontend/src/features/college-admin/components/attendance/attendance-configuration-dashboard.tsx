@@ -245,10 +245,6 @@ export function AttendanceConfigurationDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-wrap justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>{data.footer_snapshot_label}</span>
-            </footer>
           </>
         ) : null}
       </QueryState>

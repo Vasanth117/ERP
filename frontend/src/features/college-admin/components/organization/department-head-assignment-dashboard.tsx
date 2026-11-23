@@ -56,17 +56,6 @@ function EligibilityBadge({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 function isoToDateInput(iso: string) {
   if (!iso) return "";
@@ -382,12 +371,6 @@ export function DepartmentHeadAssignmentDashboard() {
           </button>
         </div>
       </footer>
-
-      {data ? (
-        <p className="text-right text-[11px] tabular-nums text-[#9ca3af]">
-          {data.footer_disclaimer} · {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-        </p>
-      ) : null}
     </div>
   );
 }

@@ -62,12 +62,20 @@ export function CampusDetailDashboard({ campusId }: { campusId: string }) {
             {data?.page_title ?? "Campus details"}
           </h2>
         </div>
-        <Link
-          href={data?.contact_href ?? "/college-admin/institution/campuses"}
-          className="inline-flex h-9 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-        >
-          Address & contact →
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/college-admin/institution/campuses/new?campus_id=${encodeURIComponent(campusId)}`}
+            className="inline-flex h-9 items-center rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
+          >
+            Edit campus
+          </Link>
+          <Link
+            href={data?.contact_href ?? "/college-admin/institution/campuses"}
+            className="inline-flex h-9 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            Address & contact →
+          </Link>
+        </div>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>

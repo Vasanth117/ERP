@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from beanie import PydanticObjectId
-from beanie.odm.operators.find.comparison import Eq
+from beanie.odm.operators.find.comparison import Eq, In
 
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
@@ -107,7 +107,7 @@ async def get_programme_course_mapping_page(
 
     departments = await InstitutionDepartment.find(
         Eq(InstitutionDepartment.tenant_id, tenant_id),
-        Eq(InstitutionDepartment.status, DepartmentStatus.ACTIVE),
+        In(InstitutionDepartment.status, [DepartmentStatus.ACTIVE, DepartmentStatus.DRAFT]),
     ).sort("+department_code").to_list()
     academic_departments = [
         d

@@ -254,6 +254,20 @@ async def test_institution_profile_and_campus(db_ready) -> None:
     assert info_saved.form.description == "Published description"
     assert not info_saved.has_draft
 
+    await publish_institution_information(
+        scope,
+        {
+            **info_saved.form.model_dump(mode="json"),
+            "institution_code": "",
+            "affiliation_id": "",
+            "aishe_code": "",
+            "contact_fax": "",
+        },
+    )
+    after_empty_optional = await get_institution_information_page(scope)
+    # Blank optional codes are ignored (do not clear existing stored values).
+    assert after_empty_optional.form.institution_code == "INST001"
+
     branding = await get_institution_branding_page(scope)
     assert branding.primary_logo.upload_hint
     assert len(branding.brand_assets) == 5

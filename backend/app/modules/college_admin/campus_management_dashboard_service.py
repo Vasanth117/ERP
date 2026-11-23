@@ -306,7 +306,7 @@ async def get_campus_management_dashboard(scope: AccessScope) -> CampusManagemen
         facilities=facility_summaries,
         open_issues=issues,
         operations_href="/college-admin/operations",
-        add_campus_href="/college-admin/institution/campuses#add-campus",
+        add_campus_href="/college-admin/institution/campuses/new",
         footer_disclaimer=(
             "Live institutional data · Campuses, facilities and maintenance records · All times IST"
         ),

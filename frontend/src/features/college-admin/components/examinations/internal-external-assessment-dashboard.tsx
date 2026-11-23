@@ -10,13 +10,6 @@ import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useInternalExternalAssessmentPage, useSaveInternalExternalAssessment } from "@/features/college-admin/hooks/use-internal-external-assessment";
 import { cn } from "@/lib/utils";
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function InternalExternalAssessmentDashboard() {
   const { data, isLoading, isError, error, refetch } = useInternalExternalAssessmentPage();
@@ -139,10 +132,6 @@ export function InternalExternalAssessmentDashboard() {
               </aside>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">{data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}</p>
-            </footer>
           </>
         ) : null}
       </QueryState>

@@ -99,17 +99,6 @@ function CapacityBar({ assigned, capacity, tone }: { assigned: number; capacity:
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function FacultySubjectAllocationDashboard() {
   const router = useRouter();
@@ -236,10 +225,6 @@ export function FacultySubjectAllocationDashboard() {
                   </option>
                 ))}
               </select>
-              <span className="rounded-full bg-[#eff6ff] px-2.5 py-0.5 text-[11px] font-medium text-[#1d4ed8]">
-                {data.scope_indicator_label}
-              </span>
-              <span className="ml-auto text-[11px] tabular-nums">{data.updated_at_label}</span>
             </div>
           ) : null}
         </div>
@@ -334,12 +319,6 @@ export function FacultySubjectAllocationDashboard() {
               </Section>
             </div>
 
-            <footer className="flex flex-col gap-1 border-t border-[#f1f5f9] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <span>{data.footer_disclaimer}</span>
-              <span>
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 from beanie import PydanticObjectId
@@ -212,10 +213,11 @@ async def get_user_management_dashboard_page(
     departments = await Department.find(Eq(Department.tenant_id, tenant_id)).to_list()
     dept_by_id = {d.id: d for d in departments}
 
-    recent: list[UserDashboardRecentRow] = []
+    recent_candidates: list[tuple[datetime, UserDashboardRecentRow]] = []
     sorted_users = sorted(filtered_users, key=lambda u: u.created_at, reverse=True)
     created_in_range = [u for u in sorted_users if as_utc_aware(u.created_at) >= cutoff]
-    for user in created_in_range[:4]:
+    all_user_emails = {u.email.lower() for u in users}
+    for user in created_in_range:
         inst = institution_by_user.get(user.id)
         dept_label = "—"
         if user.department_id and user.department_id in dept_by_id:
@@ -227,19 +229,48 @@ async def get_user_management_dashboard_page(
         )
         status = inst.account_status if inst else InstitutionAccountStatus.ACTIVE
         code, label, tone = _status_presentation(status, invited)
-        recent.append(
-            UserDashboardRecentRow(
-                user_id=str(user.id),
-                user_name=user.full_name,
-                role_label=role_name,
-                department_label=dept_label,
-                created_label=_format_created(user.created_at),
-                status_code=code,
-                status_label=label,
-                status_tone=tone,
-                detail_href=f"/college-admin/users/user-details?userId={user.id}",
-            )
+        recent_candidates.append(
+            (
+                user.created_at,
+                UserDashboardRecentRow(
+                    user_id=str(user.id),
+                    user_name=user.full_name,
+                    role_label=role_name,
+                    department_label=dept_label,
+                    created_label=_format_created(user.created_at),
+                    status_code=code,
+                    status_label=label,
+                    status_tone=tone,
+                    detail_href=f"/college-admin/users/user-details?userId={user.id}",
+                ),
+            ),
         )
+    for inv in pending_invites:
+        if inv.email.lower() in all_user_emails:
+            continue
+        if as_utc_aware(inv.created_at) < cutoff:
+            continue
+        dept_label = "—"
+        if inv.department_id and inv.department_id in dept_by_id:
+            dept_label = dept_by_id[inv.department_id].name
+        recent_candidates.append(
+            (
+                inv.created_at,
+                UserDashboardRecentRow(
+                    user_id=f"inv:{inv.id}",
+                    user_name=inv.full_name,
+                    role_label=_role_label(inv.intended_role),
+                    department_label=dept_label,
+                    created_label=_format_created(inv.created_at),
+                    status_code="invited",
+                    status_label="Invited",
+                    status_tone="info",
+                    detail_href=f"/college-admin/users/all-users-list?search={quote(inv.email)}",
+                ),
+            ),
+        )
+    recent_candidates.sort(key=lambda pair: pair[0], reverse=True)
+    recent = [row for _, row in recent_candidates[:4]]
 
     finance_without_mfa = sum(1 for u in filtered_users if u.role in _FINANCE_ROLES)
     open_mfa_events = await InstitutionSecurityEvent.find(

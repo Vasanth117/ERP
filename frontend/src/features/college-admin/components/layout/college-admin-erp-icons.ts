@@ -16,6 +16,7 @@ import { CircleIcon } from "@/components/icons/erp/generated/circle";
 import { ClipboardListIcon } from "@/components/icons/erp/generated/clipboard-list";
 import { DatabaseIcon } from "@/components/icons/erp/generated/database";
 import { DownloadIcon } from "@/components/icons/erp/generated/download";
+import { GitBranchIcon } from "@/components/icons/erp/generated/git-branch";
 import { GraduationCapIcon } from "@/components/icons/erp/generated/graduation-cap";
 import { HotelIcon } from "@/components/icons/erp/generated/hotel";
 import { IdCardIcon } from "@/components/icons/erp/generated/id-card";
@@ -92,6 +93,7 @@ const ERP_ICON_COMPONENTS: Partial<Record<ErpIconName, ErpIconComponent>> = {
   users: UsersIcon,
   network: NetworkIcon,
   "book-open": BookOpenIcon,
+  "git-branch": GitBranchIcon,
   "graduation-cap": GraduationCapIcon,
   "id-card": IdCardIcon,
   "calendar-check": CalendarCheckIcon,

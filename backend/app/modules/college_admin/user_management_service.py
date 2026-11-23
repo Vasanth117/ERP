@@ -20,6 +20,7 @@ from app.modules.audit.models import AuditLog
 from app.modules.audit.service import record_audit
 from app.modules.auth.models import User
 from app.modules.auth.token_service import revoke_all_for_user
+from app.modules.students.models import StudentProfile
 from app.modules.college_admin.identity_models import (
     AccessHistoryEvent,
     InstitutionAccessHistory,
@@ -187,6 +188,7 @@ async def invite_institution_user(scope: AccessScope, payload: InstitutionUserIn
 
     settings = get_settings()
     plain = secrets.token_urlsafe(48)
+    reference_id = (payload.provisioning_reference_id or "").strip() or None
     invitation = InstitutionUserInvitation(
         tenant_id=tenant_id,
         email=email,
@@ -195,6 +197,7 @@ async def invite_institution_user(scope: AccessScope, payload: InstitutionUserIn
         department_id=department_id,
         campus_id=campus_id,
         institution_role_id=role_id,
+        provisioning_reference_id=reference_id,
         token_hash=hash_refresh_token(plain),
         expires_at=utcnow() + timedelta(hours=settings.invitation_expire_hours),
         created_by=scope.user_id,
@@ -259,6 +262,43 @@ async def accept_institution_invitation(payload: InvitationAccept) -> Institutio
             institution_role_id=invitation.institution_role_id,
             assigned_by=invitation.created_by,
         ).insert()
+
+    extras = dict(invitation.provisioning_extras or {})
+    if invitation.provisioning_reference_id:
+        extras.setdefault("public_id", invitation.provisioning_reference_id)
+    if extras:
+        from app.modules.college_admin.create_new_user_page_service import (
+            _coerce_form_values,
+            apply_user_provisioning,
+        )
+
+        merged = {
+            "user_type": "student" if invitation.intended_role == Role.STUDENT else "teaching_staff",
+            **extras,
+        }
+        form = _coerce_form_values(merged)
+        await apply_user_provisioning(
+            invitation.tenant_id,
+            user.id,
+            invitation.intended_role,
+            form,
+            department_id=invitation.department_id,
+            campus_id=invitation.campus_id,
+        )
+    elif invitation.intended_role == Role.STUDENT and invitation.provisioning_reference_id:
+        reference_id = invitation.provisioning_reference_id.strip()
+        existing_profile = await StudentProfile.find_one(
+            Eq(StudentProfile.tenant_id, invitation.tenant_id),
+            Eq(StudentProfile.user_id, user.id),
+        )
+        if existing_profile is None:
+            await StudentProfile(
+                tenant_id=invitation.tenant_id,
+                user_id=user.id,
+                roll_number=reference_id,
+                student_id=reference_id,
+                department_id=invitation.department_id,
+            ).insert()
 
     invitation.status = InvitationStatus.ACCEPTED
     invitation.accepted_at = utcnow()

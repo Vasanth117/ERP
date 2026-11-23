@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { CollegeAdminDashboardPanel as Panel } from "@/features/college-admin/components/ui/dashboard-panel-ui";
-import { useCallback, useEffect, useId, useState, type ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
 
 import { LandmarkIcon } from "@/components/icons/erp/generated/landmark";
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   CollegeAdminDownload,
   getCollegeAdminErpIcon,
@@ -16,10 +14,7 @@ import {
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { CollegeAdminKpiCard, CollegeAdminKpiGrid } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
-import {
-  useCampusManagementDashboard,
-  useCreateCampus,
-} from "@/features/college-admin/hooks/use-institution";
+import { useCampusManagementDashboard } from "@/features/college-admin/hooks/use-institution";
 import type { CampusOpenIssue, ClassroomUtilizationBar } from "@/features/college-admin/types/institution";
 import { cn } from "@/lib/utils";
 
@@ -101,34 +96,12 @@ function IssueBadge({ issue }: { issue: CampusOpenIssue }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function CampusManagementDashboard() {
   const { data, isLoading, isError, error, refetch } =
     useCampusManagementDashboard();
-  const create = useCreateCampus();
-  const [addOpen, setAddOpen] = useState(false);
-  const [campusCode, setCampusCode] = useState("");
-  const [campusName, setCampusName] = useState("");
-  const codeId = useId();
-  const nameId = useId();
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.location.hash === "#add-campus") {
-      setAddOpen(true);
-    }
-  }, []);
+  const addCampusHref =
+    data?.add_campus_href ?? "/college-admin/institution/campuses/new";
 
   const handleExport = useCallback(() => {
     if (!data) return;
@@ -142,26 +115,6 @@ export function CampusManagementDashboard() {
     a.click();
     URL.revokeObjectURL(url);
   }, [data]);
-
-  const submitCreate = () => {
-    if (!campusCode.trim() || !campusName.trim()) return;
-    create.mutate(
-      { campus_code: campusCode.trim(), name: campusName.trim(), is_main: false },
-      {
-        onSuccess: (campus) => {
-          setAddOpen(false);
-          setCampusCode("");
-          setCampusName("");
-          if (typeof window !== "undefined" && window.location.hash) {
-            window.history.replaceState(null, "", window.location.pathname);
-          }
-          window.location.href = campus.campus_id
-            ? `/college-admin/institution/campuses/${campus.campus_id}`
-            : "/college-admin/institution/campuses";
-        },
-      },
-    );
-  };
 
   return (
     <div className="space-y-5" data-figma-frame="72:7199">
@@ -186,15 +139,17 @@ export function CampusManagementDashboard() {
             <CollegeAdminDownload className="size-3.5" />
             {data?.export_label ?? "Export"}
           </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-            onClick={() => setAddOpen(true)}
-            disabled={!data}
+          <Link
+            href={addCampusHref}
+            aria-disabled={!data}
+            className={cn(
+              "inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]",
+              !data && "pointer-events-none opacity-50",
+            )}
           >
             <PlusIcon className="size-3.5" aria-hidden />
             {data?.add_campus_label ?? "Add campus"}
-          </Button>
+          </Link>
         </div>
       </div>
 
@@ -355,67 +310,10 @@ export function CampusManagementDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>
 
-      {addOpen ? (
-        <section
-          id="add-campus"
-          className="rounded-xl border border-[#dbeafe] bg-[#f8fafc] p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-        >
-          <h3 className="text-[14px] font-semibold text-[#111827]">Add campus</h3>
-          <p className="mt-1 text-[12px] text-[#6b7280]">
-            Register a new campus with a unique code and official name.
-          </p>
-          <div className="mt-4 grid max-w-md gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor={codeId}>Campus code</Label>
-              <Input
-                id={codeId}
-                value={campusCode}
-                onChange={(e) => setCampusCode(e.target.value)}
-                placeholder="e.g. MAIN"
-                autoComplete="off"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor={nameId}>Campus name</Label>
-              <Input
-                id={nameId}
-                value={campusName}
-                onChange={(e) => setCampusName(e.target.value)}
-                placeholder="Official campus name"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setAddOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="bg-[#245dd8] hover:bg-[#1f4fb8]"
-              disabled={
-                create.isPending || !campusCode.trim() || !campusName.trim()
-              }
-              onClick={submitCreate}
-            >
-              {create.isPending ? "Creating…" : "Create campus"}
-            </Button>
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

@@ -98,7 +98,7 @@ async def get_department_management_dashboard_page(
 
     departments = await InstitutionDepartment.find(
         Eq(InstitutionDepartment.tenant_id, tenant_id),
-        Eq(InstitutionDepartment.status, DepartmentStatus.ACTIVE),
+        In(InstitutionDepartment.status, [DepartmentStatus.ACTIVE, DepartmentStatus.DRAFT]),
     ).to_list()
     if campus_oid is not None:
         departments = [d for d in departments if campus_oid in d.campus_ids or not d.campus_ids]
@@ -195,7 +195,14 @@ async def get_department_management_dashboard_page(
         for k in ("engineering", "science", "management")
         if category_counts.get(k, 0) > 0
     ]
-    departments_hint = " · ".join(dept_hint_parts) if dept_hint_parts else f"{dept_count} active"
+    active_dept_count = sum(1 for d in departments if d.status == DepartmentStatus.ACTIVE)
+    draft_dept_count = dept_count - active_dept_count
+    if dept_hint_parts:
+        departments_hint = " · ".join(dept_hint_parts)
+    elif draft_dept_count:
+        departments_hint = f"{active_dept_count} active · {draft_dept_count} draft"
+    else:
+        departments_hint = f"{active_dept_count} active"
 
     prog_hint_parts: list[str] = []
     if level_counts["undergraduate"]:

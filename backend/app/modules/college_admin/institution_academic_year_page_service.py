@@ -266,6 +266,7 @@ async def get_academic_year_configuration_page(
         copy_from_previous_label="Copy from previous year",
         new_academic_year_label="New academic year",
         save_label="Save configuration",
+        cancel_label="Cancel",
         academic_years_table_title="Academic years",
         archive_view_href="/college-admin/academics/academic-year-management",
         archive_view_label="View archive →",
@@ -308,6 +309,22 @@ async def save_academic_year_configuration(
         raise AppError(code="FORBIDDEN", message="Published academic years are immutable", status_code=403)
 
     form = payload.semester_form
+    if not form.odd_semester_start or not form.odd_semester_end:
+        raise AppError(
+            code="VALIDATION_ERROR",
+            message="Odd semester start and end dates are required",
+            status_code=422,
+        )
+    if not form.even_semester_start or not form.even_semester_end:
+        raise AppError(
+            code="VALIDATION_ERROR",
+            message="Even semester start and end dates are required",
+            status_code=422,
+        )
+    if form.odd_semester_end < form.odd_semester_start:
+        raise AppError(code="VALIDATION_ERROR", message="Odd semester end must be on or after start", status_code=422)
+    if form.even_semester_end < form.even_semester_start:
+        raise AppError(code="VALIDATION_ERROR", message="Even semester end must be on or after start", status_code=422)
     await _upsert_term(tenant_id, year.id, "ODD", "Odd", form.odd_semester_start, form.odd_semester_end)
     await _upsert_term(tenant_id, year.id, "EVEN", "Even", form.even_semester_start, form.even_semester_end)
     year.summer_term_start = form.summer_term_start

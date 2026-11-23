@@ -20,6 +20,7 @@ from app.modules.audit.service import record_audit
 from app.modules.college_admin.identity_models import InstitutionRole
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.rbac_policy import validate_custom_permissions
+from app.modules.college_admin.rbac_service import seed_tenant_permission_catalog
 from app.modules.college_admin.schemas import (
     PermissionManagementPageRead,
     PermissionManagementSavePayload,
@@ -111,6 +112,42 @@ def _column_key(role: InstitutionRole | None, base_role: Role) -> str:
     return f"base:{base_role.value}"
 
 
+async def _ensure_matrix_institution_roles(
+    tenant_id: PydanticObjectId,
+    actor_id: PydanticObjectId | None,
+) -> None:
+    """Ensure each matrix column has an editable institution role document."""
+    await seed_tenant_permission_catalog(tenant_id)
+    for base_role, label in _MATRIX_COLUMNS:
+        existing = await InstitutionRole.find_one(
+            Eq(InstitutionRole.tenant_id, tenant_id),
+            Eq(InstitutionRole.base_role, base_role),
+            Eq(InstitutionRole.is_active, True),
+        )
+        if existing is not None:
+            continue
+        role_code = base_role.value.upper()
+        duplicate_code = await InstitutionRole.find_one(
+            Eq(InstitutionRole.tenant_id, tenant_id),
+            Eq(InstitutionRole.role_code, role_code),
+        )
+        if duplicate_code is not None:
+            continue
+        granted = [p.value for p in permissions_for_role(base_role)]
+        await InstitutionRole(
+            tenant_id=tenant_id,
+            role_code=role_code,
+            name=label,
+            description=f"Default permissions for {label} at this college",
+            base_role=base_role,
+            granted_permissions=granted,
+            denied_permissions=[],
+            is_system=False,
+            is_active=True,
+            updated_by=actor_id,
+        ).insert()
+
+
 async def _resolve_role_columns(
     tenant_id: PydanticObjectId,
 ) -> list[tuple[InstitutionRole | None, Role, str]]:
@@ -184,9 +221,18 @@ async def get_permission_management_page(scope: AccessScope) -> PermissionManage
     tenant_id = require_college_tenant_scope(scope)
     can_manage = Permission.INSTITUTION_ROLE_MANAGE in scope.effective_permissions
 
+    if can_manage:
+        await _ensure_matrix_institution_roles(tenant_id, scope.user_id)
+
     resolved = await _resolve_role_columns(tenant_id)
     columns, groups, permission_columns = _build_matrix(resolved, can_manage=can_manage)
     generated = utcnow()
+    any_editable = any(col.editable for col in columns)
+    read_only_reason: str | None = None
+    if not can_manage:
+        read_only_reason = "You need role management permission to edit this matrix."
+    elif not any_editable:
+        read_only_reason = "Institution roles must exist before permissions can be edited."
 
     return PermissionManagementPageRead(
         page_title="Permission Management",
@@ -202,7 +248,8 @@ async def get_permission_management_page(scope: AccessScope) -> PermissionManage
         unsaved_changes_note="Changes will apply after you confirm with Save changes.",
         change_on_label="On",
         change_off_label="Off",
-        can_save=can_manage,
+        can_save=can_manage and any_editable,
+        matrix_read_only_reason=read_only_reason,
         footer_disclaimer="Live institution role permissions · Matrix reflects assigned grants per role · All times IST",
         footer_snapshot_label=_snapshot_label(generated),
         generated_at=generated,
@@ -234,6 +281,7 @@ async def save_permission_management_matrix(
     if not payload.changes:
         return await get_permission_management_page(scope)
 
+    await _ensure_matrix_institution_roles(tenant_id, scope.user_id)
     resolved = await _resolve_role_columns(tenant_id)
     role_by_id: dict[str, InstitutionRole] = {
         str(role.id): role for role, _, _ in resolved if role is not None

@@ -209,6 +209,12 @@ export function PermissionManagementDashboard() {
         </div>
       </div>
 
+      {data?.matrix_read_only_reason ? (
+        <div className="rounded-xl border border-[#e8ecf2] bg-[#f9fafb] px-4 py-3 text-[13px] text-[#6b7280]">
+          {data.matrix_read_only_reason}
+        </div>
+      ) : null}
+
       {data && unsavedCount > 0 ? (
         <div className="rounded-xl border border-[#fde68a] bg-[#fffbeb] px-4 py-3.5">
           <div className="flex flex-wrap items-start gap-2">
@@ -300,13 +306,6 @@ export function PermissionManagementDashboard() {
           </section>
         ) : null}
       </QueryState>
-
-      {data ? (
-        <footer className="flex flex-col gap-1 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p>{data.footer_snapshot_label}</p>
-        </footer>
-      ) : null}
     </div>
   );
 }

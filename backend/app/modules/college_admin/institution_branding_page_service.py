@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from beanie import PydanticObjectId
@@ -205,6 +206,7 @@ async def get_institution_branding_page(scope: AccessScope) -> InstitutionBrandi
             status_label=_status_label("uploaded" if doc.file_id else "missing"),
             editable=True,
             file_name=doc.file_name,
+            file_id=doc.file_id,
         )
         for doc in assets
     ]
@@ -214,6 +216,7 @@ async def get_institution_branding_page(scope: AccessScope) -> InstitutionBrandi
         primary_logo=BrandingPrimaryLogoPanel(
             upload_hint="PNG or SVG · min 512 × 512 px · transparent background",
             current_summary=current_summary,
+            file_id=(primary.file_id if primary else None) or branding.logo_file_id,
         ),
         color_fields=color_fields,
         document_templates=template_rows,
@@ -247,6 +250,9 @@ async def save_institution_branding_draft(scope: AccessScope, values: dict[str, 
 
 
 async def publish_institution_branding(scope: AccessScope, values: dict[str, Any]) -> InstitutionBrandingPageRead:
+    from app.core.form_values import normalize_form_values
+
+    values = normalize_form_values(values)
     authorize(scope, Permission.INSTITUTION_SETTINGS_MANAGE)
     tenant_id = require_college_tenant_scope(scope)
     tenant = await Tenant.get(tenant_id)
@@ -296,6 +302,36 @@ async def publish_institution_branding(scope: AccessScope, values: dict[str, Any
     )
 
     return await get_institution_branding_page(scope)
+
+
+_MIME_BY_EXT = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".svg": "image/svg+xml",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon",
+}
+
+
+async def read_institution_branding_file(
+    scope: AccessScope,
+    storage_key: str,
+) -> tuple[bytes, str, str]:
+    """Stream a tenant-scoped branding asset (logo, favicon, etc.)."""
+    authorize(scope, Permission.INSTITUTION_PROFILE_READ)
+    tenant_id = require_college_tenant_scope(scope)
+    prefix = f"{tenant_id}/"
+    if not storage_key or not storage_key.startswith(prefix):
+        raise AppError(code="FORBIDDEN", message="Invalid branding file", status_code=403)
+    if ".." in storage_key or storage_key.startswith("/"):
+        raise AppError(code="FORBIDDEN", message="Invalid branding file", status_code=403)
+
+    data = file_storage.read_bytes(storage_key)
+    ext = Path(storage_key).suffix.lower()
+    mime = _MIME_BY_EXT.get(ext, "application/octet-stream")
+    filename = Path(storage_key).name
+    return data, mime, filename
 
 
 async def upload_branding_asset(

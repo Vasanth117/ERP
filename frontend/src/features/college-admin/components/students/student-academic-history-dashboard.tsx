@@ -105,17 +105,6 @@ function RecordChangesTimeline({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function StudentAcademicHistoryDashboard() {
   const searchParams = useSearchParams();
@@ -269,12 +258,6 @@ export function StudentAcademicHistoryDashboard() {
               <RecordChangesTimeline title={data.record_changes_section_title} steps={data.record_change_steps} />
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

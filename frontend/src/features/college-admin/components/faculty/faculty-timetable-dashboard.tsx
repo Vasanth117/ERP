@@ -35,17 +35,6 @@ function Badge({ label, tone }: { label: string; tone: string }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function FacultyTimetableDashboard() {
   const searchParams = useSearchParams();
@@ -199,12 +188,6 @@ export function FacultyTimetableDashboard() {
               <p className="border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">{data.timetable_footer_label}</p>
             </section>
 
-            <footer className="flex flex-col gap-1 border-t border-[#f1f5f9] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <span>{data.footer_disclaimer}</span>
-              <span>
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

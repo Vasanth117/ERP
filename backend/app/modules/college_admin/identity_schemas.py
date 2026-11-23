@@ -34,6 +34,7 @@ class InstitutionUserInvite(BaseModel):
     department_id: str | None = None
     campus_id: str | None = None
     institution_role_id: str | None = None
+    provisioning_reference_id: str | None = Field(default=None, max_length=64)
 
 
 class InstitutionUserUpdate(BaseModel):

@@ -1,5 +1,12 @@
+import { apiBaseUrl } from "@/lib/env";
 import { apiRequest } from "@/lib/api/client";
+import { applyAuthHeaders } from "@/lib/api/auth-headers";
 
+import type {
+  CampusCreationDraftPayload,
+  CampusCreationFinishResult,
+  CampusCreationPage,
+} from "@/features/college-admin/types/campus-creation";
 import type {
   Campus,
   CampusCreate,
@@ -19,7 +26,11 @@ import type {
   InstitutionBrandingPage,
   InstitutionCalendarFormValues,
   InstitutionCalendarSettingsPage,
+  InstitutionHolidayCreatePayload,
+  InstitutionHolidayCreateResult,
   InstitutionPoliciesPage,
+  InstitutionPolicyCreatePayload,
+  InstitutionPolicyCreateResult,
   InstitutionInformationPage,
   InstitutionProfilePage,
   InstitutionProfileUpdate,
@@ -92,6 +103,17 @@ export async function publishInstitutionBranding(
   });
 }
 
+export async function fetchInstitutionBrandingFile(fileId: string): Promise<Blob> {
+  const headers = new Headers();
+  applyAuthHeaders(headers);
+  const url = `${apiBaseUrl()}/college-admin/institution/branding/files/${encodeURI(fileId)}`;
+  const response = await fetch(url, { headers, credentials: "include" });
+  if (!response.ok) {
+    throw new Error(`Failed to load branding file (${response.status})`);
+  }
+  return response.blob();
+}
+
 export async function uploadBrandingAsset(
   assetKey: string,
   file: File,
@@ -129,13 +151,33 @@ export async function fetchAcademicYearConfigurationPage(
   );
 }
 
+function normalizeSemesterForm(form: AcademicYearSemesterForm): AcademicYearSemesterForm {
+  const keys: (keyof AcademicYearSemesterForm)[] = [
+    "odd_semester_start",
+    "odd_semester_end",
+    "even_semester_start",
+    "even_semester_end",
+    "summer_term_start",
+    "summer_term_end",
+    "year_end_closing",
+  ];
+  const out = { ...form };
+  for (const key of keys) {
+    const value = out[key];
+    if (value === "" || value === undefined) {
+      out[key] = null;
+    }
+  }
+  return out;
+}
+
 export async function saveAcademicYearConfiguration(
   yearId: string,
   semesterForm: AcademicYearSemesterForm,
 ): Promise<AcademicYearConfigurationPage> {
   return apiRequest<AcademicYearConfigurationPage>(
     `/college-admin/institution/academic-year/${encodeURIComponent(yearId)}/configuration`,
-    { method: "PUT", body: { semester_form: semesterForm } },
+    { method: "PUT", body: { semester_form: normalizeSemesterForm(semesterForm) } },
   );
 }
 
@@ -181,6 +223,24 @@ export async function importInstitutionCalendarHolidays(): Promise<InstitutionCa
   });
 }
 
+export async function createInstitutionHoliday(
+  payload: InstitutionHolidayCreatePayload,
+): Promise<InstitutionHolidayCreateResult> {
+  return apiRequest<InstitutionHolidayCreateResult>("/college-admin/institution/calendar/holidays", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function createInstitutionPolicy(
+  payload: InstitutionPolicyCreatePayload,
+): Promise<InstitutionPolicyCreateResult> {
+  return apiRequest<InstitutionPolicyCreateResult>("/college-admin/institution/policies", {
+    method: "POST",
+    body: payload,
+  });
+}
+
 export async function fetchInstitutionPoliciesPage(
   params: InstitutionPoliciesQuery = {},
 ): Promise<InstitutionPoliciesPage> {
@@ -220,6 +280,28 @@ export async function resetAcademicInstitutionSettingsPage(): Promise<AcademicIn
 
 export async function fetchCampusManagementDashboard(): Promise<CampusManagementDashboard> {
   return apiRequest<CampusManagementDashboard>("/college-admin/institution/campuses/dashboard");
+}
+
+export async function fetchCampusCreationPage(campusId?: string): Promise<CampusCreationPage> {
+  const suffix = campusId ? `?campus_id=${encodeURIComponent(campusId)}` : "";
+  return apiRequest<CampusCreationPage>(`/college-admin/institution/campuses/create/page${suffix}`);
+}
+
+export async function saveCampusCreationDraft(payload: CampusCreationDraftPayload): Promise<CampusCreationPage> {
+  return apiRequest<CampusCreationPage>("/college-admin/institution/campuses/create/draft", {
+    method: "PUT",
+    body: payload,
+  });
+}
+
+export async function finishCampusCreation(payload: {
+  draft_id: string;
+  values?: Record<string, unknown>;
+}): Promise<CampusCreationFinishResult> {
+  return apiRequest<CampusCreationFinishResult>("/college-admin/institution/campuses/create/finish", {
+    method: "POST",
+    body: payload,
+  });
 }
 
 export async function fetchCampusDetailPage(campusId: string): Promise<CampusDetailPage> {

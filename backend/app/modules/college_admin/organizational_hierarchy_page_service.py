@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from beanie import PydanticObjectId
-from beanie.odm.operators.find.comparison import Eq
+from beanie.odm.operators.find.comparison import Eq, In
 
 from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
@@ -26,6 +26,7 @@ from app.modules.college_admin.identity_models import (
 from app.modules.college_admin.institution_policy_models import InstitutionPolicy
 from app.modules.college_admin.institution_service import _ensure_profile, _ensure_settings
 from app.modules.college_admin.policy import require_college_tenant_scope
+from app.modules.tenants.models import Tenant
 from app.modules.college_admin.schemas import (
     OrganizationalHierarchyNodeRead,
     OrganizationalHierarchyPageRead,
@@ -252,7 +253,10 @@ async def get_organizational_hierarchy_page(
 ) -> OrganizationalHierarchyPageRead:
     authorize(scope, Permission.INSTITUTION_ORG_READ)
     tenant_id = require_college_tenant_scope(scope)
-    profile = await _ensure_profile(tenant_id)
+    tenant = await Tenant.get(tenant_id)
+    if tenant is None:
+        raise AppError(code="NOT_FOUND", message="College not found", status_code=404)
+    profile = await _ensure_profile(tenant)
     settings_doc = await _ensure_settings(tenant_id)
     org_settings = settings_doc.settings.get("organization")
     org_settings = org_settings if isinstance(org_settings, dict) else {}
@@ -296,7 +300,7 @@ async def get_organizational_hierarchy_page(
 
     departments = await InstitutionDepartment.find(
         Eq(InstitutionDepartment.tenant_id, tenant_id),
-        Eq(InstitutionDepartment.status, DepartmentStatus.ACTIVE),
+        In(InstitutionDepartment.status, [DepartmentStatus.ACTIVE, DepartmentStatus.DRAFT]),
     ).to_list()
     units = await InstitutionOrganizationUnit.find(
         Eq(InstitutionOrganizationUnit.tenant_id, tenant_id),

@@ -91,6 +91,7 @@ def document_models() -> list[type]:
         InstitutionBranding,
         InstitutionBrandingAsset,
         InstitutionCampus,
+        InstitutionCampusCreationDraft,
     )
     from app.modules.college_admin.campus_ext_models import (
         InstitutionCampusBuilding,
@@ -1213,6 +1214,7 @@ def document_models() -> list[type]:
         TenantFeatureFlags,
         InstitutionProfile,
         InstitutionCampus,
+        InstitutionCampusCreationDraft,
         InstitutionCampusBuilding,
         InstitutionCampusEmergencyContact,
         InstitutionCampusFacilityShowcase,

@@ -147,7 +147,7 @@ async def get_department_faculty_allocation_page(
 
     departments = await InstitutionDepartment.find(
         Eq(InstitutionDepartment.tenant_id, tenant_id),
-        Eq(InstitutionDepartment.status, DepartmentStatus.ACTIVE),
+        In(InstitutionDepartment.status, [DepartmentStatus.ACTIVE, DepartmentStatus.DRAFT]),
     ).sort("+department_code").to_list()
 
     faculty_records = await FacultyRecord.find(Eq(FacultyRecord.tenant_id, tenant_id)).to_list()

@@ -345,7 +345,6 @@ export function EditUserInformationDashboard() {
               </div>
             </footer>
 
-            <p className="text-[11px] text-[#9ca3af]">{data.footer_disclaimer}</p>
           </>
         ) : null}
       </QueryState>

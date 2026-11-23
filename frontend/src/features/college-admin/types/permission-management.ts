@@ -39,6 +39,7 @@ export type PermissionManagementPage = {
   change_on_label: string;
   change_off_label: string;
   can_save: boolean;
+  matrix_read_only_reason: string | null;
   footer_disclaimer: string;
   footer_snapshot_label: string;
   generated_at: string;

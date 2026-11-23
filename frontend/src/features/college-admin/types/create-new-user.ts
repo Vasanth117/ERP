@@ -49,10 +49,27 @@ export type CreateNewUserFormValues = {
   designation: string | null;
   campus_id: string | null;
   institution_role_id: string | null;
+  initial_password: string;
   send_invitation_email: boolean;
   send_sms_login_link: boolean;
   require_mfa_first_login: boolean;
   allow_sso_login: boolean;
+  previous_school: string;
+  programme_code: string;
+  batch_label: string;
+  section_code: string;
+  permanent_address: string;
+  current_address: string;
+  guardian_name: string;
+  guardian_relationship: string;
+  guardian_mobile: string;
+  blood_group: string | null;
+  nationality: string | null;
+  specialization: string;
+  experience_years: string;
+  profile_photo_ref: string | null;
+  identity_document_ref: string | null;
+  supporting_document_ref: string | null;
 };
 
 export type CreateNewUserPage = {
@@ -74,6 +91,12 @@ export type CreateNewUserPage = {
   designation_options: InstitutionFieldOption[];
   campus_options: InstitutionFieldOption[];
   institution_role_options: InstitutionFieldOption[];
+  student_field_meta: InstitutionFieldMeta[];
+  staff_field_meta: InstitutionFieldMeta[];
+  document_field_meta: InstitutionFieldMeta[];
+  guardian_relationship_options: InstitutionFieldOption[];
+  blood_group_options: InstitutionFieldOption[];
+  nationality_options: InstitutionFieldOption[];
   invitation_settings: CreateNewUserToggleSetting[];
   validation_checks: CreateNewUserValidationCheck[];
   review_lines: CreateNewUserReviewLine[];

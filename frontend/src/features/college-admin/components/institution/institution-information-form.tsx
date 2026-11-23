@@ -6,16 +6,19 @@ import { useForm } from "react-hook-form";
 
 import { BookOpenIcon } from "@/components/icons/erp/generated/book-open";
 import { CheckIcon } from "@/components/icons/erp/generated/check";
-import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
 import { GraduationCapIcon } from "@/components/icons/erp/generated/graduation-cap";
 import { IdCardIcon } from "@/components/icons/erp/generated/id-card";
 import { InfoIcon } from "@/components/icons/erp/generated/info";
 import { LockIcon } from "@/components/icons/erp/generated/lock";
 import { ReceiptIcon } from "@/components/icons/erp/generated/receipt";
-import { XIcon } from "@/components/icons/erp/generated/x";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  InstitutionPageActionFooter,
+  institutionActionButtonOutline,
+  institutionActionButtonPrimary,
+} from "@/features/college-admin/components/institution/institution-page-action-footer";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useInstitutionInformationPage,
@@ -28,6 +31,7 @@ import type {
   InstitutionInformationFormValues,
   InstitutionInformationPage,
 } from "@/features/college-admin/types/institution";
+import { normalizeFormPayload } from "@/lib/form-values";
 import { cn } from "@/lib/utils";
 
 const USAGE_ICONS = [GraduationCapIcon, ReceiptIcon, BookOpenIcon, IdCardIcon];
@@ -119,15 +123,16 @@ function buildDefaults(page: InstitutionInformationPage): InstitutionInformation
 }
 
 function toPayload(values: InstitutionInformationFormValues): Record<string, unknown> {
-  return {
-    ...values,
-    display_name: values.legal_name,
+  const normalized = normalizeFormPayload(values as Record<string, unknown>);
+  return normalizeFormPayload({
+    ...normalized,
+    display_name: normalized.legal_name ?? values.legal_name,
     year_established:
       values.year_established !== null && values.year_established !== undefined
         ? Number(values.year_established)
         : null,
     autonomous_status_valid_until: values.autonomous_status_valid_until || null,
-  };
+  });
 }
 
 export function InstitutionInformationForm() {
@@ -165,45 +170,13 @@ export function InstitutionInformationForm() {
   return (
     <div className="space-y-5" data-figma-frame="72:6332">
       <MotionHeader>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <Link
-              href="/college-admin/institution/profile"
-              className="mt-1 inline-flex size-8 items-center justify-center rounded-md border border-[#e5e7eb] bg-white text-[#374151] hover:bg-[#f9fafb]"
-              aria-label="Back to institution profile"
-            >
-              <ChevronLeftIcon className="size-4" />
-            </Link>
-            <div>
-              <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-                Institution Information
-              </h2>
-              <p className="mt-1 text-[14px] text-[#6b7280]">
-                Edit the official details shown on certificates, receipts and reports.
-              </p>
-            </div>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-9 gap-1.5 border-[#dce3ec] text-xs"
-              onClick={discard}
-              disabled={isBusy || !data}
-            >
-              <XIcon className="size-3.5" aria-hidden />
-              Discard
-            </Button>
-            <Button
-              type="button"
-              className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-              onClick={() => void submitPublish()}
-              disabled={isBusy || !data}
-            >
-              <CheckIcon className="size-3.5" aria-hidden />
-              Save changes
-            </Button>
-          </div>
+        <div className="min-w-0">
+          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
+            Institution Information
+          </h2>
+          <p className="mt-1 text-[14px] text-[#6b7280]">
+            Edit the official details shown on certificates, receipts and reports.
+          </p>
         </div>
       </MotionHeader>
 
@@ -411,37 +384,35 @@ export function InstitutionInformationForm() {
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 -mx-1 flex flex-col gap-3 border-t border-[#e8ecf2] bg-[#f8fafc]/95 px-1 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[11px] text-[#9ca3af]">{data.footer_note}</p>
-              <div className="flex flex-wrap justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-9 border-[#dce3ec] text-xs"
-                  onClick={discard}
-                  disabled={isBusy}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-9 border-[#dce3ec] text-xs"
-                  onClick={() => void handleSaveDraft()}
-                  disabled={isBusy}
-                >
-                  Save draft
-                </Button>
-                <Button
-                  type="button"
-                  className="h-9 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-                  onClick={() => void submitPublish()}
-                  disabled={isBusy}
-                >
-                  Save changes
-                </Button>
-              </div>
-            </div>
+            <InstitutionPageActionFooter note={data.footer_note}>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                onClick={discard}
+                disabled={isBusy}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                onClick={() => void handleSaveDraft()}
+                disabled={isBusy}
+              >
+                Save draft
+              </Button>
+              <Button
+                type="button"
+                className={institutionActionButtonPrimary}
+                onClick={() => void submitPublish()}
+                disabled={isBusy}
+              >
+                <CheckIcon className="size-3.5" aria-hidden />
+                Save changes
+              </Button>
+            </InstitutionPageActionFooter>
           </>
         ) : null}
       </QueryState>

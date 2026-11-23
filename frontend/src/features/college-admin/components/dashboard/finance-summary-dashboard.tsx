@@ -431,9 +431,6 @@ export function FinanceSummaryDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-wrap justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>Live institutional data · Fees, payments and scholarships · All times IST</span>
-            </footer>
           </>
         ) : null}
       </QueryState>

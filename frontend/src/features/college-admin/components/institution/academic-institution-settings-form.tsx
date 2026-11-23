@@ -13,6 +13,11 @@ import {
   getCollegeAdminErpIcon,
   resolveCollegeAdminIconSlug,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import {
+  InstitutionPageActionFooter,
+  institutionActionButtonOutline,
+  institutionActionButtonPrimary,
+} from "@/features/college-admin/components/institution/institution-page-action-footer";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useAcademicInstitutionSettingsPage,
@@ -178,45 +183,23 @@ export function AcademicInstitutionSettingsForm() {
 
   return (
     <div className="space-y-5" data-figma-frame="72:8395">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Academic Institution Settings"}
-          </h2>
-          <p className="mt-1 max-w-2xl text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ??
-              "College-wide academic rules applied to every department and programme"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs"
-            disabled={!data || reset.isPending}
-            onClick={() => reset.mutate()}
-          >
-            <CollegeAdminRefreshCw className="size-3.5" />
-            {data?.reset_label ?? "Reset to defaults"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-            disabled={!data || save.isPending}
-            onClick={() => void form.handleSubmit((values) => save.mutate(values))()}
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            {data?.save_label ?? "Save settings"}
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
+          {data?.page_title ?? "Academic Institution Settings"}
+        </h2>
+        <p className="mt-1 max-w-2xl text-[14px] text-[#6b7280]">
+          {data?.page_subtitle ??
+            "College-wide academic rules applied to every department and programme"}
+        </p>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <form
             onSubmit={form.handleSubmit((values) => save.mutate(values))}
-            className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]"
+            className="space-y-5"
           >
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
             <div className="space-y-5">
               {data.field_groups.map((group) => (
                 <Section key={group.key} title={group.title}>
@@ -262,27 +245,28 @@ export function AcademicInstitutionSettingsForm() {
 
               <AppliesPanel page={data} />
             </div>
-
-            <div className="col-span-full flex flex-col gap-3 border-t border-[#e8ecf2] pt-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[12px] text-[#6b7280]">{data.footer_note}</p>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={reset.isPending}
-                  onClick={() => reset.mutate()}
-                >
-                  Reset
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-[#245dd8] hover:bg-[#1f4fb8]"
-                  disabled={save.isPending}
-                >
-                  {data.save_label}
-                </Button>
-              </div>
             </div>
+
+            <InstitutionPageActionFooter note={data.footer_note}>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(institutionActionButtonOutline, "gap-1.5")}
+                disabled={reset.isPending}
+                onClick={() => reset.mutate()}
+              >
+                <CollegeAdminRefreshCw className="size-3.5" aria-hidden />
+                {data.reset_label}
+              </Button>
+              <Button
+                type="submit"
+                className={institutionActionButtonPrimary}
+                disabled={save.isPending}
+              >
+                <CheckIcon className="size-3.5" aria-hidden />
+                {data.save_label}
+              </Button>
+            </InstitutionPageActionFooter>
           </form>
         ) : null}
       </QueryState>

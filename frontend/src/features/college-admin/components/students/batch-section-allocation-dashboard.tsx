@@ -132,17 +132,6 @@ function MiniPager({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function BatchSectionAllocationDashboard() {
   const [sectionPage, setSectionPage] = useState(1);
@@ -324,7 +313,6 @@ export function BatchSectionAllocationDashboard() {
             <aside className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <div className="border-b border-[#f1f5f9] px-5 py-3.5">
                 <h3 className="text-[14px] font-semibold text-[#111827]">{data.allocation_rules_title}</h3>
-                <p className="mt-0.5 text-[11px] text-[#9ca3af]">{data.updated_at_label}</p>
               </div>
               <div className="space-y-4 px-5 py-5">
                 {data.allocation_rules_fields.map((field) => (
@@ -340,15 +328,6 @@ export function BatchSectionAllocationDashboard() {
           </div>
         ) : null}
       </QueryState>
-
-      {data ? (
-        <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-          <p>{data.footer_disclaimer}</p>
-          <p className="tabular-nums">
-            {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-          </p>
-        </footer>
-      ) : null}
     </div>
   );
 }

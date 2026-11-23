@@ -17,6 +17,7 @@ import {
   getCollegeAdminErpIcon,
   resolveCollegeAdminIconSlug,
 } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { InstitutionIdentityMark } from "@/features/college-admin/components/institution/institution-identity-mark";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useInstitutionProfilePage } from "@/features/college-admin/hooks/use-institution";
 import type {
@@ -95,17 +96,11 @@ function CompletenessRow({ row }: { row: ProfileCompletenessRow }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
+function websiteHref(url: string) {
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
 }
+
 
 export function InstitutionProfileDashboard() {
   const { data, isLoading, isError, error, refetch } = useInstitutionProfilePage();
@@ -128,16 +123,7 @@ export function InstitutionProfileDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="72:5933">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            Institution Profile
-          </h2>
-          <p className="mt-1 max-w-2xl text-[14px] leading-relaxed text-[#6b7280]">
-            Official identity, affiliation and leadership of the institution
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
             variant="outline"
@@ -155,7 +141,6 @@ export function InstitutionProfileDashboard() {
             <PencilIcon className="size-3.5" aria-hidden />
             Edit information
           </Link>
-        </div>
       </div>
 
       <QueryState
@@ -168,23 +153,48 @@ export function InstitutionProfileDashboard() {
           <>
             <section className="rounded-xl border border-[#e8ecf2] bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                <div
-                  className="flex size-16 shrink-0 items-center justify-center rounded-xl text-white"
-                  style={{ backgroundColor: accent }}
-                >
-                  <LandmarkIcon className="size-8" aria-hidden />
-                </div>
+                <InstitutionIdentityMark
+                  displayName={data.display_name}
+                  logoFileId={data.branding_logo_file_id}
+                  accent={accent}
+                  showUploadHint={!data.branding_logo_file_id}
+                />
                 <div className="min-w-0 flex-1 space-y-2.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-[18px] font-bold text-[#111827]">
                       {data.display_name}
                     </h3>
+                    {profile?.short_name &&
+                    profile.short_name !== data.display_name ? (
+                      <span className="text-[13px] font-medium text-[#6b7280]">
+                        ({profile.short_name})
+                      </span>
+                    ) : null}
                     {data.status_badges.map((badge) => (
                       <StatusBadge key={badge.label} badge={badge} />
                     ))}
                   </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {profile?.institution_code ? (
+                      <span className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-2 py-0.5 font-mono text-[11px] font-medium text-[#374151]">
+                        {profile.institution_code}
+                      </span>
+                    ) : null}
+                    {profile?.tenant_code ? (
+                      <span className="text-[11px] text-[#9ca3af]">
+                        Tenant · {profile.tenant_code}
+                      </span>
+                    ) : null}
+                  </div>
                   {data.subtitle_line ? (
-                    <p className="text-[13px] text-[#6b7280]">{data.subtitle_line}</p>
+                    <p className="text-[13px] leading-relaxed text-[#6b7280]">
+                      {data.subtitle_line}
+                    </p>
+                  ) : null}
+                  {profile?.description ? (
+                    <p className="max-w-3xl text-[13px] leading-relaxed text-[#4b5563]">
+                      {profile.description}
+                    </p>
                   ) : null}
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px] text-[#4b5563]">
                     {data.location_label ? (
@@ -194,22 +204,33 @@ export function InstitutionProfileDashboard() {
                       </span>
                     ) : null}
                     {profile?.official_website ? (
-                      <span className="inline-flex items-center gap-1.5">
+                      <a
+                        href={websiteHref(profile.official_website)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[#245dd8] hover:underline"
+                      >
                         <GlobeIcon className="size-3.5 text-[#9ca3af]" aria-hidden />
                         {profile.official_website.replace(/^https?:\/\//, "")}
-                      </span>
+                      </a>
                     ) : null}
                     {profile?.institution_email ? (
-                      <span className="inline-flex items-center gap-1.5">
+                      <a
+                        href={`mailto:${profile.institution_email}`}
+                        className="inline-flex items-center gap-1.5 hover:text-[#245dd8]"
+                      >
                         <MailIcon className="size-3.5 text-[#9ca3af]" aria-hidden />
                         {profile.institution_email}
-                      </span>
+                      </a>
                     ) : null}
                     {profile?.contact_phone ? (
-                      <span className="inline-flex items-center gap-1.5">
+                      <a
+                        href={`tel:${profile.contact_phone.replace(/\s/g, "")}`}
+                        className="inline-flex items-center gap-1.5 hover:text-[#245dd8]"
+                      >
                         <PhoneIcon className="size-3.5 text-[#9ca3af]" aria-hidden />
                         {profile.contact_phone}
-                      </span>
+                      </a>
                     ) : null}
                   </div>
                 </div>
@@ -321,10 +342,6 @@ export function InstitutionProfileDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>{data.footer_disclaimer}</span>
-              <span>Snapshot · {formatSnapshot(data.generated_at)}</span>
-            </footer>
           </>
         ) : null}
       </QueryState>

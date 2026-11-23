@@ -464,11 +464,6 @@ export function FacultyStatisticsDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>
-                Live institutional data · Faculty, employee and attendance records · All times IST
-              </span>
-            </footer>
           </>
         ) : null}
       </QueryState>

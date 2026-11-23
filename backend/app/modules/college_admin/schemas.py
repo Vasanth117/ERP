@@ -4,7 +4,9 @@ from datetime import date, datetime
 from typing import Any
 
 from beanie import PydanticObjectId
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
+
+from app.core.form_values import blank_to_none
 
 from app.modules.college_admin.enums import DashboardDateRange, PendingApprovalCategory
 from app.modules.college_admin.models import (
@@ -174,6 +176,13 @@ class InstitutionProfileUpdate(BaseModel):
     accreditation_display: str | None = Field(default=None, max_length=200)
     autonomous_status_valid_until: date | None = None
     ugc_recognition: str | None = Field(default=None, max_length=64)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_blank_optional_strings(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        return {key: blank_to_none(value) for key, value in data.items()}
 
 
 class InstitutionProfileRead(BaseModel):
@@ -436,6 +445,83 @@ class InstitutionFieldMeta(BaseModel):
     field_type: str = "text"
 
 
+class CampusCreationWizardStep(BaseModel):
+    key: str
+    label: str
+    subtitle: str = ""
+    step_number: int
+    status: str = "pending"
+
+
+class CampusCreationFormValues(BaseModel):
+    campus_code: str = ""
+    name: str = ""
+    is_main: str = ""
+    address_line1: str = ""
+    address_line2: str = ""
+    city: str = ""
+    district: str = ""
+    state: str = ""
+    country: str = ""
+    postal_code: str = ""
+    latitude: str = ""
+    longitude: str = ""
+    contact_email: str = ""
+    contact_phone: str = ""
+    timezone: str = ""
+    locale: str = ""
+    area_acres: str = ""
+    built_up_sq_m: str = ""
+    buildings_count: str = ""
+    parking_slots: str = ""
+    planned_classrooms: str = ""
+    planned_laboratories: str = ""
+    hostel_blocks_planned: str = ""
+    library_branches_planned: str = ""
+    facilities_notes: str = ""
+
+
+class CampusCreationPageRead(BaseModel):
+    draft_id: str
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    save_draft_label: str
+    create_label: str
+    next_label: str = "Save & continue"
+    back_step_label: str = "Back"
+    current_step_key: str
+    steps: list[CampusCreationWizardStep]
+    field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    form: CampusCreationFormValues = Field(default_factory=CampusCreationFormValues)
+    timezone_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    locale_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    is_edit_mode: bool = False
+    edit_campus_id: str | None = None
+    has_draft: bool = False
+    generated_at: datetime
+
+
+class CampusCreationDraftUpdate(BaseModel):
+    draft_id: str | None = None
+    step_key: str | None = None
+    values: dict[str, Any] = Field(default_factory=dict)
+    advance: bool = False
+    retreat: bool = False
+
+
+class CampusCreationFinishPayload(BaseModel):
+    draft_id: str
+    values: dict[str, Any] = Field(default_factory=dict)
+
+
+class CampusCreationFinishResult(BaseModel):
+    campus_id: str
+    detail_href: str
+    message: str = "Campus saved successfully"
+
+
 class InstitutionInformationNotice(BaseModel):
     title: str
     body: str
@@ -505,6 +591,7 @@ class BrandingColorField(BaseModel):
 class BrandingPrimaryLogoPanel(BaseModel):
     upload_hint: str
     current_summary: str | None = None
+    file_id: str | None = None
 
 
 class BrandingAssetRow(BaseModel):
@@ -515,6 +602,7 @@ class BrandingAssetRow(BaseModel):
     status_label: str
     editable: bool = True
     file_name: str | None = None
+    file_id: str | None = None
 
 
 class BrandingDocumentTemplateRow(BaseModel):
@@ -784,6 +872,25 @@ class AcademicYearSemesterForm(BaseModel):
     summer_term_end: date | None = None
     year_end_closing: date | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def empty_strings_to_none(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        out = dict(data)
+        for key in (
+            "odd_semester_start",
+            "odd_semester_end",
+            "even_semester_start",
+            "even_semester_end",
+            "summer_term_start",
+            "summer_term_end",
+            "year_end_closing",
+        ):
+            if key in out and (out[key] == "" or out[key] is None):
+                out[key] = None
+        return out
+
 
 class AcademicYearSemesterFieldMeta(BaseModel):
     key: str
@@ -815,6 +922,7 @@ class AcademicYearConfigurationPageRead(BaseModel):
     copy_from_previous_label: str
     new_academic_year_label: str
     save_label: str
+    cancel_label: str
     academic_years_table_title: str
     archive_view_href: str
     archive_view_label: str
@@ -871,6 +979,24 @@ class InstitutionPolicyReviewItem(BaseModel):
     status_code: str
     status_label: str
     status_tone: str
+
+
+class InstitutionPolicyCreate(BaseModel):
+    title: str = Field(min_length=2, max_length=200)
+    category: str = Field(min_length=2, max_length=64)
+    audience: str = Field(min_length=2, max_length=64)
+    version_label: str = Field(default="1.0", min_length=1, max_length=32)
+    effective_from: date | None = None
+    status: str = Field(default="draft", max_length=32)
+    owner_label: str | None = Field(default=None, max_length=200)
+    approved_by_label: str | None = Field(default=None, max_length=300)
+    acknowledgement_requirement: str | None = Field(default=None, max_length=200)
+
+
+class InstitutionPolicyCreateResult(BaseModel):
+    policy_id: str
+    title: str
+    message: str = "Policy created successfully"
 
 
 class PoliciesPagination(BaseModel):
@@ -1447,6 +1573,21 @@ class InstitutionCalendarHolidayRow(BaseModel):
     applies_to_label: str
 
 
+class InstitutionHolidayCreate(BaseModel):
+    academic_year_id: str
+    title: str = Field(min_length=2, max_length=200)
+    start_date: date
+    end_date: date | None = None
+    holiday_type: str = Field(default="institution", max_length=32)
+    applies_to: str = Field(default="all", max_length=32)
+
+
+class InstitutionHolidayCreateResult(BaseModel):
+    holiday_id: str
+    title: str
+    message: str = "Holiday added successfully"
+
+
 class InstitutionCalendarFormValues(BaseModel):
     working_days: str
     saturday_pattern: str
@@ -1479,6 +1620,12 @@ class InstitutionCalendarSettingsPageRead(BaseModel):
     holidays_section_title: str
     add_holiday_label: str
     add_holiday_href: str
+    add_holiday_dialog_title: str = "Add holiday"
+    add_holiday_dialog_subtitle: str = "Register a holiday for the selected academic year"
+    create_holiday_save_label: str = "Add holiday"
+    create_holiday_cancel_label: str = "Cancel"
+    create_holiday_type_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    create_holiday_applies_options: list[InstitutionFieldOption] = Field(default_factory=list)
     holiday_table_headers: list[str]
     holidays: list[InstitutionCalendarHolidayRow]
     holiday_count_label: str
@@ -1714,10 +1861,27 @@ class CreateNewUserFormValues(BaseModel):
     designation: str | None = None
     campus_id: str | None = None
     institution_role_id: str | None = None
-    send_invitation_email: bool = True
+    initial_password: str = ""
+    send_invitation_email: bool = False
     send_sms_login_link: bool = False
     require_mfa_first_login: bool = True
     allow_sso_login: bool = True
+    previous_school: str = ""
+    programme_code: str = ""
+    batch_label: str = ""
+    section_code: str = ""
+    permanent_address: str = ""
+    current_address: str = ""
+    guardian_name: str = ""
+    guardian_relationship: str = ""
+    guardian_mobile: str = ""
+    blood_group: str | None = None
+    nationality: str | None = None
+    specialization: str = ""
+    experience_years: str = ""
+    profile_photo_ref: str | None = None
+    identity_document_ref: str | None = None
+    supporting_document_ref: str | None = None
 
 
 class CreateNewUserPageRead(BaseModel):
@@ -1739,6 +1903,12 @@ class CreateNewUserPageRead(BaseModel):
     designation_options: list[InstitutionFieldOption]
     campus_options: list[InstitutionFieldOption]
     institution_role_options: list[InstitutionFieldOption]
+    student_field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    staff_field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    document_field_meta: list[InstitutionFieldMeta] = Field(default_factory=list)
+    guardian_relationship_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    blood_group_options: list[InstitutionFieldOption] = Field(default_factory=list)
+    nationality_options: list[InstitutionFieldOption] = Field(default_factory=list)
     invitation_settings: list[CreateNewUserToggleSetting]
     validation_checks: list[CreateNewUserValidationCheck]
     review_lines: list[CreateNewUserReviewLine] = Field(default_factory=list)
@@ -1774,6 +1944,12 @@ class CreateNewUserSubmitResponse(BaseModel):
     invitation_id: str | None = None
     detail_href: str | None = None
     accept_token: str | None = None
+
+
+class CreateNewUserProvisioningUploadRead(BaseModel):
+    file_id: str
+    file_name: str
+    kind: str
 
 
 class EditUserInformationFormValues(BaseModel):
@@ -1925,6 +2101,7 @@ class BulkUserInvitationStepPayload(BaseModel):
     step_key: str | None = None
     skip_rows_with_errors: bool | None = None
     require_mfa_first_login: bool | None = None
+    use_admin_password: bool | None = None
 
 
 class BulkUserInvitationSendResponse(BaseModel):
@@ -2106,6 +2283,7 @@ class PermissionManagementPageRead(BaseModel):
     change_on_label: str
     change_off_label: str
     can_save: bool
+    matrix_read_only_reason: str | None = None
     footer_disclaimer: str
     footer_snapshot_label: str
     generated_at: datetime
@@ -2434,6 +2612,13 @@ class InstitutionPoliciesPageRead(BaseModel):
     export_label: str
     add_policy_label: str
     add_policy_href: str
+    create_dialog_title: str = "Add policy"
+    create_dialog_subtitle: str = "Define title, audience, version and publish status"
+    create_save_label: str = "Create policy"
+    create_cancel_label: str = "Cancel"
+    create_category_options: list[InstitutionPolicyFilterOption] = Field(default_factory=list)
+    create_audience_options: list[InstitutionPolicyFilterOption] = Field(default_factory=list)
+    create_status_options: list[InstitutionPolicyFilterOption] = Field(default_factory=list)
     search_placeholder: str
     category_filter_label: str
     audience_filter_label: str

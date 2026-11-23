@@ -252,6 +252,7 @@ async def create_campus(scope: AccessScope, payload: CampusCreate) -> CampusRead
         area_acres=payload.area_acres,
         built_up_sq_m=payload.built_up_sq_m,
         buildings_count=payload.buildings_count,
+        parking_slots=payload.parking_slots,
         updated_by=scope.user_id,
     )
     await campus.insert()

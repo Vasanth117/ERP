@@ -504,11 +504,6 @@ export function StudentStatisticsDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af]">
-              <span>
-                Live institutional data · Student, hostel and admission records · All times IST
-              </span>
-            </footer>
           </>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">

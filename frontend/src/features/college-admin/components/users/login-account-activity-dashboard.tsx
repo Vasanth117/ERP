@@ -130,12 +130,7 @@ export function LoginAccountActivityDashboard() {
             onChange={setLocationFilter}
             options={data?.location_filter_options ?? [{ value: "", label: "All locations" }]}
           />
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#dce3ec] bg-white px-3 py-1 text-[11px] font-medium text-[#374151]">
-            <span className="size-1.5 rounded-full bg-[#10b981]" />
-            {data?.scope_badge_label ?? "College scope"}
-          </span>
         </div>
-        <p className="text-[12px] text-[#9ca3af]">{data?.updated_label}</p>
       </div>
 
       <QueryState query={pageQuery}>
@@ -264,10 +259,6 @@ export function LoginAccountActivityDashboard() {
               </section>
             </div>
 
-            <footer className="flex flex-col gap-1 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p>{data.footer_snapshot_label}</p>
-            </footer>
           </>
         ) : null}
       </QueryState>

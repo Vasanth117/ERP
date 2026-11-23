@@ -1,6 +1,7 @@
 import { apiBaseUrl } from "@/lib/env";
 import { type ApiResponse, unwrapApiData } from "@/lib/api/envelope";
 import { applyAuthHeaders } from "@/lib/api/auth-headers";
+import { normalizeFormPayload } from "@/lib/form-values";
 
 export type ApiRequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -36,11 +37,27 @@ export async function apiRequest<T>(
     applyAuthHeaders(requestHeaders);
   }
 
+  let jsonBody: unknown = body;
+  if (
+    body &&
+    typeof body === "object" &&
+    !Array.isArray(body) &&
+    "values" in body &&
+    body.values &&
+    typeof body.values === "object" &&
+    !Array.isArray(body.values)
+  ) {
+    jsonBody = {
+      ...(body as Record<string, unknown>),
+      values: normalizeFormPayload(body.values as Record<string, unknown>),
+    };
+  }
+
   const response = await fetch(url, {
     method,
     headers: requestHeaders,
     body:
-      rawBody ?? (body !== undefined ? JSON.stringify(body) : undefined),
+      rawBody ?? (jsonBody !== undefined ? JSON.stringify(jsonBody) : undefined),
     signal,
     credentials: "include",
   });

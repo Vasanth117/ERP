@@ -10,8 +10,10 @@ import {
   fetchAcademicYearConfigurationPage,
   saveAcademicYearConfiguration,
   fetchInstitutionCalendarSettingsPage,
+  createInstitutionHoliday,
   importInstitutionCalendarHolidays,
   saveInstitutionCalendarSettingsPage,
+  createInstitutionPolicy,
   fetchInstitutionPoliciesPage,
   fetchAcademicInstitutionSettingsPage,
   resetAcademicInstitutionSettingsPage,
@@ -175,14 +177,19 @@ export function useAcademicYearConfigurationPage(selectedYearId?: string) {
   });
 }
 
-export function useSaveAcademicYearConfiguration(yearId: string) {
+export function useSaveAcademicYearConfiguration() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (form: AcademicYearSemesterForm) =>
+    mutationFn: ({ yearId, form }: { yearId: string; form: AcademicYearSemesterForm }) =>
       saveAcademicYearConfiguration(yearId, form),
-    onSuccess: (page) => {
-      void qc.invalidateQueries({ queryKey: collegeAdminQueryKeys.academicYearPage(page.selected_year_id ?? "") });
-      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-academic-year-page"] });
+    onSuccess: (page, variables) => {
+      void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(variables.yearId), page);
+      if (page.selected_year_id && page.selected_year_id !== variables.yearId) {
+        void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(page.selected_year_id), page);
+      }
+      void qc.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "institution-academic-year-page"],
+      });
       toast.success("Academic year configuration saved");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -193,8 +200,13 @@ export function useCopyAcademicYearFromPrevious() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => copyAcademicYearFromPrevious(),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-academic-year-page"] });
+    onSuccess: (page) => {
+      if (page.selected_year_id) {
+        void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(page.selected_year_id), page);
+      }
+      void qc.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "institution-academic-year-page"],
+      });
       toast.success("Academic year copied");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -205,8 +217,13 @@ export function useCreateInstitutionAcademicYear() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => createInstitutionAcademicYear(),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-academic-year-page"] });
+    onSuccess: (page) => {
+      if (page.selected_year_id) {
+        void qc.setQueryData(collegeAdminQueryKeys.academicYearPage(page.selected_year_id), page);
+      }
+      void qc.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "institution-academic-year-page"],
+      });
       toast.success("Academic year created");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -254,6 +271,16 @@ export function useImportInstitutionCalendarHolidays() {
   });
 }
 
+export function useCreateInstitutionHoliday() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createInstitutionHoliday,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["college-admin", "institution-calendar-settings-page"] });
+    },
+  });
+}
+
 export function useInstitutionPoliciesPage(params: {
   search?: string;
   category?: string;
@@ -265,6 +292,16 @@ export function useInstitutionPoliciesPage(params: {
   return useQuery({
     queryKey: collegeAdminQueryKeys.policiesPage(params),
     queryFn: () => fetchInstitutionPoliciesPage(params),
+  });
+}
+
+export function useCreateInstitutionPolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: createInstitutionPolicy,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...collegeAdminQueryKeys.all, "policies-page"] });
+    },
   });
 }
 

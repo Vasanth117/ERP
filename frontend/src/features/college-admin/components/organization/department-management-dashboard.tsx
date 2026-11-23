@@ -6,11 +6,8 @@ import { useCallback, useState } from "react";
 import { CalendarDaysIcon } from "@/components/icons/erp/generated/calendar-days";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
-import {
-  CollegeAdminDownload,
-  getCollegeAdminErpIcon,
-  resolveCollegeAdminIconSlug,
-} from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { CollegeAdminIcon } from "@/features/college-admin/components/layout/college-admin-icon";
+import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { CollegeAdminKpiGrid, CollegeAdminUserDashboardKpiCard } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useDepartmentManagementDashboardPage } from "@/features/college-admin/hooks/use-department-management-dashboard";
@@ -144,16 +141,14 @@ function SchoolProgressList({ items }: { items: DepartmentSchoolBar[] }) {
 }
 
 function QuickActionRow({ action }: { action: DepartmentQuickAction }) {
-  const slug = resolveCollegeAdminIconSlug(action.icon_slug);
-  const Icon = getCollegeAdminErpIcon(slug);
   return (
     <li className="flex items-start justify-between gap-3 border-b border-[#f1f5f9] py-3.5 last:border-0">
       <div className="flex min-w-0 gap-3">
-        {Icon ? (
-          <Icon className="mt-0.5 size-[18px] shrink-0 text-[#9ca3af]" aria-hidden />
-        ) : (
-          <span className="mt-1 size-[18px] shrink-0 rounded bg-[#f3f4f6]" aria-hidden />
-        )}
+        <CollegeAdminIcon
+          name={action.icon_slug}
+          size={18}
+          className="mt-0.5 text-[#9ca3af]"
+        />
         <div className="min-w-0">
           <p className="text-[13px] font-medium text-[#111827]">{action.title}</p>
           <p className="text-[12px] text-[#6b7280]">{action.subtitle}</p>
@@ -166,17 +161,6 @@ function QuickActionRow({ action }: { action: DepartmentQuickAction }) {
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function DepartmentManagementDashboard() {
   const [academicYear, setAcademicYear] = useState("");
@@ -202,35 +186,6 @@ export function DepartmentManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:132597">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Department Management Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Departments, heads, programmes and staffing at a glance"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
-            <CollegeAdminDownload className="size-3.5" aria-hidden />
-            {data?.export_label ?? "Export"}
-          </button>
-          <Link
-            href={data?.create_department_href ?? "/college-admin/organization/create-department"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            <PlusIcon className="size-3.5" aria-hidden />
-            {data?.create_department_label ?? "Create department"}
-          </Link>
-        </div>
-      </div>
-
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
@@ -253,15 +208,25 @@ export function DepartmentManagementDashboard() {
             onChange={setSchoolId}
             options={data?.school_options ?? [{ value: "", label: "All schools" }]}
           />
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-[#eff6ff] px-2.5 py-1.5 text-[11px] font-medium text-[#1d4ed8]">
-            <span className="size-1.5 rounded-full bg-[#3b82f6]" aria-hidden />
-            {data?.scope_indicator_label ?? "College scope"}
-          </span>
         </div>
-        <p className="flex items-center gap-1.5 text-[12px] text-[#9ca3af]">
-          <span className="size-1.5 rounded-full bg-[#d1d5db]" aria-hidden />
-          Updated {data?.updated_at_label ?? "—"}
-        </p>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] disabled:opacity-50"
+            onClick={handleExport}
+            disabled={isLoading || !data}
+          >
+            <CollegeAdminDownload className="size-3.5" aria-hidden />
+            {data?.export_label ?? "Export"}
+          </button>
+          <Link
+            href={data?.create_department_href ?? "/college-admin/organization/create-department"}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            <PlusIcon className="size-3.5" aria-hidden />
+            {data?.create_department_label ?? "Create department"}
+          </Link>
+        </div>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -351,12 +316,6 @@ export function DepartmentManagementDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

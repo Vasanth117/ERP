@@ -55,17 +55,6 @@ function FilterSelect({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function ExamTimetableManagementDashboard() {
   const [page, setPage] = useState(1);
@@ -164,12 +153,7 @@ export function ExamTimetableManagementDashboard() {
             onChange={setProgramme}
             options={data?.programme_options ?? [{ value: "", label: "All programmes" }]}
           />
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#e8ecf2] bg-white px-2.5 py-1 text-[12px] text-[#6b7280]">
-            <span className="size-1.5 rounded-full bg-[#245dd8]" />
-            {data?.scope_indicator_label ?? "College scope"}
-          </span>
         </div>
-        <span className="text-[12px] tabular-nums text-[#6b7280]">{data?.updated_at_label ?? "—"}</span>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -275,12 +259,6 @@ export function ExamTimetableManagementDashboard() {
               </div>
             </section>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>

@@ -8,10 +8,20 @@ import { SearchIcon } from "@/components/icons/erp/generated/search";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CollegeAdminDownload } from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import {
+  defaultPolicyCreateForm,
+  InstitutionPolicyCreateDialog,
+  type PolicyCreateFormState,
+} from "@/features/college-admin/components/institution/institution-policy-create-dialog";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
-import { useInstitutionPoliciesPage } from "@/features/college-admin/hooks/use-institution";
+import {
+  useCreateInstitutionPolicy,
+  useInstitutionPoliciesPage,
+} from "@/features/college-admin/hooks/use-institution";
 import type { InstitutionPolicyRow } from "@/features/college-admin/types/institution";
+import { normalizeFormPayload } from "@/lib/form-values";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 function StatusPill({ label, tone }: { label: string; tone: string }) {
   const styles: Record<string, string> = {
@@ -67,17 +77,6 @@ function FilterSelect({
   );
 }
 
-function formatSnapshot(iso: string) {
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      dateStyle: "medium",
-      timeStyle: "short",
-      timeZone: "Asia/Kolkata",
-    }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
 
 export function InstitutionalPoliciesDashboard() {
   const [search, setSearch] = useState("");
@@ -87,6 +86,8 @@ export function InstitutionalPoliciesDashboard() {
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [addOpen, setAddOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<PolicyCreateFormState>(() => defaultPolicyCreateForm());
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -105,6 +106,23 @@ export function InstitutionalPoliciesDashboard() {
     page,
     selected_policy_id: selectedId,
   });
+
+  const createPolicy = useCreateInstitutionPolicy();
+
+  const openAddDialog = useCallback(() => {
+    setCreateForm(defaultPolicyCreateForm(data));
+    setAddOpen(true);
+    if (typeof window !== "undefined" && window.location.hash === "#add-policy") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (!data || typeof window === "undefined") return;
+    if (window.location.hash === "#add-policy") {
+      openAddDialog();
+    }
+  }, [data, openAddDialog]);
 
   useEffect(() => {
     if (data?.selected_policy && !selectedId) {
@@ -125,6 +143,42 @@ export function InstitutionalPoliciesDashboard() {
 
   const pickRow = (row: InstitutionPolicyRow) => {
     setSelectedId(row.policy_id);
+  };
+
+  const closeAddDialog = () => {
+    if (createPolicy.isPending) return;
+    setAddOpen(false);
+  };
+
+  const submitCreatePolicy = () => {
+    const normalized = normalizeFormPayload(createForm as unknown as Record<string, unknown>);
+    createPolicy.mutate(
+      {
+        title: createForm.title.trim(),
+        category: createForm.category,
+        audience: createForm.audience,
+        version_label: createForm.version_label.trim() || "1.0",
+        effective_from: (normalized.effective_from as string | null) ?? null,
+        status: createForm.status,
+        owner_label: (normalized.owner_label as string | null) ?? null,
+        approved_by_label: (normalized.approved_by_label as string | null) ?? null,
+        acknowledgement_requirement: (normalized.acknowledgement_requirement as string | null) ?? null,
+      },
+      {
+        onSuccess: (res) => {
+          toast.success(res.message);
+          setAddOpen(false);
+          setSelectedId(res.policy_id);
+          setPage(1);
+          setSearch("");
+          setCategory("");
+          setAudience("");
+          setStatus("");
+          void refetch();
+        },
+        onError: (e: Error) => toast.error(e.message),
+      },
+    );
   };
 
   return (
@@ -149,13 +203,15 @@ export function InstitutionalPoliciesDashboard() {
             <CollegeAdminDownload className="size-3.5" />
             {data?.export_label ?? "Export list"}
           </Button>
-          <Link
-            href={data?.add_policy_href ?? "#add-policy"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          <button
+            type="button"
+            onClick={() => openAddDialog()}
+            disabled={!data}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
           >
             <PlusIcon className="size-3.5" aria-hidden />
             {data?.add_policy_label ?? "Add policy"}
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -360,15 +416,21 @@ export function InstitutionalPoliciesDashboard() {
               </div>
             </div>
 
-            <footer className="flex flex-col gap-2 border-t border-[#e8ecf2] pt-4 text-[11px] text-[#9ca3af] sm:flex-row sm:items-center sm:justify-between">
-              <p>{data.footer_disclaimer}</p>
-              <p className="tabular-nums">
-                {data.footer_snapshot_label} · {formatSnapshot(data.generated_at)}
-              </p>
-            </footer>
           </>
         ) : null}
       </QueryState>
+
+      {data ? (
+        <InstitutionPolicyCreateDialog
+          open={addOpen}
+          onClose={closeAddDialog}
+          page={data}
+          form={createForm}
+          onChange={(patch) => setCreateForm((prev) => ({ ...prev, ...patch }))}
+          onSubmit={submitCreatePolicy}
+          isSubmitting={createPolicy.isPending}
+        />
+      ) : null}
     </div>
   );
 }

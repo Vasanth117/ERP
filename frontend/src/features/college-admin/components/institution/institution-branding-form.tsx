@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useRef, type ChangeEvent, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -12,6 +12,17 @@ import { ReceiptIcon } from "@/components/icons/erp/generated/receipt";
 import { UploadIcon } from "@/components/icons/erp/generated/upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InstitutionIdentityMark } from "@/features/college-admin/components/institution/institution-identity-mark";
+import {
+  BrandingAssetPreviewDialog,
+  BrandingPortalPreviewDialog,
+  type BrandingAssetPreviewTarget,
+} from "@/features/college-admin/components/institution/institution-branding-preview-dialog";
+import {
+  InstitutionPageActionFooter,
+  institutionActionButtonOutline,
+  institutionActionButtonPrimary,
+} from "@/features/college-admin/components/institution/institution-page-action-footer";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useInstitutionBrandingPage,
@@ -96,7 +107,15 @@ function ColorInput({
   );
 }
 
-function AssetRow({ row, onEdit }: { row: BrandingAssetRow; onEdit?: () => void }) {
+function AssetRow({
+  row,
+  onEdit,
+  onPreview,
+}: {
+  row: BrandingAssetRow;
+  onEdit?: () => void;
+  onPreview?: () => void;
+}) {
   const tone = row.status === "uploaded" ? "success" : "warning";
   return (
     <li className="flex items-start justify-between gap-3 border-b border-[#f1f5f9] py-3 last:border-0">
@@ -106,6 +125,16 @@ function AssetRow({ row, onEdit }: { row: BrandingAssetRow; onEdit?: () => void 
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <StatusPill label={row.status_label} tone={tone} />
+        {row.file_id && onPreview ? (
+          <button
+            type="button"
+            onClick={onPreview}
+            className="text-[#9ca3af] hover:text-[#245dd8]"
+            aria-label={`Preview ${row.label}`}
+          >
+            <EyeIcon className="size-3.5" />
+          </button>
+        ) : null}
         {row.editable && onEdit ? (
           <button
             type="button"
@@ -129,6 +158,17 @@ export function InstitutionBrandingForm() {
   const primaryInputRef = useRef<HTMLInputElement>(null);
   const assetInputRef = useRef<HTMLInputElement>(null);
   const pendingAssetKey = useRef<string>("primary_logo");
+  const [portalPreviewOpen, setPortalPreviewOpen] = useState(false);
+  const [assetPreview, setAssetPreview] = useState<BrandingAssetPreviewTarget | null>(null);
+
+  const openAssetPreview = useCallback((row: BrandingAssetRow) => {
+    if (!row.file_id) return;
+    setAssetPreview({
+      fileId: row.file_id,
+      label: row.label,
+      detailLine: row.detail_line,
+    });
+  }, []);
 
   const defaults = useMemo(
     () => (pageQuery.data ? buildDefaults(pageQuery.data) : undefined),
@@ -136,6 +176,7 @@ export function InstitutionBrandingForm() {
   );
 
   const form = useForm<InstitutionBrandingFormValues>({ values: defaults });
+  const watchedForm = form.watch();
   const data = pageQuery.data;
   const isBusy = saveDraft.isPending || publish.isPending || uploadAsset.isPending;
 
@@ -147,10 +188,22 @@ export function InstitutionBrandingForm() {
   const handleSaveDraft = form.handleSubmit((values) => saveDraft.mutate(toPayload(values)));
 
   const uploadFile = useCallback(
-    (assetKey: string, file: File) => {
+    (assetKey: string, file: File, label: string) => {
       uploadAsset.mutate(
         { assetKey, file },
-        { onSuccess: () => void pageQuery.refetch() },
+        {
+          onSuccess: (result) => {
+            void pageQuery.refetch().then(() => {
+              if (result.file_id) {
+                setAssetPreview({
+                  fileId: result.file_id,
+                  label,
+                  detailLine: result.file_name ?? file.name,
+                });
+              }
+            });
+          },
+        },
       );
     },
     [pageQuery, uploadAsset],
@@ -158,50 +211,40 @@ export function InstitutionBrandingForm() {
 
   const onPrimaryFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) uploadFile("primary_logo", file);
+    if (file) uploadFile("primary_logo", file, "Primary logo");
     event.target.value = "";
   };
 
   const onAssetFile = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) uploadFile(pendingAssetKey.current, file);
+    if (file) {
+      const row = data?.brand_assets.find((r) => r.asset_key === pendingAssetKey.current);
+      uploadFile(pendingAssetKey.current, file, row?.label ?? "Brand asset");
+    }
     event.target.value = "";
   };
+
+  const previewPrimaryLogo = useCallback(() => {
+    if (!data?.primary_logo.file_id) return;
+    setAssetPreview({
+      fileId: data.primary_logo.file_id,
+      label: "Primary logo",
+      detailLine: data.primary_logo.current_summary ?? undefined,
+    });
+  }, [data]);
 
   const colorValue = (key: keyof InstitutionBrandingFormValues) =>
     String(form.watch(key) ?? "");
 
   return (
     <div className="space-y-5" data-figma-frame="72:6775">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            College Logo &amp; Branding
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            Logos, colours and templates used across portals, documents and ID cards.
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          {data ? (
-            <Link
-              href={data.preview_portal_href}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
-            >
-              <EyeIcon className="size-3.5" aria-hidden />
-              Preview portal
-            </Link>
-          ) : null}
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]"
-            onClick={() => void submitPublish()}
-            disabled={isBusy || !data}
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            Publish branding
-          </Button>
-        </div>
+      <div className="min-w-0">
+        <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
+          College Logo &amp; Branding
+        </h2>
+        <p className="mt-1 text-[14px] text-[#6b7280]">
+          Logos, colours and templates used across portals, documents and ID cards.
+        </p>
       </div>
 
       <input ref={primaryInputRef} type="file" className="hidden" accept="image/*,.svg" onChange={onPrimaryFile} />
@@ -219,24 +262,57 @@ export function InstitutionBrandingForm() {
               <div className="space-y-5">
                 <Section title="Primary logo" subtitle={data.primary_logo.upload_hint}>
                   <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#cbd5e1] bg-[#f8fafc] px-6 py-10 text-center">
-                    <UploadIcon className="size-8 text-[#94a3b8]" aria-hidden />
+                    {data.primary_logo.file_id ? (
+                      <button
+                        type="button"
+                        onClick={previewPrimaryLogo}
+                        className="mb-4 rounded-xl outline-offset-2 transition hover:opacity-95 focus-visible:outline-2 focus-visible:outline-[#245dd8]"
+                        aria-label="Preview primary logo"
+                      >
+                        <InstitutionIdentityMark
+                          displayName={String(data.form.display_name ?? "College")}
+                          logoFileId={data.primary_logo.file_id}
+                          accent={colorValue("primary_color") || "#245dd8"}
+                          size="lg"
+                          className="shadow-md"
+                        />
+                      </button>
+                    ) : (
+                      <UploadIcon className="size-8 text-[#94a3b8]" aria-hidden />
+                    )}
                     <p className="mt-3 text-[13px] font-medium text-[#374151]">
-                      Drop the college logo here
+                      {data.primary_logo.file_id
+                        ? "College logo on file"
+                        : "Drop the college logo here"}
                     </p>
                     {data.primary_logo.current_summary ? (
                       <p className="mt-1 text-[12px] text-[#6b7280]">{data.primary_logo.current_summary}</p>
                     ) : (
                       <p className="mt-1 text-[12px] text-[#9ca3af]">No logo uploaded yet</p>
                     )}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="mt-4 h-9 border-[#dce3ec] text-xs"
-                      onClick={() => primaryInputRef.current?.click()}
-                      disabled={isBusy}
-                    >
-                      Browse files
-                    </Button>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      {data.primary_logo.file_id ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="h-9 gap-1.5 border-[#dce3ec] text-xs"
+                          onClick={previewPrimaryLogo}
+                          disabled={isBusy}
+                        >
+                          <EyeIcon className="size-3.5" aria-hidden />
+                          Preview
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-9 border-[#dce3ec] text-xs"
+                        onClick={() => primaryInputRef.current?.click()}
+                        disabled={isBusy}
+                      >
+                        {data.primary_logo.file_id ? "Replace logo" : "Browse files"}
+                      </Button>
+                    </div>
                   </div>
                 </Section>
 
@@ -277,6 +353,7 @@ export function InstitutionBrandingForm() {
                       <AssetRow
                         key={row.asset_key}
                         row={row}
+                        onPreview={() => openAssetPreview(row)}
                         onEdit={() => {
                           pendingAssetKey.current = row.asset_key;
                           assetInputRef.current?.click();
@@ -301,24 +378,73 @@ export function InstitutionBrandingForm() {
                       );
                     })}
                   </ul>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 h-9 w-full gap-1.5 border-[#dce3ec] text-xs"
+                    onClick={() => setPortalPreviewOpen(true)}
+                  >
+                    <EyeIcon className="size-3.5" aria-hidden />
+                    Open full preview
+                  </Button>
                 </Section>
               </div>
             </div>
 
-            <div className="sticky bottom-0 z-10 flex flex-col gap-3 border-t border-[#e8ecf2] bg-[#f8fafc]/95 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-[11px] text-[#9ca3af]">{data.footer_note}</p>
-              <div className="flex flex-wrap justify-end gap-2">
-                <Button type="button" variant="outline" className="h-9 border-[#dce3ec] text-xs" onClick={discard} disabled={isBusy}>
-                  Cancel
-                </Button>
-                <Button type="button" variant="outline" className="h-9 border-[#dce3ec] text-xs" onClick={() => void handleSaveDraft()} disabled={isBusy}>
-                  Save draft
-                </Button>
-                <Button type="button" className="h-9 bg-[#245dd8] text-xs hover:bg-[#1f4fb8]" onClick={() => void submitPublish()} disabled={isBusy}>
-                  Publish branding
-                </Button>
-              </div>
-            </div>
+            <BrandingPortalPreviewDialog
+              open={portalPreviewOpen}
+              data={data}
+              formValues={watchedForm}
+              onClose={() => setPortalPreviewOpen(false)}
+            />
+            <BrandingAssetPreviewDialog
+              open={Boolean(assetPreview)}
+              target={assetPreview}
+              onClose={() => setAssetPreview(null)}
+            />
+
+            <InstitutionPageActionFooter note={data.footer_note}>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(
+                  institutionActionButtonOutline,
+                  "gap-1.5 hover:bg-[#f9fafb]",
+                )}
+                onClick={() => setPortalPreviewOpen(true)}
+                disabled={isBusy}
+              >
+                <EyeIcon className="size-3.5" aria-hidden />
+                Preview portal
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                onClick={discard}
+                disabled={isBusy}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className={institutionActionButtonOutline}
+                onClick={() => void handleSaveDraft()}
+                disabled={isBusy}
+              >
+                Save draft
+              </Button>
+              <Button
+                type="button"
+                className={institutionActionButtonPrimary}
+                onClick={() => void submitPublish()}
+                disabled={isBusy}
+              >
+                <CheckIcon className="size-3.5" aria-hidden />
+                Publish branding
+              </Button>
+            </InstitutionPageActionFooter>
           </>
         ) : null}
       </QueryState>

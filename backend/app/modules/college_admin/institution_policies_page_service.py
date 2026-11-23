@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 from datetime import date
 
 from beanie import PydanticObjectId
@@ -12,6 +13,8 @@ from app.authorization.permissions import Permission
 from app.authorization.policy import authorize
 from app.common.access import AccessScope
 from app.common.time import utcnow
+from app.core.exceptions import AppError
+from app.core.form_values import blank_to_none
 from app.modules.college_admin.institution_policy_models import (
     InstitutionPolicy,
     InstitutionPolicyAcknowledgement,
@@ -20,6 +23,8 @@ from app.modules.college_admin.institution_policy_models import (
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
     InstitutionPoliciesPageRead,
+    InstitutionPolicyCreate,
+    InstitutionPolicyCreateResult,
     InstitutionPolicyFilterOption,
     InstitutionPolicyReviewItem,
     InstitutionPolicyRow,
@@ -27,6 +32,28 @@ from app.modules.college_admin.schemas import (
     PoliciesPagination,
 )
 from app.modules.students.models import StudentProfile
+
+_CREATE_CATEGORIES = [
+    InstitutionPolicyFilterOption(value="Academic", label="Academic"),
+    InstitutionPolicyFilterOption(value="Conduct", label="Conduct"),
+    InstitutionPolicyFilterOption(value="HR", label="HR"),
+    InstitutionPolicyFilterOption(value="IT", label="IT"),
+    InstitutionPolicyFilterOption(value="Safety", label="Safety"),
+    InstitutionPolicyFilterOption(value="Governance", label="Governance"),
+]
+
+_CREATE_AUDIENCES = [
+    InstitutionPolicyFilterOption(value="all", label="All"),
+    InstitutionPolicyFilterOption(value="students", label="Students"),
+    InstitutionPolicyFilterOption(value="faculty", label="Faculty"),
+    InstitutionPolicyFilterOption(value="staff", label="Staff"),
+]
+
+_CREATE_STATUSES = [
+    InstitutionPolicyFilterOption(value="draft", label="Draft"),
+    InstitutionPolicyFilterOption(value="in_review", label="In review"),
+    InstitutionPolicyFilterOption(value="published", label="Published"),
+]
 
 
 def _status_tone(status: str) -> str:
@@ -72,6 +99,58 @@ async def _distinct_filter_options(
         options.append(InstitutionPolicyFilterOption(value=key, label=label))
     options.sort(key=lambda item: item.label)
     return options
+
+
+def _slug_policy_id(title: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return (slug[:48] or "policy").strip("-")
+
+
+async def _unique_policy_id(tenant_id: PydanticObjectId, title: str) -> str:
+    base = _slug_policy_id(title)
+    candidate = base
+    suffix = 0
+    while await InstitutionPolicy.find_one(
+        Eq(InstitutionPolicy.tenant_id, tenant_id),
+        Eq(InstitutionPolicy.policy_id, candidate),
+    ):
+        suffix += 1
+        candidate = f"{base}-{suffix}"
+    return candidate
+
+
+async def create_institution_policy(
+    scope: AccessScope,
+    payload: InstitutionPolicyCreate,
+) -> InstitutionPolicyCreateResult:
+    authorize(scope, Permission.INSTITUTION_PROFILE_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    title = payload.title.strip()
+    if len(title) < 2:
+        raise AppError(code="VALIDATION_ERROR", message="Policy title is required", status_code=422)
+
+    policy_id = await _unique_policy_id(tenant_id, title)
+    search_bits = [title, payload.category, payload.audience, policy_id]
+    search_text = " ".join(str(part) for part in search_bits if part).lower()
+
+    doc = InstitutionPolicy(
+        tenant_id=tenant_id,
+        policy_id=policy_id,
+        title=title,
+        category=payload.category.strip(),
+        audience=payload.audience.strip().lower(),
+        version_label=payload.version_label.strip() or "1.0",
+        effective_from=payload.effective_from,
+        status=payload.status.strip().lower() or "draft",
+        owner_label=blank_to_none(payload.owner_label),
+        approved_by_label=blank_to_none(payload.approved_by_label),
+        acknowledgement_requirement=blank_to_none(payload.acknowledgement_requirement),
+        detail_href=f"/college-admin/institution/policies/{policy_id}",
+        search_text=search_text,
+        sort_order=await InstitutionPolicy.find(Eq(InstitutionPolicy.tenant_id, tenant_id)).count(),
+    )
+    await doc.insert()
+    return InstitutionPolicyCreateResult(policy_id=policy_id, title=title)
 
 
 async def _acknowledgement_line(policy: InstitutionPolicy, tenant_id: PydanticObjectId) -> str | None:
@@ -204,6 +283,13 @@ async def get_institution_policies_page(
         export_label="Export list",
         add_policy_label="Add policy",
         add_policy_href="/college-admin/institution/policies#add-policy",
+        create_dialog_title="Add policy",
+        create_dialog_subtitle="Define title, audience, version and publish status",
+        create_save_label="Create policy",
+        create_cancel_label="Cancel",
+        create_category_options=_CREATE_CATEGORIES,
+        create_audience_options=_CREATE_AUDIENCES,
+        create_status_options=_CREATE_STATUSES,
         search_placeholder="Search policies...",
         category_filter_label="Category",
         audience_filter_label="Audience",

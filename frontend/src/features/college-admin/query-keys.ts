@@ -66,6 +66,8 @@ export const collegeAdminQueryKeys = {
   alertsOverview: () => [...collegeAdminQueryKeys.all, "alerts-overview"] as const,
   campusesDashboard: () =>
     [...collegeAdminQueryKeys.all, "campuses-dashboard"] as const,
+  campusCreationPage: (campusId?: string) =>
+    [...collegeAdminQueryKeys.all, "campus-creation-page", campusId ?? ""] as const,
   campusDetailPage: (campusId: string) =>
     [...collegeAdminQueryKeys.all, "campus-detail-page", campusId] as const,
   campusContactPage: (campusId: string) =>
