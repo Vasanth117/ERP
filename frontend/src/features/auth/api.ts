@@ -1,6 +1,6 @@
 import { apiRequest } from "@/lib/api/client";
 import { parseResponseJson } from "@/lib/api/parse-response-body";
-import { useBffAuth } from "@/lib/env";
+import { assertRemoteApiConfigured, useBffAuth } from "@/lib/env";
 import {
   clearRefreshToken,
   clearAccessToken,
@@ -73,6 +73,7 @@ async function loginViaApi(input: LoginInput): Promise<{
   access_token: string;
   expires_in: number;
 }> {
+  assertRemoteApiConfigured();
   const tokens = await apiRequest<TokenPair>("/auth/login", {
     method: "POST",
     body: {
@@ -94,12 +95,12 @@ export async function loginWithBff(input: LoginInput): Promise<{
   access_token: string;
   expires_in: number;
 }> {
-  if (useBffAuth()) {
-    const bff = await loginViaBff(input);
-    if (bff) {
-      return bff;
-    }
-    /* BFF missing (404) — fall back to direct API. */
+  if (!useBffAuth()) {
+    return loginViaApi(input);
+  }
+  const bff = await loginViaBff(input);
+  if (bff) {
+    return bff;
   }
   return loginViaApi(input);
 }
