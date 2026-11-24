@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { normalizeLoginPayload } from "@/lib/auth/login-normalize";
-import { apiBaseUrl } from "@/lib/env";
+import { serverApiBaseUrl } from "@/lib/env";
 import {
   AUTH_REFRESH_COOKIE,
   AUTH_SESSION_COOKIE,
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   let upstream: Response;
   try {
-    upstream = await fetch(`${apiBaseUrl()}/auth/login`, {
+    upstream = await fetch(`${serverApiBaseUrl()}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

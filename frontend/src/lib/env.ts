@@ -42,10 +42,22 @@ export function assertRemoteApiConfigured(): void {
   }
 }
 
-export function apiBaseUrl(): string {
-  const base = publicEnv.apiUrl.replace(/\/$/, "");
-  const prefix = publicEnv.apiPrefix.startsWith("/")
-    ? publicEnv.apiPrefix
-    : `/${publicEnv.apiPrefix}`;
+function joinApiBase(apiUrl: string, apiPrefix: string): string {
+  const base = apiUrl.replace(/\/$/, "");
+  const prefix = apiPrefix.startsWith("/") ? apiPrefix : `/${apiPrefix}`;
   return `${base}${prefix}`;
+}
+
+/** Client bundles inline env at build time. */
+export function apiBaseUrl(): string {
+  return joinApiBase(publicEnv.apiUrl, publicEnv.apiPrefix);
+}
+
+/** Server routes (BFF): read Vercel runtime env on each request. */
+export function serverApiBaseUrl(): string {
+  const apiUrl =
+    process.env.NEXT_PUBLIC_API_URL?.trim() || publicEnv.apiUrl;
+  const apiPrefix =
+    process.env.NEXT_PUBLIC_API_PREFIX?.trim() || publicEnv.apiPrefix;
+  return joinApiBase(apiUrl, apiPrefix);
 }

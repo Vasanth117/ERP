@@ -1,6 +1,6 @@
 import { apiRequest } from "@/lib/api/client";
 import { parseResponseJson } from "@/lib/api/parse-response-body";
-import { assertRemoteApiConfigured, useBffAuth } from "@/lib/env";
+import { useBffAuth } from "@/lib/env";
 import {
   clearRefreshToken,
   clearAccessToken,
@@ -73,7 +73,6 @@ async function loginViaApi(input: LoginInput): Promise<{
   access_token: string;
   expires_in: number;
 }> {
-  assertRemoteApiConfigured();
   const tokens = await apiRequest<TokenPair>("/auth/login", {
     method: "POST",
     body: {
@@ -91,6 +90,12 @@ async function loginViaApi(input: LoginInput): Promise<{
   };
 }
 
+function isLocalDevHost(): boolean {
+  if (typeof window === "undefined") return false;
+  const host = window.location.hostname;
+  return host === "localhost" || host === "127.0.0.1";
+}
+
 export async function loginWithBff(input: LoginInput): Promise<{
   access_token: string;
   expires_in: number;
@@ -101,6 +106,11 @@ export async function loginWithBff(input: LoginInput): Promise<{
   const bff = await loginViaBff(input);
   if (bff) {
     return bff;
+  }
+  if (!isLocalDevHost()) {
+    throw new Error(
+      "Sign-in is temporarily unavailable. Check that the API is running on Render and try again.",
+    );
   }
   return loginViaApi(input);
 }

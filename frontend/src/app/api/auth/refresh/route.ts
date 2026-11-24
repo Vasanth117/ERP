@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { apiBaseUrl } from "@/lib/env";
+import { serverApiBaseUrl } from "@/lib/env";
 import {
   AUTH_REFRESH_COOKIE,
   AUTH_SESSION_COOKIE,
@@ -29,7 +29,7 @@ export async function POST() {
     return NextResponse.json({ message: "No refresh session" }, { status: 401 });
   }
 
-  const upstream = await fetch(`${apiBaseUrl()}/auth/refresh`, {
+  const upstream = await fetch(`${serverApiBaseUrl()}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
