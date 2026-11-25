@@ -2171,6 +2171,16 @@ async def _drop_legacy_beanie_indexes(database) -> None:
                 raise
 
 
+def _redact_mongodb_url(url: str) -> str:
+    if "://" not in url:
+        return url
+    scheme, rest = url.split("://", 1)
+    if "@" in rest:
+        _, host_part = rest.rsplit("@", 1)
+        return f"{scheme}://<credentials>@{host_part}"
+    return url
+
+
 def _mongo_connection_hint(exc: BaseException) -> str | None:
     message = str(exc)
     if "replica set named" in message and "set named 'None'" in message:
@@ -2181,6 +2191,24 @@ def _mongo_connection_hint(exc: BaseException) -> str | None:
             "For transactions, configure replSet rs0 (see backend/.env.example)."
         )
     lowercase = message.lower()
+    settings = get_settings()
+    mongo_target = _redact_mongodb_url(settings.mongodb_url)
+    url_lower = settings.mongodb_url.lower()
+    uses_atlas = "mongodb.net" in url_lower or "mongodb+srv://" in url_lower
+    if uses_atlas and (
+        "timed out" in lowercase
+        or "networktimeout" in lowercase
+        or "no replica set members" in lowercase
+        or "replicasetnoprimary" in lowercase
+    ):
+        return (
+            f"Cannot reach MongoDB Atlas ({mongo_target}, database "
+            f"{settings.mongodb_db_name!r}). Outbound TCP to *.mongodb.net:27017 is "
+            "failing from this machine. In Atlas → Network Access, allow your current "
+            "IP (avoid 0.0.0.0/0 outside dev). Check VPN, firewall, and antivirus. "
+            "If mongod is already running locally, set "
+            "MONGODB_URL=mongodb://127.0.0.1:27017/erp in backend/.env."
+        )
     if (
         "actively refused" in lowercase
         or "errno: 111" in lowercase
@@ -2188,9 +2216,8 @@ def _mongo_connection_hint(exc: BaseException) -> str | None:
         or "serverselectiontimeouterror" in lowercase
         or "no servers found" in lowercase
     ):
-        settings = get_settings()
         return (
-            f"Cannot reach MongoDB at {settings.mongodb_url!r} "
+            f"Cannot reach MongoDB at {mongo_target!r} "
             f"(database {settings.mongodb_db_name!r}). "
             "Nothing is listening on the configured host/port, or mongod is stopped. "
             "From the repo root, start the stack with: "
