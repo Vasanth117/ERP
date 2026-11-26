@@ -3,50 +3,36 @@
 import { useCallback } from "react";
 import { ArrowDownToLineIcon } from "@/components/icons/erp/generated/arrow-down-to-line";
 import { CheckIcon } from "@/components/icons/erp/generated/check";
+import { StudentEnrollmentDetailsSection } from "@/features/student/components/ui/student-enrollment-details-section";
 import { QueryState } from "@/features/student/components/ui/student-screen-ui";
 import { useAcademicDetails } from "@/features/student/hooks/use-student-academics";
+import {
+  currentSemesterNumber,
+  enrollmentStatusLabel,
+  minimumCreditsRequired,
+  programmeDisplayName,
+  totalProgrammeSemesters,
+} from "@/features/student/lib/academic-metrics";
 import type { EnrollmentLine } from "@/features/student/types/academics";
 import { cn } from "@/lib/utils";
 
 export function AcademicOverviewScreen() {
   const { data, isLoading, isError, error, refetch } = useAcademicDetails();
 
-  // Dynamic values derived from authoritative backend / database payload
-  const currentSemester =
-    data?.academic_information?.current_semester_number ??
-    (data?.enrollment_status?.semester_label
-      ? parseInt(data.enrollment_status.semester_label.replace(/\D/g, "") || "1", 10)
-      : 1);
-  const totalSemesters =
-    (data?.academic_record?.eligibility_summary?.total_semesters as number) || 8;
-  const completedSemesters = Math.max(0, currentSemester - 1);
+  const currentSemester = currentSemesterNumber(data);
+  const totalSemesters = totalProgrammeSemesters(data);
+  const completedSemesters =
+    currentSemester != null && totalSemesters != null
+      ? Math.max(0, currentSemester - 1)
+      : null;
 
   const creditsEarned = data?.academic_record?.credits_earned ?? 0;
-  const totalCredits =
-    (data?.academic_record?.eligibility_summary?.minimum_credits_required as number) ||
-    160;
+  const totalCredits = minimumCreditsRequired(data);
 
-  const rawProgramme =
-    data?.admission?.programme_name ||
-    data?.department_programme?.programme_name ||
-    data?.admission?.programme_code ||
-    "—";
-  const programmeDisplay =
-    rawProgramme !== "—" &&
-    !rawProgramme.startsWith("B.E.") &&
-    !rawProgramme.startsWith("B.Tech") &&
-    !rawProgramme.startsWith("M.E.") &&
-    !rawProgramme.startsWith("MBA")
-      ? `B.E. ${rawProgramme}`
-      : rawProgramme;
-
-  const regulationLabel = data?.academic_information?.regulation_label ?? "—";
-  const admissionType = data?.academic_information?.admission_type ?? "Regular";
-  const enrollmentStatus = data?.enrollment_status?.enrollment_status ?? "ACTIVE";
-  const statusDisplay =
-    enrollmentStatus.toUpperCase() === "ACTIVE"
-      ? "Active"
-      : enrollmentStatus.replace(/_/g, " ");
+  const programmeDisplay = programmeDisplayName(data);
+  const regulationLabel = data?.academic_information?.regulation_label?.trim() || "—";
+  const admissionType = data?.academic_information?.admission_type?.trim() || "—";
+  const statusDisplay = enrollmentStatusLabel(data?.enrollment_status?.enrollment_status);
 
   // Fully dynamic registered subjects from MongoDB backend - zero static/hardcoded fixtures
   const displaySubjects: EnrollmentLine[] = data?.current_enrollments ?? [];
@@ -77,7 +63,8 @@ export function AcademicOverviewScreen() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `academic-overview-${data.admission.roll_number ?? "student"}-sem${currentSemester}.json`;
+    const semTag = currentSemester != null ? `sem${currentSemester}` : "snapshot";
+    a.download = `academic-overview-${data.admission.roll_number ?? "student"}-${semTag}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [
@@ -92,16 +79,26 @@ export function AcademicOverviewScreen() {
     displaySubjects,
   ]);
 
-  const semestersList = Array.from({ length: totalSemesters }, (_, i) => i + 1);
+  const semestersList =
+    totalSemesters != null && totalSemesters > 0
+      ? Array.from({ length: totalSemesters }, (_, i) => i + 1)
+      : [];
 
   const creditsPercent =
-    totalCredits > 0
+    totalCredits != null && totalCredits > 0
       ? Math.min(100, Math.round((creditsEarned / totalCredits) * 100))
-      : 0;
+      : null;
   const semestersPercent =
-    totalSemesters > 0
+    totalSemesters != null &&
+    totalSemesters > 0 &&
+    completedSemesters != null
       ? Math.min(100, Math.round((completedSemesters / totalSemesters) * 100))
-      : 0;
+      : null;
+
+  const semesterSubtitle =
+    currentSemester != null
+      ? `Your progress from admission to Semester ${currentSemester}`
+      : "Your academic progress from admission";
 
   return (
     <div className="space-y-6" data-figma-page="ST 02" data-figma-frame="164:3628">
@@ -112,10 +109,16 @@ export function AcademicOverviewScreen() {
             Academic Overview
           </h1>
           <p className="mt-1 text-[14px] text-[#6b7280]">
-            Your progress from admission to Semester {currentSemester}
+            {semesterSubtitle}
           </p>
         </div>
-        <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="#official-enrollment"
+            className="inline-flex h-[33px] items-center rounded-md border border-[#e5e7eb] bg-white px-3.5 text-[12px] font-semibold text-[#374151] hover:bg-[#f8fafc]"
+          >
+            Enrollment details
+          </a>
           <button
             type="button"
             onClick={handleDownloadSummary}
@@ -133,7 +136,10 @@ export function AcademicOverviewScreen() {
         error={error}
         onRetry={() => void refetch()}
       >
+        {data ? (
+          <>
         {/* 2. Semester Stepper / Timeline Card */}
+        {semestersList.length > 0 && currentSemester != null ? (
         <section
           aria-label="Semester progress timeline"
           className="overflow-x-auto rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
@@ -200,6 +206,7 @@ export function AcademicOverviewScreen() {
             })}
           </div>
         </section>
+        ) : null}
 
         {/* 3. 4-Column Stat Cards Row */}
         <section aria-label="Academic key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -221,10 +228,10 @@ export function AcademicOverviewScreen() {
             <span className="text-[13px] font-medium text-[#6b7280]">Current semester</span>
             <div className="mt-2">
               <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#111827]">
-                {currentSemester}
+                {currentSemester ?? "—"}
               </p>
               <p className="mt-1.5 text-[13px] font-medium text-[#2563eb]">
-                of {totalSemesters}
+                {totalSemesters != null ? `of ${totalSemesters}` : "—"}
               </p>
             </div>
           </div>
@@ -237,7 +244,7 @@ export function AcademicOverviewScreen() {
                 {creditsEarned}
               </p>
               <p className="mt-1.5 text-[13px] font-medium text-[#6b7280]">
-                of {totalCredits}
+                {totalCredits != null ? `of ${totalCredits}` : "—"}
               </p>
             </div>
           </div>
@@ -343,15 +350,21 @@ export function AcademicOverviewScreen() {
                 <div className="mb-2 flex items-center justify-between text-[13px]">
                   <span className="font-medium text-[#111827]">Credits completed</span>
                   <span className="tabular-nums text-[#6b7280]">
-                    {creditsEarned} / {totalCredits}
+                    {totalCredits != null
+                      ? `${creditsEarned} / ${totalCredits}`
+                      : `${creditsEarned} earned`}
                   </span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-[#f1f5f9]">
-                  <div
-                    className="h-full rounded-full bg-[#2563eb] transition-all duration-500"
-                    style={{ width: `${creditsPercent}%` }}
-                  />
-                </div>
+                {creditsPercent != null ? (
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[#f1f5f9]">
+                    <div
+                      className="h-full rounded-full bg-[#2563eb] transition-all duration-500"
+                      style={{ width: `${creditsPercent}%` }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-[#6b7280]">Credit target not configured yet.</p>
+                )}
               </div>
 
               {/* Progress 2: Semesters completed */}
@@ -359,20 +372,42 @@ export function AcademicOverviewScreen() {
                 <div className="mb-2 flex items-center justify-between text-[13px]">
                   <span className="font-medium text-[#111827]">Semesters completed</span>
                   <span className="tabular-nums text-[#6b7280]">
-                    {completedSemesters} / {totalSemesters}
+                    {completedSemesters != null && totalSemesters != null
+                      ? `${completedSemesters} / ${totalSemesters}`
+                      : "—"}
                   </span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-[#f1f5f9]">
-                  <div
-                    className="h-full rounded-full bg-[#2563eb] transition-all duration-500"
-                    style={{ width: `${semestersPercent}%` }}
-                  />
-                </div>
+                {semestersPercent != null ? (
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[#f1f5f9]">
+                    <div
+                      className="h-full rounded-full bg-[#2563eb] transition-all duration-500"
+                      style={{ width: `${semestersPercent}%` }}
+                    />
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-[#6b7280]">Programme duration not configured yet.</p>
+                )}
               </div>
             </div>
           </section>
         </div>
+
+        {/* 5. ST 02.02 — Official enrollment record (same API, shared UI) */}
+        <OverviewSectionDivider />
+        <div className="pt-2">
+          <h2 className="text-[18px] font-semibold tracking-[-0.01em] text-[#111827]">
+            Student Enrollment Details
+          </h2>
+          <p className="mt-1 text-[13px] text-[#6b7280]">Official enrollment record</p>
+          <StudentEnrollmentDetailsSection data={data} className="mt-5" />
+        </div>
+          </>
+        ) : null}
       </QueryState>
     </div>
   );
+}
+
+function OverviewSectionDivider() {
+  return <div className="border-t border-[#e8ecf2] pt-2" aria-hidden />;
 }

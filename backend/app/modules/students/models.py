@@ -20,6 +20,7 @@ from app.modules.students.enums import (
     StudentAcademicRequestType,
     StudentActivityType,
     StudentEnrollmentStatus,
+    StudentTermEnrollmentConfirmationStatus,
 )
 
 
@@ -176,7 +177,10 @@ class StudentEnrollmentHistory(Document):
     courses: list[dict[str, str]] = Field(default_factory=list)
     final_standing: AcademicStanding = AcademicStanding.UNKNOWN
     credits_earned: float = Field(default=0, ge=0)
+    credits_required: float | None = Field(default=None, ge=0)
     cgpa: float | None = Field(default=None, ge=0, le=10)
+    semester_number: int | None = Field(default=None, ge=1, le=16)
+    period_label: str | None = None
     closed_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
@@ -185,6 +189,41 @@ class StudentEnrollmentHistory(Document):
             IndexModel(
                 [("tenant_id", ASCENDING), ("user_id", ASCENDING), ("closed_at", DESCENDING)],
                 name="enrollment_history_by_student",
+            ),
+        ]
+
+
+class StudentTermEnrollmentConfirmation(Document):
+    """Student acknowledgement of term enrollment (ST 02.09 / 02.10)."""
+
+    tenant_id: PydanticObjectId
+    user_id: PydanticObjectId
+    academic_year_label: str
+    semester_label: str
+    semester_number: int | None = Field(default=None, ge=1, le=16)
+    study_mode: str | None = None
+    status: StudentTermEnrollmentConfirmationStatus = StudentTermEnrollmentConfirmationStatus.CONFIRMED
+    eligibility_label: str | None = None
+    confirmed_at: datetime | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "student_term_enrollment_confirmations"
+        indexes = [
+            IndexModel(
+                [
+                    ("tenant_id", ASCENDING),
+                    ("user_id", ASCENDING),
+                    ("academic_year_label", ASCENDING),
+                    ("semester_label", ASCENDING),
+                ],
+                unique=True,
+                name="unique_term_enrollment_confirmation",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("user_id", ASCENDING), ("confirmed_at", DESCENDING)],
+                name="term_enrollment_confirmations_by_student",
             ),
         ]
 

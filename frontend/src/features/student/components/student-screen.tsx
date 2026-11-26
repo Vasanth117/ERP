@@ -28,8 +28,10 @@ const ACADEMICS_SLUGS = new Set([
   "enrollment-status",
   "enrollment-history",
   "academic-eligibility",
+  "enrollment-details",
   "enrollment-requests",
   "new-enrollment-request",
+  "programme-department",
 ]);
 
 const CURRICULUM_SLUGS = new Set([

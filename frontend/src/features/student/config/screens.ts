@@ -113,6 +113,13 @@ export const studentScreens: StudentScreenDef[] = [
     path: "/student/academics/eligibility",
   },
   {
+    slug: "enrollment-details",
+    title: "Student Enrollment Details",
+    description: "Official register, batch, section and standing (read-only).",
+    figmaPage: "ST 02",
+    path: "/student/academics/enrollment-details",
+  },
+  {
     slug: "enrollment-requests",
     title: "Enrollment Requests",
     description: "Submitted academic change requests and their status.",
@@ -125,6 +132,13 @@ export const studentScreens: StudentScreenDef[] = [
     description: "Submit an enrollment-related request for review.",
     figmaPage: "ST 02",
     path: "/student/academics/new-enrollment-request",
+  },
+  {
+    slug: "programme-department",
+    title: "Programme & Department",
+    description: "Official programme assignment, department context, and academic progression.",
+    figmaPage: "ST 02",
+    path: "/student/academics/programme-department",
   },
   {
     slug: "curriculum",

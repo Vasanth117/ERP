@@ -10,26 +10,32 @@ export const studentSt02Tabs: CollegeAdminTab[] = [
   {
     label: "Semesters",
     href: "/student/academics/enrollment-history",
-    figmaFrame: "164:3630",
+    figmaFrame: "164:4676",
   },
   {
-    label: "Subjects & credits",
+    label: "Subjects & Credits",
     href: "/student/academics/eligibility",
-    figmaFrame: "164:3632",
+    figmaFrame: "164:5744",
   },
   {
     label: "Enrollment",
-    href: "/student/academics/enrollment-requests",
+    href: "/student/academics/enrollment-details",
     activePrefixes: [
+      "/student/academics/enrollment-details",
       "/student/academics/enrollment-requests",
       "/student/academics/new-enrollment-request",
     ],
-    figmaFrame: "164:3634",
+    figmaFrame: "164:6396",
   },
   {
     label: "Status",
     href: "/student/academics/enrollment-status",
-    figmaFrame: "164:3636",
+    figmaFrame: "164:6990",
+  },
+  {
+    label: "Programme & Department",
+    href: "/student/academics/programme-department",
+    figmaFrame: "164:4368",
   },
 ];
 
@@ -37,9 +43,11 @@ const ST02_PATHS = [
   "/student/academics",
   "/student/academics/enrollment-history",
   "/student/academics/eligibility",
+  "/student/academics/enrollment-details",
   "/student/academics/enrollment-requests",
   "/student/academics/new-enrollment-request",
   "/student/academics/enrollment-status",
+  "/student/academics/programme-department",
 ];
 
 export function isStudentSt02Path(pathname: string): boolean {

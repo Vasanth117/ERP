@@ -1,6 +1,6 @@
 """Student phase 1 — dashboard, profile, and academic enrollment."""
 
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from uuid import uuid4
 
 import pytest
@@ -17,13 +17,22 @@ from app.core.security import hash_password
 from app.modules.academics.curriculum_models import EnrollmentRosterEntry
 from app.modules.academics.models import AcademicYearContext, TimetableEntry
 from app.modules.auth.models import User
-from app.modules.students.academic_service import get_academic_details, submit_enrollment_request
+from app.modules.students.academic_service import (
+    confirm_term_enrollment,
+    get_academic_details,
+    submit_enrollment_request,
+    update_enrollment_declaration,
+)
 from app.modules.students.dashboard_service import get_dashboard_statistics, get_student_dashboard
 from app.modules.students.enums import StudentAcademicRequestType
 from app.modules.students.models import StudentAcademicRecord, StudentProfile
 from app.modules.students.policy import require_student_scope
 from app.modules.students.profile_service import get_student_profile, update_student_profile
-from app.modules.students.schemas import EnrollmentRequestCreate, StudentProfileUpdate
+from app.modules.students.schemas import (
+    EnrollmentDeclarationUpdate,
+    EnrollmentRequestCreate,
+    StudentProfileUpdate,
+)
 from app.modules.tenants.models import Department, Tenant
 
 
@@ -226,3 +235,48 @@ async def test_academic_details_and_enrollment_request(db_ready) -> None:
         ),
     )
     assert req.status.value == "submitted"
+
+
+@pytest.mark.anyio
+async def test_enrollment_declaration_and_confirm_flow(db_ready) -> None:
+    tenant, _, user, scope = await _seed_student(uuid4().hex[:8])
+    await _seed_academic_context(tenant, user)
+    now = datetime.now(timezone.utc)
+    record = await StudentAcademicRecord.find_one({"user_id": user.id})
+    assert record is not None
+    record.eligibility_summary = {
+        "enrollment_target_semester_number": 6,
+        "enrollment_target_academic_year_label": "2025-26",
+        "enrollment_target_semester_label": "Semester 6",
+        "enrollment_window_opens_at": (now - timedelta(days=1)).isoformat(),
+        "enrollment_window_closes_at": (now + timedelta(days=30)).isoformat(),
+        "enrollment_eligibility_label": "Eligible",
+        "enrollment_window_notice": "Window is open for confirmation.",
+    }
+    record.fee_snapshot = {"outstanding_amount": 0, "status": "cleared", "currency": "INR"}
+    record.promotion_eligible = True
+    await record.save()
+
+    details = await get_academic_details(scope, user)
+    assert details.academic_status_details is not None
+    assert len(details.academic_status_details.standing_fields) == 6
+    assert details.academic_status_details.standing_fields[0].label == "Standing"
+    assert details.academic_status_details.page_subtitle == "Standing, holds and requirements"
+    assert details.enrollment_confirmation is not None
+    assert details.enrollment_confirmation.window_banner_title is not None
+    assert not details.enrollment_confirmation.can_confirm
+
+    await update_enrollment_declaration(scope, user, EnrollmentDeclarationUpdate(accepted=True))
+    details = await get_academic_details(scope, user)
+    assert details.enrollment_confirmation is not None
+    assert details.enrollment_confirmation.declaration_accepted is True
+    assert details.enrollment_confirmation.can_confirm is True
+
+    result = await confirm_term_enrollment(scope, user)
+    assert result.status == "confirmed"
+    assert result.semester_number == 6
+
+    details = await get_academic_details(scope, user)
+    assert details.enrollment_confirmation is not None
+    assert details.enrollment_confirmation.already_confirmed is True
+    assert len(details.enrollment_confirmation_history) >= 1

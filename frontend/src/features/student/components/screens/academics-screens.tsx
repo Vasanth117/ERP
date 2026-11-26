@@ -3,20 +3,22 @@
 import Link from "next/link";
 import { useState, type ChangeEvent, type ReactNode } from "react";
 
-import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { PlusIcon } from "@/components/icons/erp/generated/plus";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AcademicOverviewScreen } from "@/features/student/components/screens/academic-overview-screen";
+import { StudentEnrollmentDetailsScreen } from "@/features/student/components/screens/enrollment-details-screen";
+import { ProgrammeDepartmentScreen } from "@/features/student/components/screens/programme-department-screen";
+import { StudentAcademicStatusScreen } from "@/features/student/components/screens/student-academic-status-screen";
+import { StudentSemestersScreen } from "@/features/student/components/screens/student-semesters-screen";
+import { StudentSubjectsCreditsScreen } from "@/features/student/components/screens/student-subjects-credits-screen";
 import {
   QueryState,
   formatDateTime,
 } from "@/features/student/components/ui/student-screen-ui";
 import {
-  useAcademicEligibility,
   useEnrollmentHistory,
   useEnrollmentRequests,
-  useEnrollmentStatus,
   useSubmitEnrollmentRequest,
 } from "@/features/student/hooks/use-student-academics";
 import { cn } from "@/lib/utils";
@@ -26,8 +28,10 @@ type AcademicsSlug =
   | "enrollment-status"
   | "enrollment-history"
   | "academic-eligibility"
+  | "enrollment-details"
   | "enrollment-requests"
-  | "new-enrollment-request";
+  | "new-enrollment-request"
+  | "programme-department";
 
 function StatusPill({
   label,
@@ -112,174 +116,23 @@ export function AcademicsScreen({ slug }: { slug: AcademicsSlug }) {
 
 function AcademicsBody({ slug }: { slug: AcademicsSlug }) {
   switch (slug) {
+    case "enrollment-details":
+      return <StudentEnrollmentDetailsScreen />;
     case "enrollment-status":
-      return <EnrollmentStatusView />;
+      return <StudentAcademicStatusScreen />;
     case "enrollment-history":
-      return <EnrollmentHistoryView />;
+      return <StudentSemestersScreen />;
     case "academic-eligibility":
-      return <EligibilityView />;
+      return <StudentSubjectsCreditsScreen />;
     case "enrollment-requests":
       return <EnrollmentRequestsView />;
     case "new-enrollment-request":
       return <NewEnrollmentRequestView />;
+    case "programme-department":
+      return <ProgrammeDepartmentScreen />;
     default:
       return null;
   }
-}
-
-/* =========================================================================
-   ST 02.05 - Enrollment Status View (Tuned to Department Admin style)
-   ========================================================================= */
-function EnrollmentStatusView() {
-  const { data, isLoading, isError, error, refetch } = useEnrollmentStatus();
-
-  const academicYear = data?.academic_year_label ?? "—";
-  const semester = data?.semester_label ?? "—";
-  const status = data?.enrollment_status ?? "—";
-  const standing = data?.academic_standing ?? "—";
-  const progression = data?.progression_status ?? "—";
-
-  const statusTone =
-    status.toUpperCase() === "ACTIVE"
-      ? "success"
-      : status.toUpperCase() === "PROVISIONAL"
-        ? "warning"
-        : "error";
-
-  const standingTone =
-    standing.toUpperCase().includes("GOOD") || standing.toUpperCase() === "NORMAL"
-      ? "success"
-      : standing.toUpperCase().includes("PROBATION")
-        ? "warning"
-        : "muted";
-
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-[26px] font-bold tracking-tight text-[#111827]">
-          Enrollment Status
-        </h1>
-        <p className="mt-1 text-[14px] text-[#6b7280]">
-          Standing, progression, and term enrollment verification for Academic Year {academicYear}
-        </p>
-      </div>
-
-      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
-        {/* 4 KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Enrollment status</span>
-            <div className="mt-2">
-              <StatusPill label={status} tone={statusTone} />
-              <p className="mt-2 text-[12px] font-medium text-[#6b7280]">
-                Official institutional enrollment
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Current term</span>
-            <div className="mt-2">
-              <p className="text-[24px] font-bold leading-none tracking-tight text-[#111827]">
-                {semester}
-              </p>
-              <p className="mt-1.5 text-[13px] font-medium text-[#2563eb]">
-                {academicYear}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Academic standing</span>
-            <div className="mt-2">
-              <StatusPill label={standing} tone={standingTone} />
-              <p className="mt-2 text-[12px] font-medium text-[#059669]">
-                Eligible for semester progression
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Progression</span>
-            <div className="mt-2">
-              <StatusPill label={progression} tone="info" />
-              <p className="mt-2 text-[12px] font-medium text-[#2563eb]">
-                Regular academic progression
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 2-Column Detail Panels */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Left: Term Standing & Roster Details */}
-          <SectionCard title="Term standing details">
-            <div className="divide-y divide-[#f1f5f9] px-5 text-[13px]">
-              <div className="flex items-center justify-between py-3.5">
-                <span className="text-[#6b7280]">Academic Year</span>
-                <span className="font-medium text-[#111827]">{academicYear}</span>
-              </div>
-              <div className="flex items-center justify-between py-3.5">
-                <span className="text-[#6b7280]">Semester</span>
-                <span className="font-medium text-[#111827]">{semester}</span>
-              </div>
-              <div className="flex items-center justify-between py-3.5">
-                <span className="text-[#6b7280]">Enrollment Status</span>
-                <StatusPill label={status} tone={statusTone} />
-              </div>
-              <div className="flex items-center justify-between py-3.5">
-                <span className="text-[#6b7280]">Academic Standing</span>
-                <StatusPill label={standing} tone={standingTone} />
-              </div>
-              <div className="flex items-center justify-between py-3.5">
-                <span className="text-[#6b7280]">Progression Status</span>
-                <StatusPill label={progression} tone="info" />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* Right: Academic Standing Guidelines */}
-          <SectionCard title="Academic standing & policy rules">
-            <div className="space-y-4 p-5 text-[13px]">
-              <div className="rounded-lg border border-[#e0e7ff] bg-[#eff6ff] p-4 text-[#1e40af]">
-                <p className="font-semibold">Current Standing: Good Standing</p>
-                <p className="mt-1 text-[12px] text-[#3b82f6]">
-                  You have satisfied all academic progression requirements for the current academic year.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#ecfdf5] text-[#047857]">
-                    <CheckIcon className="size-2.5 stroke-[2.5]" aria-hidden />
-                  </span>
-                  <div>
-                    <p className="font-medium text-[#111827]">Promotion Eligibility</p>
-                    <p className="text-[12px] text-[#6b7280]">
-                      Earned minimum cumulative credits required for progression to next academic semester.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#ecfdf5] text-[#047857]">
-                    <CheckIcon className="size-2.5 stroke-[2.5]" aria-hidden />
-                  </span>
-                  <div>
-                    <p className="font-medium text-[#111827]">Attendance Compliance</p>
-                    <p className="text-[12px] text-[#6b7280]">
-                      Maintained aggregate attendance above the mandatory 75% threshold.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </SectionCard>
-        </div>
-      </QueryState>
-    </div>
-  );
 }
 
 /* =========================================================================
@@ -351,106 +204,6 @@ function EnrollmentHistoryView() {
               </table>
             </div>
           )}
-        </SectionCard>
-      </QueryState>
-    </div>
-  );
-}
-
-/* =========================================================================
-   ST 02.04 - Subjects & Credits / Academic Eligibility View
-   ========================================================================= */
-function EligibilityView() {
-  const { data, isLoading, isError, error, refetch } = useAcademicEligibility();
-
-  const isEligible = data?.promotion_eligible ?? false;
-  const creditsRegistered = data?.credits_registered ?? 0;
-  const creditsEarned = data?.credits_earned ?? 0;
-  const cgpa = data?.cgpa;
-  const totalCredits = (data?.eligibility_summary?.minimum_credits_required as number) || 160;
-
-  const progressPercent = totalCredits > 0 ? Math.min(100, Math.round((creditsEarned / totalCredits) * 100)) : 0;
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-[26px] font-bold tracking-tight text-[#111827]">
-          Academic Eligibility & Credits
-        </h1>
-        <p className="mt-1 text-[14px] text-[#6b7280]">
-          Promotion eligibility, credits breakdown, and cumulative academic performance
-        </p>
-      </div>
-
-      <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Promotion eligible</span>
-            <div className="mt-2">
-              <StatusPill
-                label={isEligible ? "Eligible" : "Pending Review"}
-                tone={isEligible ? "success" : "warning"}
-              />
-              <p className="mt-2 text-[12px] font-medium text-[#059669]">
-                Qualified for semester progression
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Credits registered</span>
-            <div className="mt-2">
-              <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#111827]">
-                {creditsRegistered}
-              </p>
-              <p className="mt-1.5 text-[13px] font-medium text-[#2563eb]">
-                Current active term
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Credits earned</span>
-            <div className="mt-2">
-              <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#111827]">
-                {creditsEarned}
-              </p>
-              <p className="mt-1.5 text-[13px] font-medium text-[#6b7280]">
-                of {totalCredits} required
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Cumulative CGPA</span>
-            <div className="mt-2">
-              <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#111827]">
-                {typeof cgpa === "number" ? cgpa.toFixed(2) : (cgpa ?? "—")}
-              </p>
-              <p className="mt-1.5 text-[13px] font-medium text-[#059669]">
-                Scale of 10.0
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Credit Completion Progress */}
-        <SectionCard title="Degree completion progress">
-          <div className="p-5">
-            <div className="mb-2 flex items-center justify-between text-[13px]">
-              <span className="font-semibold text-[#111827]">Degree credits completed</span>
-              <span className="tabular-nums font-medium text-[#6b7280]">
-                {creditsEarned} / {totalCredits} credits ({progressPercent}%)
-              </span>
-            </div>
-            <div className="h-3 w-full overflow-hidden rounded-full bg-[#f1f5f9]">
-              <div
-                className="h-full rounded-full bg-[#2563eb] transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
         </SectionCard>
       </QueryState>
     </div>

@@ -1078,6 +1078,7 @@ def document_models() -> list[type]:
         StudentDashboardPreferences,
         StudentEnrollment,
         StudentEnrollmentHistory,
+        StudentTermEnrollmentConfirmation,
         StudentProfile,
     )
     from app.modules.parents.models import (
@@ -1636,6 +1637,7 @@ def document_models() -> list[type]:
         StudentAcademicRecord,
         StudentEnrollment,
         StudentEnrollmentHistory,
+        StudentTermEnrollmentConfirmation,
         StudentDashboardPreferences,
         StudentAcademicRequest,
         StudentActivityLog,

@@ -1,5 +1,6 @@
 """Student portal API schemas."""
 
+import re
 from datetime import date, datetime, time
 from typing import Any
 
@@ -302,6 +303,9 @@ class EnrollmentHistoryRead(BaseModel):
     courses: list[dict[str, str]]
     final_standing: AcademicStanding
     credits_earned: float
+    credits_required: float | None = None
+    semester_number: int | None = None
+    period_label: str | None = None
     cgpa: float | None = None
     closed_at: datetime
 
@@ -315,12 +319,17 @@ class AcademicEligibilityRead(BaseModel):
 
 
 class StudentAcademicInformationRead(BaseModel):
-    """ST 01.04 academic information panel (read-only)."""
+    """ST 01.04 / ST 02.02 academic information panel (read-only)."""
 
     regulation_label: str | None = None
     admission_type: str | None = None
     batch_display: str | None = None
+    admission_year: str | None = None
+    study_mode: str | None = None
     current_semester_number: int | None = Field(default=None, ge=1, le=12)
+    total_semesters: int | None = Field(default=None, ge=1, le=16)
+    minimum_credits_required: float | None = Field(default=None, ge=0)
+    programme_duration_years: int | None = Field(default=None, ge=1, le=10)
 
 
 class StudentAcademicAdvisorRead(BaseModel):
@@ -328,6 +337,179 @@ class StudentAcademicAdvisorRead(BaseModel):
 
     class_advisor_name: str | None = None
     mentor_name: str | None = None
+
+
+class StudentProgrammeDetailsRead(BaseModel):
+    programme_name: str | None = None
+    duration_label: str | None = None
+    total_credits: float | None = None
+    affiliation_name: str | None = None
+    accreditation_label: str | None = None
+
+
+class StudentDepartmentDetailsRead(BaseModel):
+    department_name: str | None = None
+    head_of_department_name: str | None = None
+    class_advisor_name: str | None = None
+    department_email: str | None = None
+
+
+class StudentDepartmentContactsRead(BaseModel):
+    office_location: str | None = None
+    contact_phone: str | None = None
+
+
+class ProgrammeDepartmentContextRead(BaseModel):
+    programme: StudentProgrammeDetailsRead = Field(default_factory=StudentProgrammeDetailsRead)
+    department: StudentDepartmentDetailsRead = Field(default_factory=StudentDepartmentDetailsRead)
+    contacts: StudentDepartmentContactsRead = Field(default_factory=StudentDepartmentContactsRead)
+
+
+class ProgressionPolicyRead(BaseModel):
+    minimum_attendance_percent: float | None = None
+    arrears_rule_label: str | None = None
+    regulation_label: str | None = None
+
+
+class ProgressionTransitionRead(BaseModel):
+    transition_label: str
+    credits_display: str
+    requirement_label: str
+    outcome: str
+    outcome_tone: str = "muted"
+
+
+class AcademicProgressionDetailsRead(BaseModel):
+    transitions: list[ProgressionTransitionRead] = Field(default_factory=list)
+    policy: ProgressionPolicyRead = Field(default_factory=ProgressionPolicyRead)
+
+
+class CurrentSemesterOverviewRead(BaseModel):
+    """ST 02.04 — active term snapshot (read-only)."""
+
+    term_subtitle: str | None = None
+    subject_count: int = 0
+    credits_registered: float = 0
+    internal_tests_label: str | None = None
+    attendance_percent: float | None = None
+    next_exam_title: str | None = None
+    next_exam_date_label: str | None = None
+
+
+class CourseCreditCategoryRowRead(BaseModel):
+    """Programme credit bucket (ST 02.07 table row)."""
+
+    category: str
+    credits_required: float = 0
+    credits_earned: float = 0
+    credits_in_progress: float = 0
+    credits_remaining: float = 0
+
+
+class CourseCreditSummaryRead(BaseModel):
+    """ST 02.07 — degree credit totals and category breakdown."""
+
+    credits_earned: float = 0
+    credits_in_progress: float = 0
+    credits_remaining: float = 0
+    credits_required: float = 0
+    in_progress_semester_label: str | None = None
+    categories: list[CourseCreditCategoryRowRead] = Field(default_factory=list)
+
+
+class SemesterSubjectsTermRead(BaseModel):
+    """One term's registered subjects (ST 02.06 semester picker)."""
+
+    academic_year_label: str
+    semester_label: str
+    semester_number: int | None = None
+    is_current: bool = False
+    subjects: list[EnrollmentLineRead] = Field(default_factory=list)
+
+
+class EnrollmentConfirmationRead(BaseModel):
+    """ST 02.09 — pending term enrollment confirmation."""
+
+    page_subtitle: str | None = None
+    window_banner_title: str | None = None
+    window_banner_body: str | None = None
+    target_semester_number: int | None = None
+    target_academic_year_label: str | None = None
+    target_semester_label: str | None = None
+    eligibility_label: str | None = None
+    fee_clearance_label: str | None = None
+    attendance_condition_label: str | None = None
+    declaration_accepted: bool = False
+    window_open: bool = False
+    can_confirm: bool = False
+    already_confirmed: bool = False
+    confirmed_at: datetime | None = None
+    confirm_blocked_reasons: list[str] = Field(default_factory=list)
+
+
+class EnrollmentConfirmationHistoryRowRead(BaseModel):
+    """ST 02.10 — past term enrollment confirmations."""
+
+    id: str
+    academic_year_label: str
+    semester_label: str
+    semester_number: int | None = None
+    study_mode: str | None = None
+    confirmed_on_label: str | None = None
+    status: str
+    status_tone: str = "success"
+
+
+class AcademicStatusStandingFieldRead(BaseModel):
+    """One label/value pair in ST 02.11 academic standing grid."""
+
+    label: str
+    value: str
+
+
+class AcademicStatusPendingRequirementRead(BaseModel):
+    """One row in ST 02.11 pending requirements list."""
+
+    title: str
+    detail: str | None = None
+    status_label: str
+    status_tone: str = "info"
+    icon_tone: str = "info"
+    action_href: str | None = None
+
+
+class AcademicStatusDetailsRead(BaseModel):
+    """ST 02.11 — academic standing and pending requirements."""
+
+    page_subtitle: str | None = None
+    standing_fields: list[AcademicStatusStandingFieldRead] = Field(default_factory=list)
+    pending_requirements: list[AcademicStatusPendingRequirementRead] = Field(default_factory=list)
+
+
+class EnrollmentDeclarationUpdate(BaseModel):
+    accepted: bool
+
+    model_config = {"extra": "forbid"}
+
+
+class EnrollmentConfirmResultRead(BaseModel):
+    id: str
+    academic_year_label: str
+    semester_label: str
+    semester_number: int | None = None
+    status: str
+    confirmed_at: datetime
+
+
+class SemesterAcademicHistoryRead(BaseModel):
+    id: str
+    semester_label: str
+    semester_number: int | None = None
+    period_label: str | None = None
+    credits_earned: float = 0
+    credits_required: float | None = None
+    gpa: float | None = None
+    result_label: str
 
 
 class AcademicDetailsRead(BaseModel):
@@ -340,6 +522,15 @@ class AcademicDetailsRead(BaseModel):
         default_factory=StudentAcademicInformationRead
     )
     advisors: StudentAcademicAdvisorRead = Field(default_factory=StudentAcademicAdvisorRead)
+    programme_department_context: ProgrammeDepartmentContextRead | None = None
+    current_semester_overview: CurrentSemesterOverviewRead | None = None
+    semester_academic_history: list[SemesterAcademicHistoryRead] = Field(default_factory=list)
+    academic_progression: AcademicProgressionDetailsRead | None = None
+    course_credit_summary: CourseCreditSummaryRead | None = None
+    semester_subject_terms: list[SemesterSubjectsTermRead] = Field(default_factory=list)
+    enrollment_confirmation: EnrollmentConfirmationRead | None = None
+    enrollment_confirmation_history: list[EnrollmentConfirmationHistoryRowRead] = Field(default_factory=list)
+    academic_status_details: AcademicStatusDetailsRead | None = None
 
 
 class EnrollmentRequestCreate(BaseModel):
@@ -396,7 +587,20 @@ def enrollment_line_from_doc(row: StudentEnrollment) -> EnrollmentLineRead:
     )
 
 
+def _semester_number_from_label(label: str | None) -> int | None:
+    if not label:
+        return None
+    match = re.search(r"\b(\d{1,2})\b", label)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except ValueError:
+        return None
+
+
 def enrollment_history_from_doc(row: StudentEnrollmentHistory) -> EnrollmentHistoryRead:
+    sem_num = row.semester_number or _semester_number_from_label(row.semester_label)
     return EnrollmentHistoryRead(
         id=str(row.id),
         academic_year_label=row.academic_year_label,
@@ -406,8 +610,29 @@ def enrollment_history_from_doc(row: StudentEnrollmentHistory) -> EnrollmentHist
         courses=row.courses,
         final_standing=row.final_standing,
         credits_earned=row.credits_earned,
+        credits_required=row.credits_required,
+        semester_number=sem_num,
+        period_label=row.period_label,
         cgpa=row.cgpa,
         closed_at=row.closed_at,
+    )
+
+
+def semester_academic_history_from_doc(row: StudentEnrollmentHistory) -> SemesterAcademicHistoryRead:
+    standing = row.final_standing.value if hasattr(row.final_standing, "value") else str(row.final_standing)
+    result = standing.replace("_", " ").title() if standing and standing != "unknown" else "—"
+    if standing in {"good", "normal"}:
+        result = "Passed"
+    sem_num = row.semester_number or _semester_number_from_label(row.semester_label)
+    return SemesterAcademicHistoryRead(
+        id=str(row.id),
+        semester_label=row.semester_label,
+        semester_number=sem_num,
+        period_label=row.period_label,
+        credits_earned=row.credits_earned,
+        credits_required=row.credits_required,
+        gpa=row.cgpa,
+        result_label=result,
     )
 
 

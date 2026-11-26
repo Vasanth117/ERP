@@ -9,6 +9,21 @@ alwaysApply: false
 - Source of truth for UI: read `design/figma.json` for the Figma `fileKey`, `defaultNodeId`, and `url`.
 - Page index (197 Figma pages by ERP module): `design/figma-pages.json` — resolve `nodeId` from there, then call Figma MCP `get_design_context` / `get_screenshot` with `fileKey` `Hy7qeZdVNmzD6PN0ZkgBfK`.
 - Figma MCP is enabled in `.cursor/mcp.json` (`https://mcp.figma.com/mcp`). Re-sync pages after Figma renames: run `python scripts/build_figma_pages_catalog.py` (requires `design/_figma_pages_raw.json` from Figma MCP `use_figma` page export).
+
+## Figma MCP authentication (do not skip)
+
+Before the first Figma MCP call in a task (`get_design_context`, `get_screenshot`, `use_figma`, etc.):
+
+1. Call **`whoami`** on namespace `plugin-figma-figma`. If it fails or returns `needsAuth`, call **`mcp_auth`** (same namespace) with empty args, complete sign-in in Cursor, then re-run `whoami`.
+2. If the user still cannot access the ERP file, stop and report **email/plan from `whoami`** and the exact error — do not implement UI from guesswork.
+3. Use **`create_session`** once the `fileKey` is known; pass `sessionId` on subsequent file tools for that task.
+
+### `get_design_context` must not fail silently
+
+- Load **figma-design-to-code** before `get_design_context`.
+- If the tool errors, rate-limits, or returns empty/unusable output: **tell the user** with `fileKey`, `nodeId`, and the error text. Do not substitute placeholder layouts or omit that the design was never fetched.
+- After a successful call, confirm the frame name or node matches `design/figma-pages.json` when implementing a mapped screen.
+
 - Before implementing screens from Figma, use the **figma-design-to-code** skill and Figma MCP `get_design_context` with that file/node (not a guessed URL).
 - Frontend talks to FastAPI at `http://localhost:8000` with prefix `/api/v1` (see `backend/app/core/config.py` and `backend/app/api/v1/router.py`).
 - Auth: `POST /api/v1/auth/login`, session via Bearer token; super admins may send `X-Tenant-Id`.

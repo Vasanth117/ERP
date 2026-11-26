@@ -9,6 +9,8 @@ import {
   fetchEnrollmentRequests,
   fetchEnrollmentStatus,
   submitEnrollmentRequest,
+  confirmTermEnrollment,
+  updateEnrollmentDeclaration,
 } from "@/features/student/api/academics";
 import { studentQueryKeys } from "@/features/student/query-keys";
 import type { EnrollmentRequestCreate } from "@/features/student/types/academics";
@@ -56,6 +58,26 @@ export function useSubmitEnrollmentRequest() {
     mutationFn: (payload: EnrollmentRequestCreate) => submitEnrollmentRequest(payload),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: studentQueryKeys.enrollmentRequests(50, 0) });
+      void qc.invalidateQueries({ queryKey: studentQueryKeys.academics() });
+    },
+  });
+}
+
+export function useEnrollmentDeclaration() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (accepted: boolean) => updateEnrollmentDeclaration(accepted),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: studentQueryKeys.academics() });
+    },
+  });
+}
+
+export function useConfirmTermEnrollment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => confirmTermEnrollment(),
+    onSuccess: () => {
       void qc.invalidateQueries({ queryKey: studentQueryKeys.academics() });
     },
   });

@@ -12,6 +12,7 @@ from app.common.envelope import ApiResponse, success_response
 from app.common.schemas import Page, Pagination
 from app.modules.auth.models import User
 from app.modules.students.academic_service import (
+    confirm_term_enrollment,
     get_academic_details,
     get_academic_eligibility,
     get_enrollment_history,
@@ -19,6 +20,7 @@ from app.modules.students.academic_service import (
     get_enrollment_status,
     list_enrollment_requests,
     submit_enrollment_request,
+    update_enrollment_declaration,
 )
 from app.modules.students.dashboard_service import (
     get_academic_notifications,
@@ -36,6 +38,9 @@ from app.modules.department_admin.section_transfer_service import submit_section
 from app.modules.students.schemas import (
     AcademicDetailsRead,
     AcademicEligibilityRead,
+    EnrollmentConfirmResultRead,
+    EnrollmentConfirmationRead,
+    EnrollmentDeclarationUpdate,
     EnrollmentHistoryRead,
     EnrollmentRequestCreate,
     EnrollmentRequestRead,
@@ -176,6 +181,26 @@ async def student_enrollment_history_route(
     pagination: Annotated[Pagination, Depends(pagination_params)],
 ) -> ApiResponse[Page[EnrollmentHistoryRead]]:
     data = await get_enrollment_history(scope, user, pagination)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.patch("/me/academics/enrollment-confirmation/declaration", response_model=ApiResponse[EnrollmentConfirmationRead])
+async def student_enrollment_declaration_route(
+    payload: EnrollmentDeclarationUpdate,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[EnrollmentConfirmationRead]:
+    data = await update_enrollment_declaration(scope, user, payload)
+    return success_response(data, request_id=get_request_id())
+
+
+@router.post("/me/academics/enrollment-confirmation", response_model=ApiResponse[EnrollmentConfirmResultRead])
+async def student_confirm_term_enrollment_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    _: Annotated[None, Depends(enrollment_request_rate_limit)],
+) -> ApiResponse[EnrollmentConfirmResultRead]:
+    data = await confirm_term_enrollment(scope, user)
     return success_response(data, request_id=get_request_id())
 
 

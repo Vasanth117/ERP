@@ -11,17 +11,32 @@ from app.core.database import close_mongo, connect_to_mongo
 from app.core.logging import configure_logging
 from app.core.security import hash_password
 from app.modules.academics.models import AcademicYearContext
+from app.modules.college_admin.academic_config_models import (
+    AcademicProgramme,
+    AcademicRegulation,
+    ConfigPublicationStatus,
+)
+from app.modules.college_admin.identity_models import InstitutionDepartment
+from app.modules.college_admin.models import InstitutionProfile
+from app.modules.department_admin.models import DepartmentProfileDetails
 from app.modules.auth.models import User
 from app.modules.college_admin.student_admin_models import AdmissionStatus, StudentAdmission, StudentGuardianRelationship
 from app.modules.parents.enums import ParentAccountStatus
 from app.modules.parents.models import ParentProfile
-from app.modules.students.enums import AcademicStanding, ProgressionStatus, StudentEnrollmentStatus
+from app.modules.students.enums import (
+    AcademicStanding,
+    ProgressionStatus,
+    StudentEnrollmentStatus,
+    StudentTermEnrollmentConfirmationStatus,
+)
 from app.modules.students.models import (
     EmergencyContact,
     ProfileDocumentRef,
     StudentAcademicRecord,
     StudentEnrollment,
+    StudentEnrollmentHistory,
     StudentProfile,
+    StudentTermEnrollmentConfirmation,
 )
 from app.modules.students.student_portal_enums import StudentRecordDocumentCategory
 from app.modules.students.student_portal_models import StudentDocumentReference
@@ -39,6 +54,50 @@ DEMO_ACADEMIC_YEAR = "2025-26"
 DEMO_SEMESTER = "Semester 5"
 DEMO_SEMESTER_NUMBER = 5
 DEMO_DOC_UPLOADED = datetime(2022, 6, 12, 10, 0, 0, tzinfo=timezone.utc)
+
+# Closed terms for ST 02.03 — Semesters / enrollment history (not the active term).
+DEMO_ENROLLMENT_HISTORY_CLOSED: tuple[dict, ...] = (
+    {
+        "academic_year_label": "2024-25",
+        "semester_label": "Semester 1",
+        "semester_number": 1,
+        "period_label": "Aug 2022 – Jan 2023",
+        "credits_earned": 21.0,
+        "credits_required": 21.0,
+        "cgpa": 7.82,
+        "closed_at": datetime(2024, 12, 15, 12, 0, 0, tzinfo=timezone.utc),
+    },
+    {
+        "academic_year_label": "2024-25",
+        "semester_label": "Semester 2",
+        "semester_number": 2,
+        "period_label": "Feb – Jun 2023",
+        "credits_earned": 22.0,
+        "credits_required": 22.0,
+        "cgpa": 8.04,
+        "closed_at": datetime(2025, 5, 28, 12, 0, 0, tzinfo=timezone.utc),
+    },
+    {
+        "academic_year_label": DEMO_ACADEMIC_YEAR,
+        "semester_label": "Semester 3",
+        "semester_number": 3,
+        "period_label": "Aug 2023 – Jan 2024",
+        "credits_earned": 23.0,
+        "credits_required": 23.0,
+        "cgpa": 8.15,
+        "closed_at": datetime(2025, 12, 12, 12, 0, 0, tzinfo=timezone.utc),
+    },
+    {
+        "academic_year_label": DEMO_ACADEMIC_YEAR,
+        "semester_label": "Semester 4",
+        "semester_number": 4,
+        "period_label": "Feb – Jun 2025",
+        "credits_earned": 22.0,
+        "credits_required": 22.0,
+        "cgpa": 8.35,
+        "closed_at": datetime(2026, 5, 22, 12, 0, 0, tzinfo=timezone.utc),
+    },
+)
 
 DEMO_STUDENT_RECORD_DOCUMENTS: tuple[dict, ...] = (
     {
@@ -167,6 +226,86 @@ async def _ensure_academic_context(tenant_id) -> None:
     print(f"created academic year context {DEMO_ACADEMIC_YEAR} / sem {DEMO_SEMESTER_NUMBER}")
 
 
+async def _ensure_programme_department_demo_data(tenant_id) -> None:
+    """ST 02.03 / 02.08 — institution, programme, department contacts, progression policy."""
+    profile = await InstitutionProfile.find_one(Eq(InstitutionProfile.tenant_id, tenant_id))
+    if profile is None:
+        await InstitutionProfile(
+            tenant_id=tenant_id,
+            legal_name="Northbridge College of Engineering",
+            display_name="Northbridge College",
+            affiliation_name="Anna University",
+            accreditation_display="NBA accredited",
+        ).insert()
+    else:
+        profile.affiliation_name = profile.affiliation_name or "Anna University"
+        profile.accreditation_display = profile.accreditation_display or "NBA accredited"
+        profile.updated_at = utcnow()
+        await profile.save()
+
+    programme = await AcademicProgramme.find_one(
+        Eq(AcademicProgramme.tenant_id, tenant_id),
+        Eq(AcademicProgramme.programme_code, "B.E. CSE"),
+    )
+    if programme is None:
+        await AcademicProgramme(
+            tenant_id=tenant_id,
+            programme_code="B.E. CSE",
+            name="B.E. Computer Science and Engineering",
+            duration_semesters=8,
+            credits_required=160,
+            status=ConfigPublicationStatus.PUBLISHED,
+        ).insert()
+
+    regulation = await AcademicRegulation.find_one(
+        {"tenant_id": tenant_id, "scope_key": "progression", "status": ConfigPublicationStatus.PUBLISHED},
+    )
+    if regulation is None:
+        await AcademicRegulation(
+            tenant_id=tenant_id,
+            scope_key="progression",
+            status=ConfigPublicationStatus.PUBLISHED,
+            rules={
+                "min_attendance_percent": 75,
+                "max_arrears_carried_label": "Per regulation R2022",
+                "completed_semester_requirement": "Pass all",
+            },
+        ).insert()
+
+    dept = await InstitutionDepartment.find_one(
+        Eq(InstitutionDepartment.tenant_id, tenant_id),
+        Eq(InstitutionDepartment.name, "Computer Science & Engineering"),
+    )
+    if dept is None:
+        dept = await InstitutionDepartment(
+            tenant_id=tenant_id,
+            department_code="CSE",
+            name="Computer Science & Engineering",
+            programme_codes=["B.E. CSE", "BTECH-CSE"],
+            contact_email="cse@northbridge.edu",
+            building_floor_label="Block A - Room 104",
+        ).insert()
+    details = await DepartmentProfileDetails.find_one(
+        Eq(DepartmentProfileDetails.tenant_id, tenant_id),
+        Eq(DepartmentProfileDetails.institution_department_id, dept.id),
+    )
+    if details is None:
+        await DepartmentProfileDetails(
+            tenant_id=tenant_id,
+            institution_department_id=dept.id,
+            central_department_id=dept.central_department_id or dept.id,
+            contact_email="cse@northbridge.edu",
+            contact_phone="044 2345 6781",
+            office_location="Block A - Room 104",
+        ).insert()
+    else:
+        details.contact_email = details.contact_email or "cse@northbridge.edu"
+        details.contact_phone = details.contact_phone or "044 2345 6781"
+        details.office_location = details.office_location or "Block A - Room 104"
+        details.updated_at = utcnow()
+        await details.save()
+
+
 async def main() -> None:
     configure_logging()
     await connect_to_mongo()
@@ -178,6 +317,7 @@ async def main() -> None:
             return
 
         await _ensure_academic_context(tenant.id)
+        await _ensure_programme_department_demo_data(tenant.id)
 
         student = await _ensure_user(
             tenant_id=tenant.id,
@@ -206,9 +346,10 @@ async def main() -> None:
                 roll_number="24CSE001",
                 admission_number="ADM-2024-001",
                 programme_code="B.E. CSE",
-                programme_name="B.E. CSE",
+                programme_name="B.E. Computer Science and Engineering",
                 batch_label="2024",
                 section_code="A",
+                admission_date=date(2024, 7, 15),
                 contact_phone="+91 98400 12345",
                 alternate_contact_phone="+91 98400 67890",
                 alternate_email="student.demo.personal@mail.com",
@@ -224,7 +365,7 @@ async def main() -> None:
             student_profile.student_id = DEV_STUDENT_ID
             student_profile.roll_number = student_profile.roll_number or "24CSE001"
             student_profile.admission_number = student_profile.admission_number or "ADM-2024-001"
-            student_profile.programme_name = "B.E. CSE"
+            student_profile.programme_name = "B.E. Computer Science and Engineering"
             student_profile.programme_code = "B.E. CSE"
             student_profile.contact_phone = student_profile.contact_phone or "+91 98400 12345"
             student_profile.alternate_contact_phone = student_profile.alternate_contact_phone or "+91 98400 67890"
@@ -317,10 +458,13 @@ async def main() -> None:
                     "identity_verified": True,
                     "regulation_label": "R2022",
                     "admission_type": "Counselling · Merit",
+                    "study_mode": "Full time",
                     "batch_display": "2024–2028",
                     "programme_duration_years": 4,
                     "class_advisor_name": "Prof. R. Narayanan",
                     "mentor_name": "Dr. M. Rao",
+                    "affiliation_name": "Anna University",
+                    "accreditation_label": "NBA accredited",
                 },
             ).insert()
             print("created student admission with official personal metadata")
@@ -414,11 +558,84 @@ async def main() -> None:
                 credits_registered=20.0,
                 credits_earned=88.0,
                 cgpa=8.52,
+                fee_snapshot={"outstanding_amount": 0, "status": "cleared", "currency": "INR"},
                 eligibility_summary={
                     "minimum_credits_required": 160,
                     "credits_completed": 88,
                     "semesters_completed": 4,
                     "total_semesters": 8,
+                    "internal_tests_completed": 2,
+                    "internal_tests_total": 3,
+                    "aggregate_attendance_percent": 86.4,
+                    "academic_status_subtitle": "Standing, holds and requirements",
+                    "disciplinary_action_label": "None",
+                    "academic_holds_label": "None",
+                    "backlogs_count": 0,
+                    "pending_requirements": [
+                        {
+                            "title": "Computer Networks attendance",
+                            "detail": "72% (need 75%)",
+                            "status_label": "Action",
+                            "status_tone": "warning",
+                            "icon_tone": "alert",
+                            "action_href": "/student/timetable/attendance",
+                        },
+                        {
+                            "title": "Mandatory course: Environmental Studies",
+                            "detail": "Pending",
+                            "status_label": "Open",
+                            "status_tone": "info",
+                            "icon_tone": "info",
+                            "action_href": "/student/academics/eligibility",
+                        },
+                    ],
+                    "next_exam_label": "Internal 3",
+                    "next_exam_date_label": "24 Nov",
+                    "enrollment_target_semester_number": 6,
+                    "enrollment_target_academic_year_label": DEMO_ACADEMIC_YEAR,
+                    "enrollment_target_semester_label": "Semester 6",
+                    "enrollment_window_opens_at": "2026-12-20T00:00:00+00:00",
+                    "enrollment_window_closes_at": "2027-01-31T23:59:59+00:00",
+                    "enrollment_window_notice": "You will be able to confirm after Semester 5 results are published.",
+                    "enrollment_eligibility_label": "Pending Semester 5 results",
+                    "student_enrollment_declaration_accepted": False,
+                    "credit_by_category": [
+                        {
+                            "category": "Basic sciences",
+                            "required": 24,
+                            "earned": 24,
+                            "in_progress": 0,
+                            "remaining": 0,
+                        },
+                        {
+                            "category": "Engineering core",
+                            "required": 54,
+                            "earned": 40,
+                            "in_progress": 8,
+                            "remaining": 6,
+                        },
+                        {
+                            "category": "Professional core",
+                            "required": 56,
+                            "earned": 24,
+                            "in_progress": 8,
+                            "remaining": 24,
+                        },
+                        {
+                            "category": "Electives",
+                            "required": 18,
+                            "earned": 0,
+                            "in_progress": 3,
+                            "remaining": 15,
+                        },
+                        {
+                            "category": "Mandatory courses",
+                            "required": 8,
+                            "earned": 0,
+                            "in_progress": 1,
+                            "remaining": 7,
+                        },
+                    ],
                 },
             ).insert()
             print("seeded student academic record (Sem 5, 88 credits earned)")
@@ -427,6 +644,86 @@ async def main() -> None:
             academic_record.credits_earned = 88.0
             academic_record.cgpa = 8.52
             academic_record.promotion_eligible = True
+            academic_record.fee_snapshot = {
+                "outstanding_amount": 0,
+                "status": "cleared",
+                "currency": "INR",
+            }
+            merged_summary = {**(academic_record.eligibility_summary or {}), **{
+                "internal_tests_completed": 2,
+                "internal_tests_total": 3,
+                "aggregate_attendance_percent": 86.4,
+                "academic_status_subtitle": "Standing, holds and requirements",
+                "disciplinary_action_label": "None",
+                "academic_holds_label": "None",
+                "backlogs_count": 0,
+                "pending_requirements": [
+                    {
+                        "title": "Computer Networks attendance",
+                        "detail": "72% (need 75%)",
+                        "status_label": "Action",
+                        "status_tone": "warning",
+                        "icon_tone": "alert",
+                        "action_href": "/student/timetable/attendance",
+                    },
+                    {
+                        "title": "Mandatory course: Environmental Studies",
+                        "detail": "Pending",
+                        "status_label": "Open",
+                        "status_tone": "info",
+                        "icon_tone": "info",
+                        "action_href": "/student/academics/eligibility",
+                    },
+                ],
+                "next_exam_label": "Internal 3",
+                "next_exam_date_label": "24 Nov",
+                "enrollment_target_semester_number": 6,
+                "enrollment_target_academic_year_label": DEMO_ACADEMIC_YEAR,
+                "enrollment_target_semester_label": "Semester 6",
+                "enrollment_window_opens_at": "2026-12-20T00:00:00+00:00",
+                "enrollment_window_closes_at": "2027-01-31T23:59:59+00:00",
+                "enrollment_window_notice": "You will be able to confirm after Semester 5 results are published.",
+                "enrollment_eligibility_label": "Pending Semester 5 results",
+                "student_enrollment_declaration_accepted": False,
+                "credit_by_category": [
+                    {
+                        "category": "Basic sciences",
+                        "required": 24,
+                        "earned": 24,
+                        "in_progress": 0,
+                        "remaining": 0,
+                    },
+                    {
+                        "category": "Engineering core",
+                        "required": 54,
+                        "earned": 40,
+                        "in_progress": 8,
+                        "remaining": 6,
+                    },
+                    {
+                        "category": "Professional core",
+                        "required": 56,
+                        "earned": 24,
+                        "in_progress": 8,
+                        "remaining": 24,
+                    },
+                    {
+                        "category": "Electives",
+                        "required": 18,
+                        "earned": 0,
+                        "in_progress": 3,
+                        "remaining": 15,
+                    },
+                    {
+                        "category": "Mandatory courses",
+                        "required": 8,
+                        "earned": 0,
+                        "in_progress": 1,
+                        "remaining": 7,
+                    },
+                ],
+            }}
+            academic_record.eligibility_summary = merged_summary
             academic_record.updated_at = utcnow()
             await academic_record.save()
 
@@ -469,6 +766,71 @@ async def main() -> None:
                 existing_enrollment.faculty_name = faculty
                 await existing_enrollment.save()
         print("seeded/synced 6 demo registered subjects for Semester 5")
+
+        programme_code = student_profile.programme_code or "BTECH-CSE"
+        section_code = student_profile.section_code or "A"
+        for term in DEMO_ENROLLMENT_HISTORY_CLOSED:
+            existing_hist = await StudentEnrollmentHistory.find_one(
+                Eq(StudentEnrollmentHistory.tenant_id, tenant.id),
+                Eq(StudentEnrollmentHistory.user_id, student.id),
+                Eq(StudentEnrollmentHistory.academic_year_label, term["academic_year_label"]),
+                Eq(StudentEnrollmentHistory.semester_label, term["semester_label"]),
+            )
+            if existing_hist is None:
+                await StudentEnrollmentHistory(
+                    tenant_id=tenant.id,
+                    user_id=student.id,
+                    academic_year_label=term["academic_year_label"],
+                    semester_label=term["semester_label"],
+                    semester_number=term.get("semester_number"),
+                    period_label=term.get("period_label"),
+                    programme_code=programme_code,
+                    section_code=section_code,
+                    courses=[],
+                    final_standing=AcademicStanding.GOOD,
+                    credits_earned=term["credits_earned"],
+                    credits_required=term.get("credits_required"),
+                    cgpa=term["cgpa"],
+                    closed_at=term["closed_at"],
+                ).insert()
+            else:
+                existing_hist.credits_earned = term["credits_earned"]
+                existing_hist.credits_required = term.get("credits_required")
+                existing_hist.semester_number = term.get("semester_number")
+                existing_hist.period_label = term.get("period_label")
+                existing_hist.cgpa = term["cgpa"]
+                existing_hist.closed_at = term["closed_at"]
+                existing_hist.final_standing = AcademicStanding.GOOD
+                await existing_hist.save()
+        print(f"seeded {len(DEMO_ENROLLMENT_HISTORY_CLOSED)} closed enrollment history terms")
+
+        study_mode = "Full-time"
+        demo_confirmations = [
+            (1, "2022-23", "Semester 1", datetime(2022, 8, 15, tzinfo=timezone.utc)),
+            (2, "2022-23", "Semester 2", datetime(2023, 1, 10, tzinfo=timezone.utc)),
+            (3, "2023-24", "Semester 3", datetime(2023, 8, 12, tzinfo=timezone.utc)),
+            (4, "2024-25", "Semester 4", datetime(2024, 8, 18, tzinfo=timezone.utc)),
+        ]
+        for sem_num, ay, sem_label, confirmed_at in demo_confirmations:
+            existing_conf = await StudentTermEnrollmentConfirmation.find_one(
+                Eq(StudentTermEnrollmentConfirmation.tenant_id, tenant.id),
+                Eq(StudentTermEnrollmentConfirmation.user_id, student.id),
+                Eq(StudentTermEnrollmentConfirmation.academic_year_label, ay),
+                Eq(StudentTermEnrollmentConfirmation.semester_label, sem_label),
+            )
+            if existing_conf is None:
+                await StudentTermEnrollmentConfirmation(
+                    tenant_id=tenant.id,
+                    user_id=student.id,
+                    academic_year_label=ay,
+                    semester_label=sem_label,
+                    semester_number=sem_num,
+                    study_mode=study_mode,
+                    status=StudentTermEnrollmentConfirmationStatus.CONFIRMED,
+                    eligibility_label="Eligible",
+                    confirmed_at=confirmed_at,
+                ).insert()
+        print(f"seeded up to {len(demo_confirmations)} term enrollment confirmations")
 
         print()
         print("--- Dev portal users (local only) ---")

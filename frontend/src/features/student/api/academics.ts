@@ -7,6 +7,7 @@ import type {
   EnrollmentHistory,
   EnrollmentRequest,
   EnrollmentRequestCreate,
+  EnrollmentConfirmation,
   EnrollmentStatus,
 } from "@/features/student/types/academics";
 import type { ApiPage } from "@/features/student/types/common";
@@ -54,4 +55,21 @@ export async function submitEnrollmentRequest(
 
 export async function fetchEnrollmentRequest(requestId: string): Promise<EnrollmentRequest> {
   return apiRequest<EnrollmentRequest>(`${BASE}/me/academics/enrollment-requests/${requestId}`);
+}
+
+export async function updateEnrollmentDeclaration(accepted: boolean) {
+  return apiRequest<EnrollmentConfirmation>(
+    `${BASE}/me/academics/enrollment-confirmation/declaration`,
+    { method: "PATCH", body: { accepted } },
+  );
+}
+
+export async function confirmTermEnrollment() {
+  return apiRequest<{
+    id: string;
+    academic_year_label: string;
+    semester_label: string;
+    status: string;
+    confirmed_at: string;
+  }>(`${BASE}/me/academics/enrollment-confirmation`, { method: "POST" });
 }

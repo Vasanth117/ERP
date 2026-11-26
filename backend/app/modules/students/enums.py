@@ -19,6 +19,12 @@ class StudentEnrollmentStatus(str, Enum):
     PROVISIONAL = "provisional"
 
 
+class StudentTermEnrollmentConfirmationStatus(str, Enum):
+    CONFIRMED = "confirmed"
+    PENDING = "pending"
+    CANCELLED = "cancelled"
+
+
 class AcademicStanding(str, Enum):
     GOOD = "good_standing"
     PROBATION = "probation"
