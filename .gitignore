@@ -18,3 +18,8 @@ __pycache__/
 .vscode/
 celerybeat-schedule
 celerybeat-schedule.*
+.vercel
+.env*
+
+# Graphify (local knowledge graph; rebuild: graphify update .)
+graphify-out/

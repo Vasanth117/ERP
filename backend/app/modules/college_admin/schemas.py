@@ -6074,6 +6074,1207 @@ class FacultyEmployeeDashboardPageRead(BaseModel):
     generated_at: datetime
 
 
+class HrDashboardLeaveRow(BaseModel):
+    leave_request_id: str
+    employee_name: str
+    leave_type_label: str
+    dates_label: str
+    days_label: str
+    approver_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HrDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    open_portal_label: str
+    open_portal_href: str
+    kpis: list[UserDashboardKpi]
+    leave_section_title: str
+    leave_view_all_href: str
+    leave_view_all_label: str
+    table_headers: list[str]
+    leave_rows: list[HrDashboardLeaveRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    needs_attention_title: str
+    needs_attention_items: list[StudentAdminWorkQueueItem]
+    generated_at: datetime
+
+
+class LibraryDashboardIssueReturnRow(BaseModel):
+    circulation_id: str
+    member_name: str
+    book_title: str
+    issued_label: str
+    due_label: str
+    fine_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    open_portal_label: str
+    open_portal_href: str
+    kpis: list[UserDashboardKpi]
+    issue_return_section_title: str
+    issue_return_view_all_href: str
+    issue_return_view_all_label: str
+    table_headers: list[str]
+    issue_return_rows: list[LibraryDashboardIssueReturnRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    needs_attention_title: str
+    needs_attention_items: list[StudentAdminWorkQueueItem]
+    generated_at: datetime
+
+
+class LibraryBranchManagementTableRow(BaseModel):
+    branch_code: str
+    branch_name: str
+    location_label: str
+    titles_label: str
+    seats_label: str
+    hours_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryBranchManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    add_branch_label: str
+    add_branch_href: str
+    branches_section_title: str
+    branches_count_label: str
+    table_headers: list[str]
+    branch_rows: list[LibraryBranchManagementTableRow]
+    empty_table_message: str
+    generated_at: datetime
+
+
+class LibraryBookCatalogueTableRow(BaseModel):
+    book_id: str
+    title: str
+    isbn_label: str
+    author_label: str
+    category_label: str
+    copies_label: str
+    available_label: str
+    detail_href: str
+
+
+class LibraryBookCataloguePageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    add_title_label: str
+    add_title_href: str
+    search_placeholder: str
+    category_filter_label: str
+    branch_filter_label: str
+    category_options: list[UserListFilterOption]
+    branch_options: list[UserListFilterOption]
+    catalogue_section_title: str
+    table_headers: list[str]
+    catalogue_rows: list[LibraryBookCatalogueTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryBookInventoryCopyRow(BaseModel):
+    copy_id: str
+    accession_label: str
+    title: str
+    branch_label: str
+    shelf_label: str
+    condition_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryBookInventoryPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    stock_verification_label: str
+    stock_verification_href: str
+    kpis: list[UserDashboardKpi]
+    copies_section_title: str
+    table_headers: list[str]
+    copy_rows: list[LibraryBookInventoryCopyRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryBookAcquisitionTableRow(BaseModel):
+    acquisition_id: str
+    title: str
+    requested_by_label: str
+    copies_label: str
+    cost_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryBookAcquisitionPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_request_label: str
+    new_request_href: str
+    acquisitions_section_title: str
+    table_headers: list[str]
+    acquisition_rows: list[LibraryBookAcquisitionTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryCirculationIssueReturnPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    issue_book_label: str
+    issue_book_href: str
+    issue_return_section_title: str
+    table_headers: list[str]
+    issue_return_rows: list[LibraryDashboardIssueReturnRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryReservationManagementTableRow(BaseModel):
+    reservation_id: str
+    title: str
+    member_name: str
+    queue_label: str
+    reserved_label: str
+    expires_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryReservationManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    reservations_section_title: str
+    table_headers: list[str]
+    reservation_rows: list[LibraryReservationManagementTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryMemberManagementTableRow(BaseModel):
+    member_user_id: str
+    member_name: str
+    member_id_label: str
+    type_label: str
+    borrowing_limit_label: str
+    on_loan_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryMemberManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    add_member_label: str
+    add_member_href: str
+    kpis: list[UserDashboardKpi]
+    members_section_title: str
+    table_headers: list[str]
+    member_rows: list[LibraryMemberManagementTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryFineManagementTableRow(BaseModel):
+    fine_id: str
+    member_name: str
+    book_title: str
+    days_late_label: str
+    fine_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryFineManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    kpis: list[UserDashboardKpi]
+    fines_section_title: str
+    table_headers: list[str]
+    fine_rows: list[LibraryFineManagementTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryLostDamagedTableRow(BaseModel):
+    report_id: str
+    book_title: str
+    member_name: str
+    type_label: str
+    recovery_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryLostDamagedPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    report_loss_label: str
+    report_loss_href: str
+    lost_damaged_section_title: str
+    table_headers: list[str]
+    report_rows: list[LibraryLostDamagedTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibrarySectionSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    icon_key: str
+    active: bool
+
+
+class LibrarySectionSubNavRead(BaseModel):
+    path: str
+    section_key: str | None
+    items: list[LibrarySectionSubNavItem]
+
+
+class LibraryDigitalResourceTableRow(BaseModel):
+    resource_id: str
+    title: str
+    type_label: str
+    licence_label: str
+    users_label: str
+    expires_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LibraryDigitalLibraryPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    add_resource_label: str
+    add_resource_href: str
+    digital_resources_section_title: str
+    table_headers: list[str]
+    resource_rows: list[LibraryDigitalResourceTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibraryReportsTableRow(BaseModel):
+    report_type: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class LibraryReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    create_report_href: str
+    reports_section_title: str
+    table_headers: list[str]
+    report_rows: list[LibraryReportsTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LibrarySettingsFormValues(BaseModel):
+    student_borrow_limit: str
+    faculty_borrow_limit: str
+    loan_period_days: str
+    renewals_allowed: str
+    fine_per_day: str
+    reservation_hold_days: str
+    block_unpaid_fines: bool = True
+    send_due_reminders: bool = True
+    allow_external_members: bool = False
+
+
+class LibrarySettingsToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str = ""
+    badge_label: str = ""
+    enabled: bool
+
+
+class LibrarySettingsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    borrowing_rules_section_title: str
+    controls_section_title: str
+    field_meta: list[InstitutionFieldMeta]
+    field_options: dict[str, list[InstitutionFieldOption]]
+    form: LibrarySettingsFormValues
+    toggle_rules: list[LibrarySettingsToggleRule]
+    generated_at: datetime
+
+
+class LibrarySettingsSave(BaseModel):
+    form: LibrarySettingsFormValues
+
+
+class HostelSectionSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    icon_key: str
+    active: bool
+
+
+class HostelSectionSubNavRead(BaseModel):
+    path: str
+    section_key: str | None
+    items: list[HostelSectionSubNavItem]
+
+
+class HostelDashboardOutpassRow(BaseModel):
+    request_id: str
+    resident_label: str
+    type_label: str
+    from_label: str
+    to_label: str
+    guardian_label: str
+    guardian_tone: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    open_portal_label: str
+    open_portal_href: str
+    kpis: list[UserDashboardKpi]
+    outpass_section_title: str
+    outpass_view_all_href: str
+    outpass_view_all_label: str
+    table_headers: list[str]
+    outpass_rows: list[HostelDashboardOutpassRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    needs_attention_title: str
+    needs_attention_items: list[StudentAdminWorkQueueItem]
+    generated_at: datetime
+
+
+class HostelManagementTableRow(BaseModel):
+    row_id: str
+    cells: list[str]
+    status_label: str | None = None
+    status_tone: str | None = None
+    detail_href: str | None = None
+
+
+class HostelManagementPageRead(BaseModel):
+    screen_slug: str
+    figma_frame: str
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str | None = None
+    primary_action_href: str | None = None
+    section_title: str
+    count_label: str
+    table_headers: list[str]
+    rows: list[HostelManagementTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelBuildingManagementTableRow(BaseModel):
+    block_key: str
+    block_label: str
+    type_label: str
+    floors_label: str
+    rooms_label: str
+    beds_label: str
+    warden_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelBuildingManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    add_building_label: str
+    add_building_href: str
+    buildings_section_title: str
+    table_headers: list[str]
+    block_rows: list[HostelBuildingManagementTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelRoomManagementTableRow(BaseModel):
+    room_code: str
+    room_label: str
+    block_label: str
+    floor_label: str
+    type_label: str
+    beds_label: str
+    occupied_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelRoomManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    add_room_label: str
+    add_room_href: str
+    search_placeholder: str
+    block_filter_label: str
+    floor_filter_label: str
+    type_filter_label: str
+    block_options: list[UserListFilterOption]
+    floor_options: list[UserListFilterOption]
+    type_options: list[UserListFilterOption]
+    rooms_section_title: str
+    table_headers: list[str]
+    room_rows: list[HostelRoomManagementTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelAdmissionApplicationsTableRow(BaseModel):
+    application_id: str
+    application_label: str
+    student_label: str
+    year_label: str
+    distance_label: str
+    submitted_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelAdmissionApplicationsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    export_href: str
+    kpis: list[UserDashboardKpi]
+    applications_section_title: str
+    table_headers: list[str]
+    application_rows: list[HostelAdmissionApplicationsTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    academic_year_label: str | None = None
+    generated_at: datetime
+
+
+class HostelBedAllocationTableRow(BaseModel):
+    row_key: str
+    student_label: str
+    year_label: str
+    preference_label: str
+    allocated_bed_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelBedAllocationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    auto_allocate_label: str
+    auto_allocate_href: str
+    allocate_bed_label: str
+    allocate_bed_href: str
+    kpis: list[UserDashboardKpi]
+    allocation_section_title: str
+    table_headers: list[str]
+    allocation_rows: list[HostelBedAllocationTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    academic_year_label: str | None = None
+    generated_at: datetime
+
+
+class HostelResidentManagementTableRow(BaseModel):
+    resident_key: str
+    resident_label: str
+    register_label: str
+    room_label: str
+    block_label: str
+    fee_label: str
+    fee_tone: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelResidentManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    export_href: str
+    search_placeholder: str
+    block_filter_label: str
+    status_filter_label: str
+    block_options: list[UserListFilterOption]
+    status_options: list[UserListFilterOption]
+    residents_section_title: str
+    table_headers: list[str]
+    resident_rows: list[HostelResidentManagementTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelCheckInCheckoutTableRow(BaseModel):
+    movement_key: str
+    student_label: str
+    room_label: str
+    type_label: str
+    date_label: str
+    handover_label: str
+    handover_tone: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelCheckInCheckoutPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    check_in_label: str
+    check_in_href: str
+    kpis: list[UserDashboardKpi]
+    movements_section_title: str
+    table_headers: list[str]
+    movement_rows: list[HostelCheckInCheckoutTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelFeeManagementTableRow(BaseModel):
+    row_key: str
+    resident_label: str
+    room_label: str
+    billed_label: str
+    paid_label: str
+    balance_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelFeeManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    generate_fees_label: str
+    generate_fees_href: str
+    kpis: list[UserDashboardKpi]
+    fees_section_title: str
+    table_headers: list[str]
+    fee_rows: list[HostelFeeManagementTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    academic_year_label: str | None = None
+    generated_at: datetime
+
+
+class HostelMessMenuRow(BaseModel):
+    meal_key: str
+    meal_label: str
+    menu_label: str
+    served_label: str
+
+
+class HostelMessFeedbackDimension(BaseModel):
+    key: str
+    label: str
+    score_label: str
+    progress_percent: int
+    tone: str
+
+
+class HostelMessManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    edit_menu_label: str
+    edit_menu_href: str
+    kpis: list[UserDashboardKpi]
+    menu_section_title: str
+    menu_table_headers: list[str]
+    menu_rows: list[HostelMessMenuRow]
+    empty_menu_message: str
+    feedback_section_title: str
+    feedback_dimensions: list[HostelMessFeedbackDimension]
+    generated_at: datetime
+
+
+class HostelVisitorManagementTableRow(BaseModel):
+    visit_key: str
+    visitor_label: str
+    visiting_label: str
+    relation_label: str
+    in_label: str
+    out_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelVisitorManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    register_visitor_label: str
+    register_visitor_href: str
+    visitors_section_title: str
+    table_headers: list[str]
+    visitor_rows: list[HostelVisitorManagementTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelLeaveOutpassApprovalTableRow(BaseModel):
+    request_id: str
+    resident_label: str
+    type_label: str
+    from_label: str
+    to_label: str
+    guardian_label: str
+    guardian_tone: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HostelLeaveOutpassApprovalPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    export_href: str
+    outpass_section_title: str
+    table_headers: list[str]
+    outpass_rows: list[HostelLeaveOutpassApprovalTableRow]
+    empty_table_message: str
+    count_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelReportsTableRow(BaseModel):
+    report_key: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class HostelReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    create_report_href: str
+    reports_section_title: str
+    table_headers: list[str]
+    report_rows: list[HostelReportsTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class HostelSettingsFormValues(BaseModel):
+    gate_closing_boys: str = ""
+    gate_closing_girls: str = ""
+    visiting_hours: str = ""
+    security_deposit: str = ""
+    outpass_approver: str = ""
+    mess_plans: str = ""
+    notify_guardian_on_outpass: bool = False
+    block_check_in_unpaid_fees: bool = False
+    allow_visitors_after_hours: bool = False
+
+
+class HostelSettingsToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str = ""
+    badge_label: str = ""
+    enabled: bool
+
+
+class HostelSettingsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    hostel_rules_section_title: str
+    controls_section_title: str
+    field_meta: list[InstitutionFieldMeta]
+    field_options: dict[str, list[InstitutionFieldOption]]
+    form: HostelSettingsFormValues
+    toggle_rules: list[HostelSettingsToggleRule]
+    generated_at: datetime
+
+
+class HostelSettingsSave(BaseModel):
+    form: HostelSettingsFormValues
+
+
+class HrRecruitmentSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+
+
+class HrRecruitmentVacancyRow(BaseModel):
+    opening_id: str
+    position_label: str
+    department_label: str
+    openings_count: int
+    applicants_count: int
+    closes_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HrRecruitmentManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_vacancy_label: str
+    new_vacancy_href: str
+    kpis: list[UserDashboardKpi]
+    sub_nav: list[HrRecruitmentSubNavItem]
+    vacancies_section_title: str
+    table_headers: list[str]
+    vacancy_rows: list[HrRecruitmentVacancyRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrOnboardingStatusCell(BaseModel):
+    label: str
+    tone: str
+
+
+class HrOnboardingTableRow(BaseModel):
+    process_id: str
+    employee_name: str
+    joining_label: str
+    documents: HrOnboardingStatusCell
+    it_account: HrOnboardingStatusCell
+    id_card: HrOnboardingStatusCell
+    progress: HrOnboardingStatusCell
+    detail_href: str
+
+
+class HrEmployeeOnboardingPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_onboarding_label: str
+    new_onboarding_href: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    onboarding_section_title: str
+    table_headers: list[str]
+    onboarding_rows: list[HrOnboardingTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrEmployeeAttendanceTableRow(BaseModel):
+    employee_user_id: str
+    employee_name: str
+    department_label: str
+    present_count: int
+    leave_count: int
+    absent_count: int
+    attendance_rate_pct: float | None = None
+
+
+class HrEmployeeAttendancePageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    kpis: list[UserDashboardKpi]
+    attendance_table_title: str
+    attendance_table_headers: list[str]
+    attendance_rows: list[HrEmployeeAttendanceTableRow]
+    table_footer_label: str
+    table_pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrLeaveManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    leave_policy_label: str
+    leave_policy_href: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    kpis: list[UserDashboardKpi]
+    applications_section_title: str
+    table_headers: list[str]
+    application_rows: list[HrDashboardLeaveRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrLeaveApprovalStep(BaseModel):
+    key: str
+    label: str
+    status_label: str
+    tone: str
+
+
+class HrPayrollWorkflowStep(BaseModel):
+    key: str
+    label: str
+    state: str
+
+
+class HrSalaryStructureTableRow(BaseModel):
+    structure_id: str
+    structure_label: str
+    applies_to_label: str
+    components_count: int
+    employees_count: int
+    effective_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class HrSalaryStructureManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_structure_label: str
+    new_structure_href: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    structures_section_title: str
+    table_headers: list[str]
+    structure_rows: list[HrSalaryStructureTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrPayrollExceptionRow(BaseModel):
+    row_key: str
+    employee_label: str
+    issue_label: str
+    impact_label: str
+    owner_label: str
+    status_label: str
+    status_tone: str
+
+
+class HrPayrollProcessingPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    validate_label: str
+    process_payroll_label: str
+    can_validate: bool
+    can_process: bool
+    action_blocked_message: str | None = None
+    payroll_period_id: str | None = None
+    payroll_run_id: str | None = None
+    sub_nav: list[HrRecruitmentSubNavItem]
+    workflow_steps: list[HrPayrollWorkflowStep]
+    kpis: list[UserDashboardKpi]
+    exceptions_section_title: str
+    exception_table_headers: list[str]
+    exception_rows: list[HrPayrollExceptionRow]
+    exceptions_showing_label: str
+    exceptions_pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrSalarySlipMonthRow(BaseModel):
+    period_id: str
+    month_label: str
+    payroll_run_id: str | None = None
+    employees_count: int
+    generated_count: int | None = None
+    published_count: int | None = None
+    failed_count: int | None = None
+    status_label: str
+    status_tone: str
+
+
+class HrSalarySlipManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    generate_label: str
+    publish_label: str
+    can_generate: bool
+    can_publish: bool
+    generate_blocked_message: str | None = None
+    publish_blocked_message: str | None = None
+    selected_payroll_run_id: str | None = None
+    sub_nav: list[HrRecruitmentSubNavItem]
+    slips_section_title: str
+    table_headers: list[str]
+    slip_rows: list[HrSalarySlipMonthRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrBenefitClaimTableRow(BaseModel):
+    claim_id: str
+    employee_name: str
+    benefit_label: str
+    category_label: str
+    amount_label: str
+    submitted_label: str
+    status_label: str
+    status_tone: str
+    review_href: str
+
+
+class HrEmployeeBenefitsClaimsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_program_label: str
+    new_program_href: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    kpis: list[UserDashboardKpi]
+    claims_section_title: str
+    table_headers: list[str]
+    claim_rows: list[HrBenefitClaimTableRow]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrPerformanceProgressRow(BaseModel):
+    key: str
+    label: str
+    completed_count: int
+    total_count: int
+    progress_pct: float
+    tone: str
+
+
+class HrPerformanceManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    open_cycle_label: str
+    can_open_cycle: bool
+    open_cycle_blocked_message: str | None = None
+    selected_cycle_id: str | None = None
+    sub_nav: list[HrRecruitmentSubNavItem]
+    kpis: list[UserDashboardKpi]
+    progress_section_title: str
+    progress_rows: list[HrPerformanceProgressRow]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrReportTableRow(BaseModel):
+    row_id: str
+    report_key: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class HrReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    reports_section_title: str
+    table_headers: list[str]
+    report_rows: list[HrReportTableRow]
+    create_report_templates: list[InstitutionFieldOption]
+    showing_label: str
+    pagination: PoliciesPagination
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrReportScheduleCreate(BaseModel):
+    report_key: str = Field(min_length=1, max_length=64)
+
+
+class HrSettingsPoliciesFormValues(BaseModel):
+    working_week: str = "mon_sat"
+    earned_leave_per_year: str = ""
+    casual_leave_per_year: str = ""
+    leave_approver: str = "hod_hr"
+    probation_period_months: str = "12"
+    payroll_cutoff_day: str = "25"
+    carry_forward_earned_leave: bool = True
+    auto_lock_attendance_before_payroll: bool = True
+    self_service_salary_slips: bool = True
+
+
+class HrSettingsPoliciesToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str = ""
+    badge_label: str = ""
+    enabled: bool
+
+
+class HrSettingsPoliciesPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    policies_section_title: str
+    controls_section_title: str
+    sub_nav: list[HrRecruitmentSubNavItem]
+    form: HrSettingsPoliciesFormValues
+    field_meta: list[InstitutionFieldMeta]
+    field_options: dict[str, list[InstitutionFieldOption]]
+    toggle_rules: list[HrSettingsPoliciesToggleRule]
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
+class HrSettingsPoliciesSave(BaseModel):
+    form: HrSettingsPoliciesFormValues
+
+
+class HrLeaveApprovalPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    selected_leave_request_id: str | None = None
+    back_href: str
+    back_label: str
+    return_label: str
+    return_href: str
+    reject_label: str
+    approve_label: str
+    application_card_title: str
+    employee_field_label: str
+    employee_label: str
+    leave_type_field_label: str
+    leave_type_label: str
+    dates_field_label: str
+    dates_label: str
+    balance_after_field_label: str
+    balance_after_label: str
+    cover_field_label: str
+    cover_label: str
+    decision_card_title: str
+    decision_field_label: str
+    decision_required: bool
+    decision_options: list[InstitutionFieldOption]
+    selected_decision: str
+    remarks_field_label: str
+    remarks_placeholder: str
+    remarks_value: str
+    approval_timeline_title: str
+    approval_steps: list[HrLeaveApprovalStep]
+    can_decide: bool
+    decide_blocked_message: str | None = None
+    footer_disclaimer: str
+    footer_snapshot_label: str
+    generated_at: datetime
+
+
 class InstitutionActivityRead(BaseModel):
     activity_kind: str
     summary: str

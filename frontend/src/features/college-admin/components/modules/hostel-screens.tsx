@@ -1,111 +1,67 @@
 "use client";
 
-import Link from "next/link";
-import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
+import { HostelAdmissionApplicationsDashboard } from "@/features/college-admin/components/hostel/hostel-admission-applications-dashboard";
+import { HostelBedAllocationDashboard } from "@/features/college-admin/components/hostel/hostel-bed-allocation-dashboard";
+import { HostelBuildingManagementDashboard } from "@/features/college-admin/components/hostel/hostel-building-management-dashboard";
+import { HostelDashboard } from "@/features/college-admin/components/hostel/hostel-dashboard";
+import { HostelManagementDashboard } from "@/features/college-admin/components/hostel/hostel-management-dashboard";
+import { HostelCheckInCheckoutDashboard } from "@/features/college-admin/components/hostel/hostel-check-in-checkout-dashboard";
+import { HostelFeeManagementDashboard } from "@/features/college-admin/components/hostel/hostel-fee-management-dashboard";
+import { HostelMessManagementDashboard } from "@/features/college-admin/components/hostel/hostel-mess-management-dashboard";
+import { HostelLeaveOutpassApprovalDashboard } from "@/features/college-admin/components/hostel/hostel-leave-outpass-approval-dashboard";
+import { HostelResidentManagementDashboard } from "@/features/college-admin/components/hostel/hostel-resident-management-dashboard";
+import { HostelVisitorManagementDashboard } from "@/features/college-admin/components/hostel/hostel-visitor-management-dashboard";
+import { HostelRoomManagementDashboard } from "@/features/college-admin/components/hostel/hostel-room-management-dashboard";
+import { HostelReportsDashboard } from "@/features/college-admin/components/hostel/hostel-reports-dashboard";
+import { HostelSettingsDashboard } from "@/features/college-admin/components/hostel/hostel-settings-dashboard";
 
-import { apiRequest } from "@/lib/api/client";
-import {
-  DataTable,
-  FormPlaceholder,
-  SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
-  rowsFromApi,
-} from "@/features/college-admin/components/ui/college-admin-screen-ui";
-import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
-import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
-
-const FORM_SLUGS = new Set([
-  "hostel-building-management",
-  "room-management",
-  "bed-allocation",
-  "hostel-admission-applications",
-  "resident-management",
-  "hostel-check-in-checkout",
-  "hostel-fee-management",
-  "mess-management",
-  "visitor-management",
-  "leave-outpass-approval",
+const MANAGEMENT_SLUGS = new Set([
   "maintenance-complaints",
   "hostel-incident-management",
-  "hostel-settings",
 ]);
 
-export function HostelScreen({ slug, title }: { slug: string; title: string }) {
-  const { apiPath, viewType } = resolveModuleEndpoint("hostel", slug);
+export function HostelScreen({ slug }: { slug: string; title: string }) {
   if (slug === "hostel-dashboard") {
     return <HostelDashboard />;
   }
+  if (slug === "hostel-building-management") {
+    return <HostelBuildingManagementDashboard />;
+  }
+  if (slug === "room-management") {
+    return <HostelRoomManagementDashboard />;
+  }
+  if (slug === "hostel-admission-applications") {
+    return <HostelAdmissionApplicationsDashboard />;
+  }
+  if (slug === "bed-allocation") {
+    return <HostelBedAllocationDashboard />;
+  }
+  if (slug === "resident-management") {
+    return <HostelResidentManagementDashboard />;
+  }
+  if (slug === "hostel-check-in-checkout") {
+    return <HostelCheckInCheckoutDashboard />;
+  }
+  if (slug === "hostel-fee-management") {
+    return <HostelFeeManagementDashboard />;
+  }
+  if (slug === "mess-management") {
+    return <HostelMessManagementDashboard />;
+  }
+  if (slug === "visitor-management") {
+    return <HostelVisitorManagementDashboard />;
+  }
+  if (slug === "leave-outpass-approval") {
+    return <HostelLeaveOutpassApprovalDashboard />;
+  }
   if (slug === "hostel-reports") {
-    return (
-      <GenericModuleScreen
-        moduleKey="hostel"
-        slug={slug}
-        title={title}
-        apiPath="/college-admin/hostel-administration/reports/occupancy"
-        viewType="report"
-      />
-    );
+    return <HostelReportsDashboard />;
   }
-  if (FORM_SLUGS.has(slug)) {
-    return (
-      <FormPlaceholder title={title} description="Hostel administration workflow (Figma CA 13)." />
-    );
+  if (slug === "hostel-settings") {
+    return <HostelSettingsDashboard />;
   }
-  return (
-    <GenericModuleScreen
-      moduleKey="hostel"
-      slug={slug}
-      title={title}
-      apiPath={apiPath}
-      viewType={viewType}
-    />
-  );
-}
-
-function HostelDashboard() {
-  const occupancy = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "hostel-occupancy"],
-    queryFn: () =>
-      apiRequest<Record<string, unknown>>("/college-admin/hostel-administration/reports/occupancy"),
-  });
-  const waiting = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "hostel-waiting"],
-    queryFn: () =>
-      apiRequest<{ items?: unknown[]; total?: number }>(
-        "/college-admin/hostel-administration/waiting-list?limit=25&offset=0",
-      ),
-  });
-  const rows = rowsFromApi(waiting.data?.items);
-  return (
-    <QueryState
-      isLoading={occupancy.isLoading}
-      isError={occupancy.isError}
-      error={occupancy.error}
-      onRetry={() => void occupancy.refetch()}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Occupancy" value={String(occupancy.data?.occupancy_rate ?? "—")} />
-        <StatCard label="Waiting list" value={waiting.data?.total ?? rows.length} />
-        <Link
-          href="/college-admin/hostel/hostel-admission-applications"
-          className="text-sm font-medium text-[#245dd8]"
-        >
-          Applications →
-        </Link>
-        <Link href="/college-admin/hostel/hostel-reports" className="text-sm font-medium text-[#245dd8]">
-          Reports →
-        </Link>
-      </div>
-      <SectionPanel title="Waiting list" className="mt-6">
-        <ToolbarRow onRefresh={() => void waiting.refetch()} />
-        <DataTable columns={columnsFromRows(rows)} rows={rows} />
-      </SectionPanel>
-    </QueryState>
-  );
+  if (MANAGEMENT_SLUGS.has(slug)) {
+    return <HostelManagementDashboard screenSlug={slug} />;
+  }
+  return <HostelManagementDashboard screenSlug={slug} />;
 }

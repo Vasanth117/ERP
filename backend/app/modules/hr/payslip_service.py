@@ -172,6 +172,25 @@ async def revise_payslip(scope: AccessScope, payslip_id: str, payload: PayslipRe
     return PayslipRead.from_record(str(revised.employee_user_id), revised.period_label, revised)
 
 
+async def publish_payslips_for_run(scope: AccessScope, payroll_run_id: str) -> dict:
+    authorize_hr_payslip_manage(scope)
+    tenant_id = require_hr_tenant_scope(scope)
+    run_id = to_object_id(payroll_run_id, "payroll_run_id")
+    run = await HrPayrollRun.get(run_id)
+    if run is None or run.tenant_id != tenant_id:
+        raise AppError(code="NOT_FOUND", message="Payroll run not found", status_code=404)
+    rows = await HrEmployeePayslip.find(
+        Eq(HrEmployeePayslip.tenant_id, tenant_id),
+        Eq(HrEmployeePayslip.payroll_run_id, run.id),
+        Eq(HrEmployeePayslip.status, HrPayslipStatus.GENERATED),
+    ).to_list()
+    published = 0
+    for slip in rows:
+        await publish_payslip(scope, str(slip.id))
+        published += 1
+    return {"published": published, "payroll_run_id": str(run.id)}
+
+
 async def list_payslips(scope: AccessScope, period_label: str | None = None, employee_user_id: str | None = None) -> list[PayslipRead]:
     authorize_hr_payslip_read(scope)
     tenant_id = require_hr_tenant_scope(scope)

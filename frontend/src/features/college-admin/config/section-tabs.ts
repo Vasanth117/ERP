@@ -3,6 +3,9 @@ import { attendanceSectionTabs } from "@/features/college-admin/config/attendanc
 import { examinationsSectionTabs } from "@/features/college-admin/config/examinations-section-tabs";
 import { facultySectionTabs } from "@/features/college-admin/config/faculty-section-tabs";
 import { financeSectionTabs } from "@/features/college-admin/config/finance-section-tabs";
+import { hrSectionTabs } from "@/features/college-admin/config/hr-section-tabs";
+import { hostelSectionTabs } from "@/features/college-admin/config/hostel-section-tabs";
+import { librarySectionTabs } from "@/features/college-admin/config/library-section-tabs";
 import { studentsSectionTabs } from "@/features/college-admin/config/students-section-tabs";
 
 export type CollegeAdminTab = {
@@ -256,6 +259,12 @@ export const examinationsTabs: CollegeAdminTab[] = [...examinationsSectionTabs];
 
 export const financeTabs: CollegeAdminTab[] = [...financeSectionTabs];
 
+export const hrTabs: CollegeAdminTab[] = hrSectionTabs as CollegeAdminTab[];
+
+export const libraryTabs: CollegeAdminTab[] = librarySectionTabs as CollegeAdminTab[];
+
+export const hostelTabs: CollegeAdminTab[] = hostelSectionTabs as CollegeAdminTab[];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -288,6 +297,15 @@ export function resolveSectionTabs(
   }
   if (pathname.startsWith("/college-admin/finance")) {
     return { section: "Finance", tabs: financeTabs };
+  }
+  if (pathname.startsWith("/college-admin/hr")) {
+    return { section: "Human Resources", tabs: hrTabs };
+  }
+  if (pathname.startsWith("/college-admin/library")) {
+    return { section: "Library", tabs: libraryTabs };
+  }
+  if (pathname.startsWith("/college-admin/hostel")) {
+    return { section: "Hostel", tabs: hostelTabs };
   }
   return null;
 }

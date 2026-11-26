@@ -1,67 +1,65 @@
 "use client";
 
-import Link from "next/link";
-import { useCollegeAdminQuery as useQuery } from "@/features/college-admin/hooks/use-college-admin-query";
-
-import { apiRequest } from "@/lib/api/client";
-import {
-  DataTable,
-  FormPlaceholder,
-  SectionPanel,
-  ToolbarRow,
-  columnsFromRows,
-  rowsFromApi,
-} from "@/features/college-admin/components/ui/college-admin-screen-ui";
+import { EmployeeAttendanceDashboard } from "@/features/college-admin/components/hr/employee-attendance-dashboard";
+import { EmployeeManagementDashboard } from "@/features/college-admin/components/hr/employee-management-dashboard";
+import { EmployeeOnboardingDashboard } from "@/features/college-admin/components/hr/employee-onboarding-dashboard";
+import { HrDashboard } from "@/features/college-admin/components/hr/hr-dashboard";
+import { LeaveApprovalDashboard } from "@/features/college-admin/components/hr/leave-approval-dashboard";
+import { LeaveManagementDashboard } from "@/features/college-admin/components/hr/leave-management-dashboard";
+import { EmployeeBenefitsClaimsDashboard } from "@/features/college-admin/components/hr/employee-benefits-claims-dashboard";
+import { PerformanceManagementDashboard } from "@/features/college-admin/components/hr/performance-management-dashboard";
+import { HrReportsDashboard } from "@/features/college-admin/components/hr/hr-reports-dashboard";
+import { HrSettingsPoliciesDashboard } from "@/features/college-admin/components/hr/hr-settings-policies-dashboard";
+import { PayrollProcessingDashboard } from "@/features/college-admin/components/hr/payroll-processing-dashboard";
+import { RecruitmentManagementDashboard } from "@/features/college-admin/components/hr/recruitment-management-dashboard";
+import { SalarySlipManagementDashboard } from "@/features/college-admin/components/hr/salary-slip-management-dashboard";
+import { SalaryStructureManagementDashboard } from "@/features/college-admin/components/hr/salary-structure-management-dashboard";
 import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
-import {
-  QueryState,
-  StatCard,
-} from "@/features/college-admin/components/ui/query-state";
 import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
-import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
-
-const FORM_SLUGS = new Set([
-  "employee-management",
-  "recruitment-management",
-  "employee-onboarding",
-  "leave-approval",
-  "salary-structure-management",
-  "payroll-processing",
-  "salary-slip-management",
-  "employee-benefits-claims",
-  "performance-management",
-  "hr-settings-policies",
-]);
 
 export function HrScreen({ slug, title }: { slug: string; title: string }) {
   const { apiPath, viewType } = resolveModuleEndpoint("hr", slug);
   if (slug === "hr-dashboard") {
     return <HrDashboard />;
   }
-  if (slug === "leave-management" || slug === "employee-attendance") {
-    return (
-      <GenericModuleScreen
-        moduleKey="hr"
-        slug={slug}
-        title={title}
-        apiPath="/college-admin/hr-administration/leave/pending"
-        viewType="list"
-      />
-    );
+  if (slug === "employee-management") {
+    return <EmployeeManagementDashboard />;
+  }
+  if (slug === "recruitment-management") {
+    return <RecruitmentManagementDashboard />;
+  }
+  if (slug === "employee-onboarding") {
+    return <EmployeeOnboardingDashboard />;
+  }
+  if (slug === "employee-attendance") {
+    return <EmployeeAttendanceDashboard />;
+  }
+  if (slug === "leave-management") {
+    return <LeaveManagementDashboard />;
+  }
+  if (slug === "leave-approval") {
+    return <LeaveApprovalDashboard />;
+  }
+  if (slug === "salary-structure-management") {
+    return <SalaryStructureManagementDashboard />;
+  }
+  if (slug === "payroll-processing") {
+    return <PayrollProcessingDashboard />;
+  }
+  if (slug === "salary-slip-management") {
+    return <SalarySlipManagementDashboard />;
+  }
+  if (slug === "employee-benefits-claims") {
+    return <EmployeeBenefitsClaimsDashboard />;
+  }
+  if (slug === "performance-management") {
+    return <PerformanceManagementDashboard />;
   }
   if (slug === "hr-reports") {
-    return (
-      <GenericModuleScreen
-        moduleKey="hr"
-        slug={slug}
-        title={title}
-        apiPath="/college-admin/hr-administration/reports/summary"
-        viewType="report"
-      />
-    );
+    return <HrReportsDashboard />;
   }
-  if (FORM_SLUGS.has(slug)) {
-    return <FormPlaceholder title={title} description="HR administration workflow (Figma CA 11)." />;
+  if (slug === "hr-settings-policies") {
+    return <HrSettingsPoliciesDashboard />;
   }
   return (
     <GenericModuleScreen
@@ -71,43 +69,5 @@ export function HrScreen({ slug, title }: { slug: string; title: string }) {
       apiPath={apiPath}
       viewType={viewType}
     />
-  );
-}
-
-function HrDashboard() {
-  const stats = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "hr-stats"],
-    queryFn: () => apiRequest<Record<string, unknown>>("/college-admin/hr-administration/statistics"),
-  });
-  const leave = useQuery({
-    queryKey: [...collegeAdminQueryKeys.all, "hr-leave"],
-    queryFn: () =>
-      apiRequest<{ total?: number; items?: unknown[] }>(
-        "/college-admin/hr-administration/leave/pending?limit=20&offset=0",
-      ),
-  });
-  const rows = rowsFromApi(leave.data?.items);
-  return (
-    <QueryState
-      isLoading={stats.isLoading}
-      isError={stats.isError}
-      error={stats.error}
-      onRetry={() => void stats.refetch()}
-    >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Staff metric" value={String(stats.data?.headcount ?? "—")} />
-        <StatCard label="Pending leave" value={leave.data?.total ?? rows.length} />
-        <Link href="/college-admin/hr/leave-management" className="text-sm font-medium text-[#245dd8]">
-          Leave management →
-        </Link>
-        <Link href="/college-admin/hr/hr-reports" className="text-sm font-medium text-[#245dd8]">
-          HR reports →
-        </Link>
-      </div>
-      <SectionPanel title="Pending leave requests" className="mt-6">
-        <ToolbarRow onRefresh={() => void leave.refetch()} />
-        <DataTable columns={columnsFromRows(rows)} rows={rows} />
-      </SectionPanel>
-    </QueryState>
   );
 }

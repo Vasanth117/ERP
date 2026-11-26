@@ -14,6 +14,13 @@ class Settings(BaseSettings):
   mongodb_url: str = Field(repr=False)
   mongodb_db_name: str = "erp"
   redis_url: str = "redis://localhost:6379/0"
+  redis_allow_inmemory_fallback: bool = Field(
+    default=False,
+    description=(
+      "When true and APP_ENV is development, use in-memory FakeRedis if Redis is unreachable. "
+      "Local dev only — not for production or multi-process workers."
+    ),
+  )
   rabbitmq_url: str = Field(repr=False)
   jwt_secret: str = Field(repr=False)
   jwt_algorithm: str = "HS256"
@@ -69,6 +76,8 @@ class Settings(BaseSettings):
     too_short = len(self.jwt_secret) < 32
     if self.app_env == "production" and (placeholder or too_short):
       raise ValueError("Set a JWT_SECRET of at least 32 characters in production")
+    if self.app_env == "production" and self.redis_allow_inmemory_fallback:
+      raise ValueError("REDIS_ALLOW_INMEMORY_FALLBACK cannot be enabled in production")
     return self
 
 
