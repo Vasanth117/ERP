@@ -18,10 +18,28 @@ _client: Redis | None = None
 async def connect_redis() -> None:
   global _client
   from redis.asyncio import Redis
+  from redis.exceptions import ConnectionError as RedisConnectionError
 
   settings = get_settings()
-  _client = Redis.from_url(settings.redis_url, decode_responses=True)
-  await _client.ping()
+  client = Redis.from_url(settings.redis_url, decode_responses=True)
+  try:
+    await client.ping()
+  except (RedisConnectionError, OSError) as exc:
+    if settings.app_env == "development" and settings.redis_allow_inmemory_fallback:
+      import fakeredis.aioredis
+
+      _client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+      logger.warning(
+        "Redis unavailable at %s (%s). Using in-memory FakeRedis (REDIS_ALLOW_INMEMORY_FALLBACK). "
+        "Start Redis via docker compose up redis -d when you need a real cache.",
+        settings.redis_url,
+        exc,
+      )
+      return
+    await client.aclose()
+    raise
+
+  _client = client
   logger.info("Connected to Redis")
 
 

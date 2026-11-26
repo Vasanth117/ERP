@@ -47,6 +47,9 @@ const MODULES_WITH_SECTION_CHROME = new Set([
   "attendance",
   "examinations",
   "finance",
+  "hr",
+  "library",
+  "hostel",
 ]);
 
 export function CollegeAdminFigmaScreen({

@@ -61,6 +61,90 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "finance-overview", params ?? {}] as const,
   financeDashboardPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "finance-dashboard-page", params ?? {}] as const,
+  hrDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-dashboard-page", params ?? {}] as const,
+  libraryDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-dashboard-page", params ?? {}] as const,
+  libraryBranchManagementPage: () =>
+    [...collegeAdminQueryKeys.all, "library-branch-management-page"] as const,
+  libraryBookCataloguePage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-book-catalogue-page", params ?? {}] as const,
+  libraryBookInventoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-book-inventory-page", params ?? {}] as const,
+  libraryBookAcquisitionPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-book-acquisition-page", params ?? {}] as const,
+  libraryCirculationIssueReturnPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-circulation-issue-return-page", params ?? {}] as const,
+  libraryReservationManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-reservation-management-page", params ?? {}] as const,
+  libraryMemberManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-member-management-page", params ?? {}] as const,
+  libraryFineManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-fine-management-page", params ?? {}] as const,
+  libraryLostDamagedPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-lost-damaged-page", params ?? {}] as const,
+  librarySectionSubNav: (path: string) =>
+    [...collegeAdminQueryKeys.all, "library-section-sub-nav", path] as const,
+  libraryDigitalLibraryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-digital-library-page", params ?? {}] as const,
+  libraryReportsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "library-reports-page", params ?? {}] as const,
+  librarySettingsPage: () => [...collegeAdminQueryKeys.all, "library-settings-page"] as const,
+  hostelSectionSubNav: (path: string) =>
+    [...collegeAdminQueryKeys.all, "hostel-section-sub-nav", path] as const,
+  hostelDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-dashboard-page", params ?? {}] as const,
+  hostelManagementPage: (screenSlug: string, params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-management-page", screenSlug, params ?? {}] as const,
+  hostelBuildingManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-building-management-page", params ?? {}] as const,
+  hostelRoomManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-room-management-page", params ?? {}] as const,
+  hostelAdmissionApplicationsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-admission-applications-page", params ?? {}] as const,
+  hostelBedAllocationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-bed-allocation-page", params ?? {}] as const,
+  hostelResidentManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-resident-management-page", params ?? {}] as const,
+  hostelCheckInCheckoutPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-check-in-checkout-page", params ?? {}] as const,
+  hostelFeeManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-fee-management-page", params ?? {}] as const,
+  hostelMessManagementPage: () =>
+    [...collegeAdminQueryKeys.all, "hostel-mess-management-page"] as const,
+  hostelVisitorManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-visitor-management-page", params ?? {}] as const,
+  hostelLeaveOutpassApprovalPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-leave-outpass-approval-page", params ?? {}] as const,
+  hostelReportsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hostel-reports-page", params ?? {}] as const,
+  hostelSettingsPage: () => [...collegeAdminQueryKeys.all, "hostel-settings-page"] as const,
+  hrEmployeeManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-employee-management-page", params ?? {}] as const,
+  hrRecruitmentManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-recruitment-management-page", params ?? {}] as const,
+  hrEmployeeOnboardingPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-employee-onboarding-page", params ?? {}] as const,
+  hrEmployeeAttendancePage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-employee-attendance-page", params ?? {}] as const,
+  hrLeaveManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-leave-management-page", params ?? {}] as const,
+  hrLeaveApprovalPage: (leaveRequestId?: string) =>
+    [...collegeAdminQueryKeys.all, "hr-leave-approval-page", leaveRequestId ?? "default"] as const,
+  hrSalaryStructureManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-salary-structure-management-page", params ?? {}] as const,
+  hrPayrollProcessingPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-payroll-processing-page", params ?? {}] as const,
+  hrSalarySlipManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-salary-slip-management-page", params ?? {}] as const,
+  hrEmployeeBenefitsClaimsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-employee-benefits-claims-page", params ?? {}] as const,
+  hrPerformanceManagementPage: () =>
+    [...collegeAdminQueryKeys.all, "hr-performance-management-page"] as const,
+  hrReportsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "hr-reports-page", params ?? {}] as const,
+  hrSettingsPoliciesPage: () =>
+    [...collegeAdminQueryKeys.all, "hr-settings-policies-page"] as const,
   feeStructureManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "fee-structure-management-page", params ?? {}] as const,
   studentFeeManagementPage: (params?: Record<string, string | number | undefined>) =>

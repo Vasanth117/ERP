@@ -11,6 +11,24 @@ from app.common.envelope import ApiResponse, success_response
 from app.common.schemas import Page, Pagination
 from app.modules.auth.models import User
 from app.modules.college_admin.deps import college_admin_user
+from app.modules.college_admin.schemas import (
+    HostelAdmissionApplicationsPageRead,
+    HostelBedAllocationPageRead,
+    HostelBuildingManagementPageRead,
+    HostelCheckInCheckoutPageRead,
+    HostelFeeManagementPageRead,
+    HostelMessManagementPageRead,
+    HostelLeaveOutpassApprovalPageRead,
+    HostelResidentManagementPageRead,
+    HostelReportsPageRead,
+    HostelSettingsPageRead,
+    HostelSettingsSave,
+    HostelVisitorManagementPageRead,
+    HostelDashboardPageRead,
+    HostelManagementPageRead,
+    HostelRoomManagementPageRead,
+    HostelSectionSubNavRead,
+)
 from app.modules.college_admin.hostel_admin_schemas import (
     AllocationApprove,
     CheckInOut,
@@ -26,6 +44,26 @@ from app.modules.college_admin.hostel_admin_schemas import (
     OutpassDecision,
     VisitorLogCreate,
 )
+from app.modules.college_admin.hostel_admission_applications_page_service import (
+    get_hostel_admission_applications_page,
+)
+from app.modules.college_admin.hostel_bed_allocation_page_service import get_hostel_bed_allocation_page
+from app.modules.college_admin.hostel_check_in_checkout_page_service import get_hostel_check_in_checkout_page
+from app.modules.college_admin.hostel_fee_management_page_service import get_hostel_fee_management_page
+from app.modules.college_admin.hostel_leave_outpass_approval_page_service import get_hostel_leave_outpass_approval_page
+from app.modules.college_admin.hostel_mess_management_page_service import get_hostel_mess_management_page
+from app.modules.college_admin.hostel_visitor_management_page_service import get_hostel_visitor_management_page
+from app.modules.college_admin.hostel_reports_page_service import get_hostel_reports_page
+from app.modules.college_admin.hostel_resident_management_page_service import get_hostel_resident_management_page
+from app.modules.college_admin.hostel_settings_page_service import (
+    get_hostel_settings_page,
+    save_hostel_settings_page,
+)
+from app.modules.college_admin.hostel_building_management_page_service import get_hostel_building_management_page
+from app.modules.college_admin.hostel_dashboard_page_service import get_hostel_dashboard_page
+from app.modules.college_admin.hostel_room_management_page_service import get_hostel_room_management_page
+from app.modules.college_admin.hostel_management_page_service import get_hostel_management_page
+from app.modules.college_admin.hostel_section_sub_nav_service import get_hostel_section_sub_nav
 from app.modules.college_admin.hostel_admin_service import (
     approve_allocation,
     check_in,
@@ -46,6 +84,231 @@ from app.modules.college_admin.hostel_admin_service import (
 )
 
 router = APIRouter()
+
+
+@router.get("/navigation/section-sub-nav", response_model=ApiResponse[HostelSectionSubNavRead])
+async def hostel_section_sub_nav_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    path: Annotated[str, Query()],
+):
+    return success_response(await get_hostel_section_sub_nav(scope, path=path), request_id=get_request_id())
+
+
+@router.get("/dashboard/page", response_model=ApiResponse[HostelDashboardPageRead])
+async def hostel_dashboard_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 4,
+):
+    return success_response(
+        await get_hostel_dashboard_page(scope, user, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/buildings/management/page", response_model=ApiResponse[HostelBuildingManagementPageRead])
+async def hostel_building_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 4,
+):
+    return success_response(
+        await get_hostel_building_management_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/rooms/management/page", response_model=ApiResponse[HostelRoomManagementPageRead])
+async def hostel_room_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 4,
+    search: Annotated[str | None, Query()] = None,
+    block_code: Annotated[str | None, Query()] = None,
+    floor_id: Annotated[str | None, Query()] = None,
+    room_type: Annotated[str | None, Query()] = None,
+):
+    return success_response(
+        await get_hostel_room_management_page(
+            scope,
+            page=page,
+            page_size=page_size,
+            search=search,
+            block_code=block_code,
+            floor_id=floor_id,
+            room_type=room_type,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/visitors/management/page", response_model=ApiResponse[HostelVisitorManagementPageRead])
+async def hostel_visitor_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 3,
+):
+    return success_response(
+        await get_hostel_visitor_management_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/outpass/management/page", response_model=ApiResponse[HostelLeaveOutpassApprovalPageRead])
+async def hostel_leave_outpass_approval_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 4,
+):
+    return success_response(
+        await get_hostel_leave_outpass_approval_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/fees/management/page", response_model=ApiResponse[HostelFeeManagementPageRead])
+async def hostel_fee_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 3,
+):
+    return success_response(
+        await get_hostel_fee_management_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/mess/management/page", response_model=ApiResponse[HostelMessManagementPageRead])
+async def hostel_mess_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    return success_response(await get_hostel_mess_management_page(scope), request_id=get_request_id())
+
+
+@router.get("/residents/management/page", response_model=ApiResponse[HostelResidentManagementPageRead])
+async def hostel_resident_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 4,
+    search: Annotated[str | None, Query()] = None,
+    block_code: Annotated[str | None, Query()] = None,
+    status_filter: Annotated[str | None, Query()] = None,
+):
+    return success_response(
+        await get_hostel_resident_management_page(
+            scope,
+            page=page,
+            page_size=page_size,
+            search=search,
+            block_code=block_code,
+            status_filter=status_filter,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/check-ins/management/page", response_model=ApiResponse[HostelCheckInCheckoutPageRead])
+async def hostel_check_in_checkout_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 3,
+):
+    return success_response(
+        await get_hostel_check_in_checkout_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/applications/management/page", response_model=ApiResponse[HostelAdmissionApplicationsPageRead])
+async def hostel_admission_applications_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 3,
+    academic_year_label: Annotated[str | None, Query()] = None,
+):
+    return success_response(
+        await get_hostel_admission_applications_page(
+            scope,
+            page=page,
+            page_size=page_size,
+            academic_year_label=academic_year_label,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/allocations/management/page", response_model=ApiResponse[HostelBedAllocationPageRead])
+async def hostel_bed_allocation_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 3,
+    academic_year_label: Annotated[str | None, Query()] = None,
+):
+    return success_response(
+        await get_hostel_bed_allocation_page(
+            scope,
+            page=page,
+            page_size=page_size,
+            academic_year_label=academic_year_label,
+        ),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/reports/management/page", response_model=ApiResponse[HostelReportsPageRead])
+async def hostel_reports_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 3,
+):
+    return success_response(
+        await get_hostel_reports_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/settings/management/page", response_model=ApiResponse[HostelSettingsPageRead])
+async def hostel_settings_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[HostelSettingsPageRead]:
+    return success_response(await get_hostel_settings_page(scope), request_id=get_request_id())
+
+
+@router.put("/settings/management/page", response_model=ApiResponse[HostelSettingsPageRead])
+async def hostel_settings_page_save_route(
+    payload: HostelSettingsSave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[HostelSettingsPageRead]:
+    return success_response(await save_hostel_settings_page(scope, payload), request_id=get_request_id())
+
+
+@router.get("/screens/{screen_slug}/management/page", response_model=ApiResponse[HostelManagementPageRead])
+async def hostel_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    screen_slug: str,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 8,
+):
+    return success_response(
+        await get_hostel_management_page(scope, screen_slug, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
 
 
 @router.post("/buildings", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)

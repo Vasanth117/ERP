@@ -8,7 +8,7 @@ export function CollegeAdminPlusActionLabel({
   label,
   iconClassName = "size-3.5",
 }: {
-  label: string;
+  label?: string;
   iconClassName?: string;
 }) {
   return (

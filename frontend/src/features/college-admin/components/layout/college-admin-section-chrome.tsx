@@ -11,6 +11,8 @@ export type CollegeAdminSectionChromeProps = {
   /** Shown only on the section landing route (e.g. “College Admin Dashboard”). */
   moduleTitle: string;
   moduleDescription?: string;
+  /** When set, renders one line per entry (Figma-style wrapped copy under the module title). */
+  moduleDescriptionLines?: readonly string[];
   /** First tab / home URL for this section. */
   landingHref: string;
   tabs: CollegeAdminTab[];
@@ -21,6 +23,7 @@ export type CollegeAdminSectionChromeProps = {
 export function CollegeAdminSectionChrome({
   moduleTitle,
   moduleDescription,
+  moduleDescriptionLines,
   landingHref,
   tabs,
   tabsClassName,
@@ -32,11 +35,24 @@ export function CollegeAdminSectionChrome({
   return (
     <div className="mx-auto w-full max-w-[1440px]">
       {isLanding ? (
-        <header className={cn("mb-3", moduleDescription ? "mb-5" : undefined)}>
+        <header
+          className={cn(
+            "mb-3",
+            moduleDescription || moduleDescriptionLines?.length ? "mb-5" : undefined,
+          )}
+        >
           <h1 className="text-[26px] font-bold leading-tight tracking-[-0.02em] text-[#111827]">
             {moduleTitle}
           </h1>
-          {moduleDescription ? (
+          {moduleDescriptionLines?.length ? (
+            <div className="mt-2 max-w-[44rem] text-[14px] leading-[1.45] text-[#6b7280]">
+              {moduleDescriptionLines.map((line) => (
+                <p key={line} className="block">
+                  {line}
+                </p>
+              ))}
+            </div>
+          ) : moduleDescription ? (
             <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-[#6b7280]">
               {moduleDescription}
             </p>

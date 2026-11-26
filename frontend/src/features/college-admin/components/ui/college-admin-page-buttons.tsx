@@ -10,8 +10,8 @@ export const collegeAdminPrimaryButtonClass =
   "inline-flex h-9 items-center justify-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50";
 
 /** Backend labels sometimes include a leading "+"; icons already convey "add". */
-export function collegeAdminActionLabel(label: string): string {
-  return label.replace(/^\+\s*/, "").trim();
+export function collegeAdminActionLabel(label: string | undefined): string {
+  return (label ?? "").replace(/^\+\s*/, "").trim();
 }
 
 export function CollegeAdminOutlineButton({
