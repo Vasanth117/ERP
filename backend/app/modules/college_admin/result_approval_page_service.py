@@ -19,6 +19,7 @@ from app.modules.college_admin.academic_config_models import AcademicProgramme
 from app.modules.college_admin.exam_registration_management_page_service import _select_session
 from app.modules.college_admin.examination_overview_service import _pick_focus_session
 from app.modules.college_admin.examination_results_nav import examination_results_sub_nav
+from app.modules.college_admin.examination_workflow import empty_state_for_step, workflow_chrome
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
     PoliciesPagination,
@@ -157,6 +158,7 @@ async def get_result_approval_page(
         return ResultApprovalPageRead(
             page_title="Result Approval",
             page_subtitle="Approve processed results before publishing",
+            **workflow_chrome("result_approval", session_id),  # type: ignore[arg-type]
             return_label="Return",
             approve_label="Approve",
             sub_nav=examination_results_sub_nav("result-approval"),
@@ -189,9 +191,12 @@ async def get_result_approval_page(
     start = (page - 1) * _PAGE_SIZE
     page_rows = all_rows[start : start + _PAGE_SIZE]
 
+    panel_empty = empty_state_for_step("result_approval", session.session_id) if total == 0 else None
     return ResultApprovalPageRead(
         page_title="Result Approval",
-        page_subtitle="Approve processed results before publishing",
+        page_subtitle=f"Result approval · {session.name}",
+        panel_empty_state=panel_empty,
+        **workflow_chrome("result_approval", session.session_id),  # type: ignore[arg-type]
         return_label="Return",
         approve_label="Approve",
         sub_nav=examination_results_sub_nav("result-approval"),

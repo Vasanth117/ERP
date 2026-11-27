@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import {
+  ExaminationCreationWorkflowHeader,
+  useExaminationWorkflowContinue,
+} from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -94,8 +99,11 @@ function Pagination({
 }
 
 export function ExaminationHallSeatingManagementDashboard() {
+  const searchParams = useSearchParams();
+  const sessionId = useMemo(() => searchParams.get("session_id") ?? undefined, [searchParams]);
+  const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, error, refetch } = useExaminationHallSeatingManagementPage({ page });
+  const { data, isLoading, isError, error, refetch } = useExaminationHallSeatingManagementPage({ page, session_id: sessionId });
   const autoAllocate = useAutoAllocateHallSeating();
   const confirm = useConfirmHallSeating();
 
@@ -119,25 +127,39 @@ export function ExaminationHallSeatingManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:13128">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Examination Hall & Seating Management"} subtitle={data?.page_subtitle ?? "Assign halls and generate seating"} actions={<><Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-            disabled={autoAllocate.isPending || !data?.selected_session_id}
-            onClick={onAutoAllocate}
-          >
-            <RefreshCwIcon className="size-3.5" aria-hidden />
-            {data?.auto_allocate_label ?? "Auto-allocate"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-            disabled={confirm.isPending || !data?.selected_session_id}
-            onClick={onConfirm}
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            {data?.confirm_label ?? "Confirm"}
-          </Button></>} />
+      <ExaminationCreationWorkflowHeader
+        pageTitle={data?.page_title ?? "Examination Hall & Seating Management"}
+        pageSubtitle={data?.page_subtitle ?? "Assign halls and generate seating"}
+        backHref={data?.back_href ?? "/college-admin/examinations/exam-timetable-management"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={data?.workflow_steps}
+        sessionId={data?.selected_session_id || sessionId}
+        onSaveDraft={() => toast.success("Draft saved")}
+        onContinue={() => continueTo(data?.continue_href)}
+      />
+
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
+          disabled={autoAllocate.isPending || !data?.selected_session_id}
+          onClick={onAutoAllocate}
+        >
+          <RefreshCwIcon className="size-3.5" aria-hidden />
+          {data?.auto_allocate_label ?? "Auto-allocate"}
+        </Button>
+        <Button
+          type="button"
+          className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
+          disabled={confirm.isPending || !data?.selected_session_id}
+          onClick={onConfirm}
+        >
+          <CheckIcon className="size-3.5" aria-hidden />
+          {data?.confirm_label ?? "Confirm"}
+        </Button>
+      </div>
 
       {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 
@@ -179,6 +201,14 @@ export function ExaminationHallSeatingManagementDashboard() {
                       </tbody>
                     </table>
                   </div>
+                ) : data.panel_empty_state ? (
+                  <ExaminationWorkflowPanelEmpty
+                    state={data.panel_empty_state}
+                    primaryDisabled={autoAllocate.isPending || !data.selected_session_id}
+                    onInlineAction={(key) => {
+                      if (key === "auto_allocate_seating") onAutoAllocate();
+                    }}
+                  />
                 ) : (
                   <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No exam halls configured for this session.</p>
                 )}

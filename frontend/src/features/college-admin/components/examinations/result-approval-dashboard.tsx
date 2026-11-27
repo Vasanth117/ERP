@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import { ExaminationCreationWorkflowHeader, useExaminationWorkflowContinue } from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -90,8 +92,11 @@ function Pagination({ data, page, setPage }: { data: ResultApprovalPage; page: n
 }
 
 export function ResultApprovalDashboard() {
+  const searchParams = useSearchParams();
+  const sessionId = useMemo(() => searchParams.get("session_id") ?? undefined, [searchParams]);
+  const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, error, refetch } = useResultApprovalPage({ page });
+  const { data, isLoading, isError, error, refetch } = useResultApprovalPage({ page, session_id: sessionId });
   const approve = useApproveResultApproval();
   const returnForCorrections = useReturnResultApproval();
 
@@ -99,35 +104,49 @@ export function ResultApprovalDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="CA-09-result-approval">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Result Approval"} subtitle={data?.page_subtitle ?? "Approve processed results before publishing"} actions={<><Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-            disabled={returnForCorrections.isPending || !data?.selected_session_id}
-            onClick={() =>
-              returnForCorrections.mutate(payload(), {
-                onSuccess: () => toast.success("Results returned for corrections."),
-                onError: onCollegeAdminMutationError,
-              })
-            }
-          >
-            <ChevronLeftIcon className="size-3.5" aria-hidden />
-            {data?.return_label ?? "Return"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-            disabled={approve.isPending || !data?.selected_session_id}
-            onClick={() =>
-              approve.mutate(payload(), {
-                onSuccess: () => toast.success("Results approved."),
-                onError: onCollegeAdminMutationError,
-              })
-            }
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            {data?.approve_label ?? "Approve"}
-          </Button></>} />
+      <ExaminationCreationWorkflowHeader
+        pageTitle={data?.page_title ?? "Result Approval"}
+        pageSubtitle={data?.page_subtitle ?? "Approve processed results before publishing"}
+        backHref={data?.back_href ?? "/college-admin/examinations/marks-entry-management"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={data?.workflow_steps}
+        sessionId={data?.selected_session_id || sessionId}
+        onSaveDraft={() => toast.success("Draft saved")}
+        onContinue={() => (data?.continue_href ? continueTo(data.continue_href) : toast.message("Final step — use Approve to finish."))}
+      />
+
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
+          disabled={returnForCorrections.isPending || !data?.selected_session_id}
+          onClick={() =>
+            returnForCorrections.mutate(payload(), {
+              onSuccess: () => toast.success("Results returned for corrections."),
+              onError: onCollegeAdminMutationError,
+            })
+          }
+        >
+          <ChevronLeftIcon className="size-3.5" aria-hidden />
+          {data?.return_label ?? "Return"}
+        </Button>
+        <Button
+          type="button"
+          className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
+          disabled={approve.isPending || !data?.selected_session_id}
+          onClick={() =>
+            approve.mutate(payload(), {
+              onSuccess: () => toast.success("Results approved."),
+              onError: onCollegeAdminMutationError,
+            })
+          }
+        >
+          <CheckIcon className="size-3.5" aria-hidden />
+          {data?.approve_label ?? "Approve"}
+        </Button>
+      </div>
 
       {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 
@@ -164,7 +183,11 @@ export function ResultApprovalDashboard() {
                     </table>
                   </div>
                 ) : (
-                  <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No programme summaries yet.</p>
+                  data.panel_empty_state ? (
+                    <ExaminationWorkflowPanelEmpty state={data.panel_empty_state} />
+                  ) : (
+                    <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No programme summaries yet.</p>
+                  )
                 )}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                   <span>{data.showing_label}</span>

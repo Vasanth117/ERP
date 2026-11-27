@@ -16,6 +16,7 @@ from app.core.exceptions import AppError
 from app.modules.auth.models import User
 from app.modules.college_admin.exam_registration_management_page_service import _select_session
 from app.modules.college_admin.examination_halls_invigilation_nav import examination_halls_invigilation_sub_nav
+from app.modules.college_admin.examination_workflow import empty_state_for_step, workflow_chrome
 from app.modules.college_admin.examination_overview_service import _pick_focus_session
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
@@ -103,6 +104,7 @@ async def get_examination_hall_seating_management_page(
     base_empty = ExaminationHallSeatingManagementPageRead(
         page_title="Examination Hall & Seating Management",
         page_subtitle="Assign halls and generate seating",
+        **workflow_chrome("assign_halls", session_id),  # type: ignore[arg-type]
         auto_allocate_label="Auto-allocate",
         confirm_label="Confirm",
         sub_nav=examination_halls_invigilation_sub_nav("examination-hall-seating-management"),
@@ -201,9 +203,12 @@ async def get_examination_hall_seating_management_page(
         )
 
     showing = f"{len(page_rows)} of {total:,} halls" if total else "0 of 0 halls"
+    panel_empty = empty_state_for_step("assign_halls", session.session_id) if total == 0 else None
     return ExaminationHallSeatingManagementPageRead(
         page_title="Examination Hall & Seating Management",
-        page_subtitle="Assign halls and generate seating",
+        page_subtitle=f"Assign halls · {session.name}",
+        panel_empty_state=panel_empty,
+        **workflow_chrome("assign_halls", session.session_id),  # type: ignore[arg-type]
         auto_allocate_label="Auto-allocate",
         confirm_label="Confirm",
         sub_nav=examination_halls_invigilation_sub_nav("examination-hall-seating-management"),

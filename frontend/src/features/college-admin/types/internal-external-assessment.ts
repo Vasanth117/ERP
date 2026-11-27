@@ -4,6 +4,14 @@ export type InternalExternalAssessmentPageQuery = {
   session_id?: string;
 };
 
+export type InternalExternalAssessmentSavePayload = {
+  session_id: string;
+  config_id: string;
+  moderation_range: string;
+  pass_mark_percent: string;
+  advance_workflow?: boolean;
+};
+
 export type InternalExternalAssessmentComponentRow = {
   component_id: string;
   component_label: string;
@@ -12,9 +20,19 @@ export type InternalExternalAssessmentComponentRow = {
   source_label: string;
 };
 
+import type { ExaminationWorkflowStep } from "@/features/college-admin/types/examination-dashboard";
+import type { ExaminationWorkflowEmptyState } from "@/features/college-admin/types/examination-workflow-empty";
+
 export type InternalExternalAssessmentPage = {
   page_title: string;
   page_subtitle: string;
+  panel_empty_state?: ExaminationWorkflowEmptyState | null;
+  back_href: string;
+  save_draft_label: string;
+  continue_label: string;
+  continue_href: string;
+  workflow_steps: ExaminationWorkflowStep[];
+  workflow_active_key: string;
   save_label: string;
   sub_nav: ExaminationRegistrationSubNavItem[];
   assessment_pattern_section_title: string;

@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import {
+  ExaminationCreationWorkflowHeader,
+  useExaminationWorkflowContinue,
+} from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
@@ -59,8 +64,11 @@ function FilterSelect({
 
 
 export function ExamTimetableManagementDashboard() {
+  const searchParams = useSearchParams();
+  const sessionFromUrl = useMemo(() => searchParams.get("session_id") ?? "", [searchParams]);
+  const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState(sessionFromUrl);
   const [programme, setProgramme] = useState("");
 
   useEffect(() => {
@@ -77,10 +85,12 @@ export function ExamTimetableManagementDashboard() {
   const publish = usePublishExamTimetable();
 
   useEffect(() => {
-    if (data?.selected_session_id && !sessionId) {
+    if (sessionFromUrl) {
+      setSessionId(sessionFromUrl);
+    } else if (data?.selected_session_id && !sessionId) {
       setSessionId(data.selected_session_id);
     }
-  }, [data?.selected_session_id, sessionId]);
+  }, [data?.selected_session_id, sessionId, sessionFromUrl]);
 
   const actionPayload = () => ({
     session_id: data?.selected_session_id ?? sessionId,
@@ -106,25 +116,39 @@ export function ExamTimetableManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:11789">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Exam Timetable Management"} subtitle={data?.page_subtitle ?? "—"} actions={<><Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-            disabled={regenerate.isPending || !data?.selected_session_id}
-            onClick={handleRegenerate}
-          >
-            <RefreshCwIcon className="size-3.5" aria-hidden />
-            {data?.regenerate_label ?? "Regenerate"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-            disabled={publish.isPending || !data?.publish_enabled}
-            onClick={handlePublish}
-          >
-            <SendIcon className="size-3.5" aria-hidden />
-            {data?.publish_label ?? "Publish"}
-          </Button></>} />
+      <ExaminationCreationWorkflowHeader
+        pageTitle={data?.page_title ?? "Exam Timetable Management"}
+        pageSubtitle={data?.page_subtitle ?? "Generate and publish the timetable"}
+        backHref={data?.back_href ?? "/college-admin/examinations/internal-external-assessment"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={data?.workflow_steps}
+        sessionId={data?.selected_session_id || sessionId}
+        onSaveDraft={() => toast.success("Draft saved")}
+        onContinue={() => continueTo(data?.continue_href)}
+      />
+
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
+          disabled={regenerate.isPending || !data?.selected_session_id}
+          onClick={handleRegenerate}
+        >
+          <RefreshCwIcon className="size-3.5" aria-hidden />
+          {data?.regenerate_label ?? "Regenerate"}
+        </Button>
+        <Button
+          type="button"
+          className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
+          disabled={publish.isPending || !data?.publish_enabled}
+          onClick={handlePublish}
+        >
+          <SendIcon className="size-3.5" aria-hidden />
+          {data?.publish_label ?? "Publish"}
+        </Button>
+      </div>
 
       <p className="text-[12px] text-[#9ca3af]">
         {data?.timetable_status_label ? `Status · ${data.timetable_status_label}` : null}
@@ -198,10 +222,16 @@ export function ExamTimetableManagementDashboard() {
                     </tbody>
                   </table>
                 </div>
+              ) : data.panel_empty_state ? (
+                <ExaminationWorkflowPanelEmpty
+                  state={data.panel_empty_state}
+                  primaryDisabled={regenerate.isPending || !data.selected_session_id}
+                  onInlineAction={(key) => {
+                    if (key === "regenerate_timetable") handleRegenerate();
+                  }}
+                />
               ) : (
-                <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">
-                  No timetable entries yet. Regenerate to build from confirmed registrations.
-                </p>
+                <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No timetable entries yet.</p>
               )}
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                 <span>{data.papers_count_label}</span>

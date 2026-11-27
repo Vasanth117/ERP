@@ -14,6 +14,7 @@ from app.core.exceptions import AppError
 from app.modules.auth.models import User
 from app.modules.college_admin.exam_registration_management_page_service import _select_session
 from app.modules.college_admin.examination_marks_assessment_nav import examination_marks_assessment_sub_nav
+from app.modules.college_admin.examination_workflow import empty_state_for_step, workflow_chrome, workflow_href_after
 from app.modules.college_admin.examination_overview_service import _pick_focus_session
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
@@ -64,25 +65,18 @@ def _source_label(comp: ExamAssessmentComponent) -> str:
 
 
 async def _resolve_config(tenant_id: PydanticObjectId, session: ExamSession) -> ExamAssessmentConfig | None:
-    programme_wide = await ExamAssessmentConfig.find_one(
-        {
-            "tenant_id": tenant_id,
-            "academic_year_label": session.academic_year_label,
-            "semester_label": session.semester_label,
-            "status": ExamAssessmentConfigStatus.ACTIVE.value,
-            "course_code": None,
-        }
-    )
+    scope = {
+        "tenant_id": tenant_id,
+        "academic_year_label": session.academic_year_label,
+        "semester_label": session.semester_label,
+        "status": {
+            "$in": [ExamAssessmentConfigStatus.ACTIVE.value, ExamAssessmentConfigStatus.DRAFT.value],
+        },
+    }
+    programme_wide = await ExamAssessmentConfig.find_one({**scope, "course_code": None})
     if programme_wide is not None:
         return programme_wide
-    return await ExamAssessmentConfig.find_one(
-        {
-            "tenant_id": tenant_id,
-            "academic_year_label": session.academic_year_label,
-            "semester_label": session.semester_label,
-            "status": ExamAssessmentConfigStatus.ACTIVE.value,
-        }
-    )
+    return await ExamAssessmentConfig.find_one(scope)
 
 
 def _moderation_label(rules: dict) -> str:
@@ -117,10 +111,12 @@ async def get_internal_external_assessment_page(
 
     sessions = await ExamSession.find(Eq(ExamSession.tenant_id, tenant_id)).sort("-registration_start_at").to_list()
     session = _select_session(sessions, session_id, now) or _pick_focus_session(sessions, now=now)
+    empty_chrome = workflow_chrome("configure_subjects", session_id)
     empty = InternalExternalAssessmentPageRead(
         page_title="Internal & External Assessment",
         page_subtitle="Weightage and moderation",
-        save_label="Save",
+        **empty_chrome,  # type: ignore[arg-type]
+        save_label="Save draft",
         sub_nav=examination_marks_assessment_sub_nav("internal-external-assessment"),
         assessment_pattern_section_title="Assessment pattern",
         moderation_section_title="Moderation",
@@ -142,9 +138,20 @@ async def get_internal_external_assessment_page(
     if session is None:
         return empty
 
+    chrome = workflow_chrome("configure_subjects", session.session_id)
+    page_subtitle = f"Configure subjects · {session.name}"
+
     config = await _resolve_config(tenant_id, session)
     if config is None:
-        return empty.model_copy(update={"selected_session_id": session.session_id})
+        return empty.model_copy(
+            update={
+                "selected_session_id": session.session_id,
+                "page_subtitle": page_subtitle,
+                **chrome,
+                "save_label": chrome["save_draft_label"],
+                "panel_empty_state": empty_state_for_step("configure_subjects", session.session_id),
+            }
+        )
 
     components = await ExamAssessmentComponent.find(
         Eq(ExamAssessmentComponent.tenant_id, tenant_id),
@@ -166,10 +173,13 @@ async def get_internal_external_assessment_page(
     mod_key = str(int(float(rules.get("moderation_range_marks", rules.get("moderation_range", 5)))))
     pass_key = str(int(round(config.passing_marks_percent)))
 
+    panel_empty = empty_state_for_step("configure_subjects", session.session_id) if not rows else None
     return InternalExternalAssessmentPageRead(
         page_title="Internal & External Assessment",
-        page_subtitle="Weightage and moderation",
-        save_label="Save",
+        page_subtitle=page_subtitle,
+        panel_empty_state=panel_empty,
+        **chrome,  # type: ignore[arg-type]
+        save_label=str(chrome["save_draft_label"]),
         sub_nav=examination_marks_assessment_sub_nav("internal-external-assessment"),
         assessment_pattern_section_title="Assessment pattern",
         moderation_section_title="Moderation",
@@ -206,24 +216,31 @@ async def save_internal_external_assessment_page(
     if session is None:
         raise AppError(code="NOT_FOUND", message="Exam session not found", status_code=404)
 
-    config = await ExamAssessmentConfig.find_one(
-        Eq(ExamAssessmentConfig.tenant_id, tenant_id),
-        Eq(ExamAssessmentConfig.config_id, payload.config_id),
-    )
-    if config is None:
-        raise AppError(code="NOT_FOUND", message="Assessment configuration not found", status_code=404)
+    if payload.config_id.strip():
+        config = await ExamAssessmentConfig.find_one(
+            Eq(ExamAssessmentConfig.tenant_id, tenant_id),
+            Eq(ExamAssessmentConfig.config_id, payload.config_id),
+        )
+        if config is None:
+            raise AppError(code="NOT_FOUND", message="Assessment configuration not found", status_code=404)
 
-    theory_rules = dict(config.theory_rules or {})
-    theory_rules["moderation_range_marks"] = int(payload.moderation_range)
-    passing = float(payload.pass_mark_percent)
+        theory_rules = dict(config.theory_rules or {})
+        theory_rules["moderation_range_marks"] = int(payload.moderation_range)
+        passing = float(payload.pass_mark_percent)
 
-    await update_assessment_config(
-        scope,
-        user,
-        to_object_id(str(config.id), "config_id"),
-        ExamAssessmentConfigUpdate(
-            passing_marks_percent=passing,
-            theory_rules=theory_rules,
-        ),
-    )
-    return await get_internal_external_assessment_page(scope, session_id=payload.session_id)
+        await update_assessment_config(
+            scope,
+            user,
+            to_object_id(str(config.id), "config_id"),
+            ExamAssessmentConfigUpdate(
+                passing_marks_percent=passing,
+                theory_rules=theory_rules,
+            ),
+        )
+
+    page = await get_internal_external_assessment_page(scope, session_id=payload.session_id)
+    if payload.advance_workflow:
+        next_href = workflow_href_after("configure_subjects", payload.session_id)
+        if next_href:
+            return page.model_copy(update={"continue_href": next_href})
+    return page

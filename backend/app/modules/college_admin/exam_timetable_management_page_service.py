@@ -19,6 +19,7 @@ from app.core.exceptions import AppError
 from app.modules.auth.models import User
 from app.modules.college_admin.academic_config_models import AcademicProgramme
 from app.modules.college_admin.examination_overview_service import _pick_focus_session
+from app.modules.college_admin.examination_workflow import empty_state_for_step, workflow_chrome
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
     ExamTimetableClashBanner,
@@ -332,6 +333,7 @@ async def get_exam_timetable_management_page(
         return ExamTimetableManagementPageRead(
             page_title="Exam Timetable Management",
             page_subtitle="Generate and publish the timetable",
+            **workflow_chrome("generate_timetable", session_id),  # type: ignore[arg-type]
             regenerate_label="Regenerate",
             publish_label="Publish",
             session_filter_label="Exam session",
@@ -426,9 +428,12 @@ async def get_exam_timetable_management_page(
     publish_enabled = bool(timetable and total and not conflicts and timetable.status != ExamTimetableStatus.PUBLISHED)
     status_label = timetable.status.value.replace("_", " ").title() if timetable else "No timetable"
 
+    panel_empty = empty_state_for_step("generate_timetable", session.session_id) if not total else None
     return ExamTimetableManagementPageRead(
         page_title="Exam Timetable Management",
-        page_subtitle="Generate and publish the timetable",
+        page_subtitle=f"Generate timetable · {session.name}",
+        panel_empty_state=panel_empty,
+        **workflow_chrome("generate_timetable", session.session_id),  # type: ignore[arg-type]
         regenerate_label="Regenerate",
         publish_label="Publish",
         session_filter_label="Exam session",

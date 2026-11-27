@@ -177,7 +177,7 @@ export function ExaminationConfigurationDashboard() {
         toggle_rules: toggles,
         advance_workflow: advance,
       });
-      if (result.session_id && data.is_new) {
+      if (result.session_id && !sessionId) {
         router.replace(`/college-admin/examinations/examination-configuration?session_id=${result.session_id}`);
       }
       if (advance) {

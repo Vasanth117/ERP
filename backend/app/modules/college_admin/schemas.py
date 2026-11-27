@@ -9305,6 +9305,17 @@ class ExaminationSetupToggleRule(BaseModel):
     enabled: bool = False
 
 
+class ExaminationWorkflowEmptyState(BaseModel):
+    icon_slug: str = "inbox"
+    title: str
+    description: str
+    primary_action_label: str
+    primary_action_href: str | None = None
+    primary_action_key: str | None = None
+    secondary_action_label: str | None = None
+    secondary_action_href: str | None = None
+
+
 class ExaminationConfigurationPageRead(BaseModel):
     page_title: str
     page_subtitle: str
@@ -9356,6 +9367,13 @@ class ExamTimetableManagementRow(BaseModel):
 class ExamTimetableManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    panel_empty_state: ExaminationWorkflowEmptyState | None = None
+    back_href: str = ""
+    save_draft_label: str = "Save draft"
+    continue_label: str = "Continue"
+    continue_href: str = ""
+    workflow_steps: list[FacultyAssignmentWorkflowStep] = Field(default_factory=list)
+    workflow_active_key: str = ""
     regenerate_label: str
     publish_label: str
     session_filter_label: str
@@ -9480,6 +9498,13 @@ class ExaminationHallSeatingSeatUsageItem(BaseModel):
 class ExaminationHallSeatingManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    panel_empty_state: ExaminationWorkflowEmptyState | None = None
+    back_href: str = ""
+    save_draft_label: str = "Save draft"
+    continue_label: str = "Continue"
+    continue_href: str = ""
+    workflow_steps: list[FacultyAssignmentWorkflowStep] = Field(default_factory=list)
+    workflow_active_key: str = ""
     auto_allocate_label: str
     confirm_label: str
     sub_nav: list[ExaminationRegistrationSubNavItem]
@@ -9548,6 +9573,12 @@ class MarksEntryManagementProgressRow(BaseModel):
 class MarksEntryManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    panel_empty_state: ExaminationWorkflowEmptyState | None = None
+    back_href: str = ""
+    save_draft_label: str = "Save draft"
+    continue_label: str = "Continue"
+    continue_href: str = ""
+    workflow_active_key: str = ""
     send_reminders_label: str
     lock_entry_label: str
     sub_nav: list[ExaminationRegistrationSubNavItem]
@@ -9579,6 +9610,13 @@ class InternalExternalAssessmentComponentRow(BaseModel):
 class InternalExternalAssessmentPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    panel_empty_state: ExaminationWorkflowEmptyState | None = None
+    back_href: str = ""
+    save_draft_label: str = "Save draft"
+    continue_label: str = "Continue"
+    continue_href: str = ""
+    workflow_steps: list[FacultyAssignmentWorkflowStep] = Field(default_factory=list)
+    workflow_active_key: str = ""
     save_label: str
     sub_nav: list[ExaminationRegistrationSubNavItem]
     assessment_pattern_section_title: str
@@ -9604,6 +9642,7 @@ class InternalExternalAssessmentSavePayload(BaseModel):
     config_id: str
     moderation_range: str
     pass_mark_percent: str
+    advance_workflow: bool = False
 
 
 class ResultProcessingPassBarRow(BaseModel):
@@ -9650,6 +9689,13 @@ class ResultApprovalRouteStep(BaseModel):
 class ResultApprovalPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    panel_empty_state: ExaminationWorkflowEmptyState | None = None
+    back_href: str = ""
+    save_draft_label: str = "Save draft"
+    continue_label: str = "Continue"
+    continue_href: str = ""
+    workflow_steps: list[FacultyAssignmentWorkflowStep] = Field(default_factory=list)
+    workflow_active_key: str = ""
     return_label: str
     approve_label: str
     sub_nav: list[ExaminationRegistrationSubNavItem]
