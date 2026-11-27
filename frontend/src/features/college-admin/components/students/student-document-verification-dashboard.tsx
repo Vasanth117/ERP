@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -110,17 +111,7 @@ export function StudentDocumentVerificationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:4129">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student Document Verification"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Review and verify submitted documents"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Link
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Student Document Verification"} subtitle={data?.page_subtitle ?? "Review and verify submitted documents"} actions={<><Link
             href={data?.request_document_href ?? "/college-admin/students/profile-corrections"}
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
           >
@@ -135,9 +126,7 @@ export function StudentDocumentVerificationDashboard() {
           >
             <CheckIcon className="size-3.5" aria-hidden />
             {data?.verify_all_label ?? "Verify all"}
-          </button>
-        </div>
-      </div>
+          </button></>} />
 
       <QueryState isLoading={pageQuery.isLoading} isError={pageQuery.isError} error={pageQuery.error} onRetry={() => void pageQuery.refetch()}>
         {data ? (

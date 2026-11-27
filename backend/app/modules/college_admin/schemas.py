@@ -5873,13 +5873,38 @@ class AttendanceConfigurationToggleRule(BaseModel):
     enabled: bool = False
 
 
+class AttendanceConfigurationSummaryItem(BaseModel):
+    key: str
+    label: str
+    value_label: str
+    section_key: str = "marking"
+    detail_description: str = ""
+    value_tone: str = "default"
+
+
+class AttendanceConfigurationPolicyPreview(BaseModel):
+    row_key: str
+    policy_title: str
+    value_label: str
+    applies_to_label: str
+
+
 class AttendanceConfigurationPageRead(BaseModel):
     page_title: str
     page_subtitle: str
     cancel_label: str
     save_label: str
+    edit_settings_label: str
+    current_settings_section_title: str
+    view_settings_description: str
     rules_policies_href: str
     rules_policies_link_label: str
+    reports_href: str
+    reports_link_label: str
+    related_policies_section_title: str
+    related_policies_description: str
+    policy_preview_rows: list[AttendanceConfigurationPolicyPreview]
+    summary_items: list[AttendanceConfigurationSummaryItem]
     marking_section_title: str
     behaviour_section_title: str
     marking_window_key: str
@@ -5903,6 +5928,14 @@ class AttendanceConfigurationSave(BaseModel):
     late_mark_after_key: str
     session_length_key: str
     toggle_rules: dict[str, bool] = Field(default_factory=dict)
+
+
+class AttendanceInstitutionalPolicySave(BaseModel):
+    policy_key: str | None = None
+    title: str = Field(min_length=1, max_length=200)
+    value_label: str = Field(min_length=1, max_length=120)
+    applies_to_label: str = Field(min_length=1, max_length=200)
+    is_active: bool = True
 
 
 class AttendanceRulesPolicyTableRow(BaseModel):
@@ -5947,9 +5980,11 @@ class AttendanceRulesPoliciesPageRead(BaseModel):
     page_title: str
     page_subtitle: str
     configuration_href: str
+    configuration_edit_href: str
     back_label: str
-    cancel_label: str
-    save_label: str
+    add_policy_label: str
+    edit_policy_label: str
+    edit_marking_settings_label: str
     policies_section_title: str
     policies_table_headers: list[str]
     policy_rows: list[AttendanceRulesPolicyTableRow]
@@ -6477,6 +6512,578 @@ class HostelSectionSubNavRead(BaseModel):
     items: list[HostelSectionSubNavItem]
 
 
+class LmsSectionSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    icon_key: str
+    active: bool
+
+
+class LmsSectionSubNavRead(BaseModel):
+    path: str
+    section_key: str | None
+    items: list[LmsSectionSubNavItem]
+
+
+class LmsDashboardCourseRow(BaseModel):
+    row_key: str
+    course_label: str
+    course_code: str
+    department_label: str
+    faculty_label: str
+    students_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsDashboardCompletionBar(BaseModel):
+    department_label: str
+    completion_percent: int
+    tone: str
+
+
+class LmsDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    kpis: list[UserDashboardKpi]
+    courses_section_title: str
+    table_headers: list[str]
+    course_rows: list[LmsDashboardCourseRow]
+    empty_table_message: str
+    completion_section_title: str
+    completion_bars: list[LmsDashboardCompletionBar]
+    empty_completion_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsCourseManagementRow(BaseModel):
+    row_key: str
+    course_label: str
+    course_code: str
+    department_label: str
+    faculty_label: str
+    students_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsCourseManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    search_placeholder: str
+    department_filter_label: str
+    status_filter_label: str
+    department_options: list[InstitutionPolicyFilterOption]
+    status_options: list[InstitutionPolicyFilterOption]
+    courses_section_title: str
+    table_headers: list[str]
+    course_rows: list[LmsCourseManagementRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsSubjectMappingRow(BaseModel):
+    row_key: str
+    subject_label: str
+    section_label: str
+    faculty_label: str
+    lms_course_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsSubjectCourseMappingPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    auto_map_action_label: str
+    save_mapping_action_label: str
+    save_mapping_enabled: bool
+    alert_banner: "CommunicationChannelAlertBanner | None" = None
+    mapping_section_title: str
+    table_headers: list[str]
+    mapping_rows: list[LmsSubjectMappingRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsLearningMaterialRow(BaseModel):
+    row_key: str
+    material_label: str
+    course_code: str
+    type_label: str
+    uploaded_by_label: str
+    date_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsLearningMaterialManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    materials_section_title: str
+    table_headers: list[str]
+    material_rows: list[LmsLearningMaterialRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsVideoLectureRow(BaseModel):
+    row_key: str
+    lecture_label: str
+    course_code: str
+    length_label: str
+    views_label: str
+    uploaded_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsVideoLectureManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    kpis: list[UserDashboardKpi]
+    videos_section_title: str
+    table_headers: list[str]
+    video_rows: list[LmsVideoLectureRow]
+    empty_table_message: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsAssignmentManagementRow(BaseModel):
+    row_key: str
+    assignment_label: str
+    course_code: str
+    due_label: str
+    submitted_label: str
+    evaluated_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsAssignmentManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    primary_action_href: str
+    kpis: list[UserDashboardKpi]
+    assignments_section_title: str
+    table_headers: list[str]
+    assignment_rows: list[LmsAssignmentManagementRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsQuizManagementRow(BaseModel):
+    row_key: str
+    quiz_label: str
+    course_code: str
+    questions_label: str
+    attempts_label: str
+    average_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsQuizManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    quizzes_section_title: str
+    table_headers: list[str]
+    quiz_rows: list[LmsQuizManagementRow]
+    empty_table_message: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsAssessmentManagementRow(BaseModel):
+    row_key: str
+    assessment_label: str
+    course_code: str
+    type_label: str
+    weight_label: str
+    opens_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsAssessmentManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    assessments_section_title: str
+    table_headers: list[str]
+    assessment_rows: list[LmsAssessmentManagementRow]
+    empty_table_message: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsStudentLearningProgressRow(BaseModel):
+    row_key: str
+    student_label: str
+    register_number: str
+    completion_percent: int
+    last_active_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class LmsStudentLearningProgressPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    learners_section_title: str
+    table_headers: list[str]
+    kpis: list[UserDashboardKpi]
+    learner_rows: list[LmsStudentLearningProgressRow]
+    empty_table_message: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsFacultyContentRow(BaseModel):
+    row_key: str
+    faculty_label: str
+    department_label: str
+    materials_count: int
+    videos_count: int
+    pending_review_count: int
+    detail_href: str
+
+
+class LmsFacultyContentManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    approve_selected_action_label: str
+    approve_selected_enabled: bool
+    faculty_section_title: str
+    table_headers: list[str]
+    faculty_rows: list[LmsFacultyContentRow]
+    empty_table_message: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsReportsTableRow(BaseModel):
+    report_key: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class LmsReportsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    reports_section_title: str
+    table_headers: list[str]
+    report_rows: list[LmsReportsTableRow]
+    create_report_templates: list[InstitutionFieldOption]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsReportScheduleCreate(BaseModel):
+    report_key: str = Field(min_length=1, max_length=64)
+
+
+class LmsSettingsFormValues(BaseModel):
+    max_upload_size_mb: str
+    allowed_formats: str
+    late_submission: str
+    quiz_attempts: str
+    video_retention_years: str
+    completion_threshold_percent: str
+    require_content_review: bool = True
+    allow_video_download: bool = False
+    plagiarism_check_assignments: bool = True
+
+
+class LmsSettingsToggleRule(BaseModel):
+    key: str
+    label: str
+    description: str | None = None
+    badge_label: str | None = None
+    enabled: bool
+
+
+class LmsSettingsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    cancel_label: str
+    save_label: str
+    limits_section_title: str
+    controls_section_title: str
+    field_meta: list[InstitutionFieldMeta]
+    field_options: dict[str, list[InstitutionFieldOption]]
+    form: LmsSettingsFormValues
+    toggle_rules: list[LmsSettingsToggleRule]
+    generated_at: datetime
+
+
+class LmsSettingsSave(BaseModel):
+    form: LmsSettingsFormValues
+
+
+class ReportsSectionSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    icon_key: str
+    active: bool
+
+
+class ReportsSectionSubNavRead(BaseModel):
+    path: str
+    section_key: str | None
+    items: list[ReportsSectionSubNavItem]
+
+
+class AttendanceSectionSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    icon_key: str
+    active: bool
+
+
+class AttendanceSectionSubNavRead(BaseModel):
+    path: str
+    section_key: str | None
+    items: list[AttendanceSectionSubNavItem]
+
+
+class ReportsDashboardTableRow(BaseModel):
+    row_id: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+    detail_href: str
+
+
+class ReportsDashboardGroupRow(BaseModel):
+    group_key: str
+    label: str
+    count_label: str
+    count_badge: str
+    icon_key: str
+    detail_href: str
+
+
+class ReportsAcademicTableRow(BaseModel):
+    row_key: str
+    report_label: str
+    period_label: str
+    format_label: str
+    last_run_label: str
+    schedule_label: str
+
+
+class ReportsAcademicHighlightBar(BaseModel):
+    bar_key: str
+    department_label: str
+    percent_value: int
+    tone: str
+
+
+class ReportsAcademicModulePageRead(BaseModel):
+    page_key: str
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    run_report_label: str
+    academic_year_label: str
+    academic_year_options: list[InstitutionFieldOption]
+    department_filter_label: str
+    department_options: list[InstitutionFieldOption]
+    selected_department_id: str
+    scope_badge_label: str
+    updated_at_label: str
+    kpis: list[UserDashboardKpi]
+    reports_section_title: str
+    highlights_section_title: str
+    table_headers: list[str]
+    report_rows: list[ReportsAcademicTableRow]
+    highlight_bars: list[ReportsAcademicHighlightBar]
+    empty_table_message: str
+    empty_highlights_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    run_report_key: str
+    generated_at: datetime
+
+
+class ReportsScheduledTableRow(BaseModel):
+    row_key: str
+    report_label: str
+    frequency_label: str
+    next_run_label: str
+    recipients_label: str
+    format_label: str
+    status_label: str
+    status_tone: str
+
+
+class ReportsScheduledPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    schedule_action_label: str
+    schedules_section_title: str
+    table_headers: list[str]
+    schedule_rows: list[ReportsScheduledTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    report_options: list[InstitutionFieldOption]
+    generated_at: datetime
+
+
+class ReportsExportHistoryTableRow(BaseModel):
+    row_key: str
+    file_label: str
+    requested_by_label: str
+    format_label: str
+    size_label: str
+    date_label: str
+    status_label: str
+    status_tone: str
+
+
+class ReportsExportHistoryPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_log_label: str
+    exports_section_title: str
+    table_headers: list[str]
+    export_rows: list[ReportsExportHistoryTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class ReportsCustomBuilderStep(BaseModel):
+    step_key: str
+    step_label: str
+    step_number: int
+    status: str
+
+
+class ReportsCustomBuilderPreviewRow(BaseModel):
+    row_key: str
+    name_label: str
+    programme_label: str
+    attendance_label: str
+
+
+class ReportsCustomBuilderSave(BaseModel):
+    filter_id: str = Field(min_length=1, max_length=80)
+    data_source: str = Field(min_length=1, max_length=40)
+    selected_fields: list[str] = Field(default_factory=list)
+    group_by: str = ""
+    sort_by: str = ""
+    export_format: str = "excel"
+    academic_year: str | None = None
+
+
+class ReportsCustomBuilderPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    save_template_label: str
+    run_label: str
+    steps: list[ReportsCustomBuilderStep]
+    data_source_label: str
+    data_source_options: list[InstitutionFieldOption]
+    selected_data_source: str
+    fields_label: str
+    field_options: list[InstitutionFieldOption]
+    selected_fields: list[str]
+    group_by_label: str
+    group_by_options: list[InstitutionFieldOption]
+    selected_group_by: str
+    sort_by_label: str
+    sort_by_options: list[InstitutionFieldOption]
+    selected_sort_by: str
+    date_range_label: str
+    date_range_options: list[InstitutionFieldOption]
+    selected_date_range: str
+    format_label: str
+    format_options: list[InstitutionFieldOption]
+    selected_format: str
+    preview_section_title: str
+    preview_headers: list[str]
+    preview_rows: list[ReportsCustomBuilderPreviewRow]
+    empty_preview_message: str
+    filter_id: str
+    report_key: str
+    generated_at: datetime
+
+
+class ReportsDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_report_label: str
+    create_report_href: str
+    reports_section_title: str
+    groups_section_title: str
+    table_headers: list[str]
+    report_rows: list[ReportsDashboardTableRow]
+    group_rows: list[ReportsDashboardGroupRow]
+    empty_table_message: str
+    empty_groups_message: str
+    showing_label: str
+    kpis: list[UserDashboardKpi]
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
 class HostelDashboardOutpassRow(BaseModel):
     request_id: str
     resident_label: str
@@ -6892,6 +7499,391 @@ class HostelSettingsPageRead(BaseModel):
 
 class HostelSettingsSave(BaseModel):
     form: HostelSettingsFormValues
+
+
+class CommunicationSectionSubNavItem(BaseModel):
+    key: str
+    label: str
+    href: str
+    icon_key: str
+    active: bool
+
+
+class CommunicationSectionSubNavRead(BaseModel):
+    path: str
+    section_key: str | None
+    items: list[CommunicationSectionSubNavItem]
+
+
+class CommunicationDashboardDeliveryRow(BaseModel):
+    batch_key: str
+    message_label: str
+    channel_label: str
+    recipients_count: int
+    delivered_count: int
+    failed_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationChannelSidebarItem(BaseModel):
+    channel_key: str
+    title: str
+    subtitle_line: str
+    status_label: str
+    status_tone: str
+    icon_key: str
+    href: str
+
+
+class CommunicationDashboardPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    create_announcement_label: str
+    create_announcement_href: str
+    kpis: list[UserDashboardKpi]
+    deliveries_section_title: str
+    table_headers: list[str]
+    delivery_rows: list[CommunicationDashboardDeliveryRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    channels_section_title: str
+    channel_items: list[CommunicationChannelSidebarItem]
+    generated_at: datetime
+
+
+class CommunicationAnnouncementsTableRow(BaseModel):
+    announcement_id: str
+    title: str
+    audience_label: str
+    channels_label: str
+    published_label: str
+    reach_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationAnnouncementsManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_announcement_label: str
+    new_announcement_href: str
+    search_placeholder: str
+    audience_filter_label: str
+    status_filter_label: str
+    audience_options: list[InstitutionPolicyFilterOption]
+    status_options: list[InstitutionPolicyFilterOption]
+    announcements_section_title: str
+    table_headers: list[str]
+    announcement_rows: list[CommunicationAnnouncementsTableRow]
+    empty_table_message: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationAudienceDeliveryRow(BaseModel):
+    row_key: str
+    message_label: str
+    channel_label: str
+    recipients_count: int
+    delivered_count: int
+    failed_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationFacultyNotificationRow(BaseModel):
+    row_key: str
+    notification_label: str
+    audience_label: str
+    sent_label: str
+    read_label: str
+    acknowledged_label: str
+    detail_href: str
+
+
+class CommunicationParentMessageRow(BaseModel):
+    row_key: str
+    message_label: str
+    audience_label: str
+    channel_label: str
+    sent_label: str
+    delivered_label: str
+    detail_href: str
+
+
+class CommunicationStudentNotificationsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_notification_label: str
+    new_notification_href: str
+    kpis: list[UserDashboardKpi]
+    deliveries_section_title: str
+    table_headers: list[str]
+    delivery_rows: list[CommunicationAudienceDeliveryRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationFacultyNotificationsPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_notification_label: str
+    new_notification_href: str
+    kpis: list[UserDashboardKpi]
+    recent_section_title: str
+    table_headers: list[str]
+    notification_rows: list[CommunicationFacultyNotificationRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationChannelAlertBanner(BaseModel):
+    tone: str
+    message: str
+    link_label: str
+    link_href: str
+
+
+class CommunicationEmailCampaignRow(BaseModel):
+    row_key: str
+    campaign_label: str
+    audience_label: str
+    sent_label: str
+    opened_label: str
+    bounced_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationEmailChannelPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    kpis: list[UserDashboardKpi]
+    campaigns_section_title: str
+    table_headers: list[str]
+    campaign_rows: list[CommunicationEmailCampaignRow]
+    empty_table_message: str
+    count_footer_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationSmsBatchRow(BaseModel):
+    row_key: str
+    batch_label: str
+    template_label: str
+    recipients_count: int
+    delivered_count: int
+    failed_count: int
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationSmsChannelPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    kpis: list[UserDashboardKpi]
+    batches_section_title: str
+    table_headers: list[str]
+    batch_rows: list[CommunicationSmsBatchRow]
+    empty_table_message: str
+    count_footer_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationWhatsappTemplateRow(BaseModel):
+    row_key: str
+    template_label: str
+    category_label: str
+    language_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationWhatsappChannelPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    primary_action_style: str = "button"
+    alert_banner: CommunicationChannelAlertBanner | None = None
+    kpis: list[UserDashboardKpi]
+    templates_section_title: str
+    table_headers: list[str]
+    template_rows: list[CommunicationWhatsappTemplateRow]
+    empty_table_message: str
+    count_footer_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationTemplateManagementRow(BaseModel):
+    row_key: str
+    template_label: str
+    channel_label: str
+    language_label: str
+    variables_count: int
+    updated_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationTemplatesManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    templates_section_title: str
+    table_headers: list[str]
+    template_rows: list[CommunicationTemplateManagementRow]
+    empty_table_message: str
+    count_footer_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationScheduledMessageRow(BaseModel):
+    row_key: str
+    message_label: str
+    audience_label: str
+    channels_label: str
+    send_at_label: str
+    created_by_label: str
+    status_label: str
+    status_tone: str
+    detail_href: str
+
+
+class CommunicationScheduledMessagesPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    primary_action_label: str
+    primary_action_href: str
+    scheduled_section_title: str
+    table_headers: list[str]
+    message_rows: list[CommunicationScheduledMessageRow]
+    empty_table_message: str
+    count_footer_label: str
+    showing_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationDeliveryStatusPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    retry_action_label: str
+    retry_enabled: bool
+    kpis: list[UserDashboardKpi]
+    deliveries_section_title: str
+    table_headers: list[str]
+    delivery_rows: list[CommunicationDashboardDeliveryRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationHistoryPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str
+    export_api_path: str
+    search_placeholder: str
+    month_filter_label: str
+    channel_filter_label: str
+    sender_filter_label: str
+    month_options: list[InstitutionPolicyFilterOption]
+    channel_options: list[InstitutionPolicyFilterOption]
+    sender_options: list[InstitutionPolicyFilterOption]
+    announcements_section_title: str
+    table_headers: list[str]
+    announcement_rows: list[CommunicationAnnouncementsTableRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationParentCommunicationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    new_message_label: str
+    new_message_href: str
+    kpis: list[UserDashboardKpi]
+    recent_section_title: str
+    table_headers: list[str]
+    message_rows: list[CommunicationParentMessageRow]
+    empty_table_message: str
+    showing_label: str
+    count_footer_label: str
+    pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class CommunicationCreateAnnouncementFormValues(BaseModel):
+    announcement_id: str = ""
+    title: str = ""
+    body: str = ""
+    attachment_name: str = ""
+    audience: str = ""
+    department_scope: str = "all"
+    channels: list[str] = Field(default_factory=list)
+    publish_timing: str = "now"
+    scheduled_for: str = ""
+    pin_to_dashboard: bool = False
+
+
+class CommunicationCreateAnnouncementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    back_href: str
+    back_label: str
+    cancel_label: str
+    save_draft_label: str
+    publish_label: str
+    message_section_title: str
+    audience_section_title: str
+    pin_to_dashboard_label: str
+    field_meta: list[InstitutionFieldMeta]
+    audience_options: list[InstitutionFieldOption]
+    department_options: list[InstitutionFieldOption]
+    channel_options: list[InstitutionFieldOption]
+    publish_options: list[InstitutionFieldOption]
+    form: CommunicationCreateAnnouncementFormValues
+    generated_at: datetime
+
+
+class CommunicationCreateAnnouncementSave(BaseModel):
+    action: str = "draft"
+    form: CommunicationCreateAnnouncementFormValues
 
 
 class HrRecruitmentSubNavItem(BaseModel):

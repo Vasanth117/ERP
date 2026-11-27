@@ -1,5 +1,7 @@
 "use client";
 
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
@@ -187,36 +189,32 @@ export function LibraryDashboard() {
   }, [data]);
 
   return (
-    <div className="space-y-5" data-figma-frame="160:11570">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {view.page_title || "Library Dashboard"}
-          </h2>
-          {view.page_subtitle ? (
-            <p className="mt-1 text-[14px] text-[#6b7280]">{view.page_subtitle}</p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
-            onClick={handleExport}
-            disabled={isLoading || !data}
-          >
-            <CollegeAdminDownload className="size-3.5" />
-            {view.export_label || "Export"}
-          </Button>
-          <Link
-            href={view.open_portal_href}
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          >
-            {view.open_portal_label || "Open Library portal"}
-            <CollegeAdminChevronRight className="size-3.5" aria-hidden />
-          </Link>
-        </div>
-      </div>
+    <CollegeAdminModulePageLayout figmaFrame="160:11570">
+      <CollegeAdminModulePageHeading
+        title={view.page_title || "Library Dashboard"}
+        subtitle={view.page_subtitle || undefined}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
+              onClick={handleExport}
+              disabled={isLoading || !data}
+            >
+              <CollegeAdminDownload className="size-3.5" />
+              {view.export_label || "Export"}
+            </Button>
+            <Link
+              href={view.open_portal_href}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+            >
+              {view.open_portal_label || "Open Library portal"}
+              <CollegeAdminChevronRight className="size-3.5" aria-hidden />
+            </Link>
+          </>
+        }
+      />
 
       {isLoading || isFetching ? (
         <p className="text-[12px] text-[#9ca3af]">{isLoading ? "Loading library data…" : "Updating…"}</p>
@@ -316,6 +314,6 @@ export function LibraryDashboard() {
           </div>
         </>
       )}
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

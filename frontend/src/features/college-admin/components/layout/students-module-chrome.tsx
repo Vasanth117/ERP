@@ -9,7 +9,6 @@ export function StudentsModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Students"
-      moduleDescription="Admissions, enrollment, documents, and student status across your institution."
       landingHref={studentsTabs[0]!.href}
       tabs={studentsTabs}
     >

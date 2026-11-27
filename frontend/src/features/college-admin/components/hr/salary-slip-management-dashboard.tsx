@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -152,13 +153,7 @@ export function SalarySlipManagementDashboard() {
     <div className="space-y-5" data-figma-frame="160:10060">
       <HrRecruitmentSubNav items={view.sub_nav} />
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{view.page_title}</h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{view.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
+      <CollegeAdminModulePageHeading title={view.page_title} subtitle={view.page_subtitle} actions={<><Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 text-xs"
@@ -176,9 +171,7 @@ export function SalarySlipManagementDashboard() {
           >
             <SendIcon className="size-3.5" aria-hidden />
             {view.publish_label}
-          </Button>
-        </div>
-      </div>
+          </Button></>} />
 
       {isLoading || isFetching ? (
         <p className="text-[12px] text-[#9ca3af]">{isLoading ? "Loading salary slips…" : "Updating…"}</p>

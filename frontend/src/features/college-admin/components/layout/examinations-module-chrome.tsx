@@ -9,7 +9,6 @@ export function ExaminationsModuleChrome({ children }: { children: ReactNode }) 
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Examinations"
-      moduleDescription="Session setup, registration, halls, marks entry, results and reporting for your institution."
       landingHref={examinationsTabs[0]!.href}
       tabs={examinationsTabs}
     >

@@ -15,6 +15,7 @@ from app.modules.college_admin.schemas import (
     AttendanceApprovalPageRead,
     AttendanceConfigurationPageRead,
     AttendanceConfigurationSave,
+    AttendanceInstitutionalPolicySave,
     AttendanceCorrectionRequestsPageRead,
     AttendanceDashboardPageRead,
     AttendanceReportCreate,
@@ -25,11 +26,13 @@ from app.modules.college_admin.schemas import (
     FacultyAttendanceOverviewPageRead,
     StudentAttendanceOverviewPageRead,
     SubjectWiseAttendancePageRead,
+    AttendanceSectionSubNavRead,
 )
 from app.modules.college_admin.attendance_configuration_page_service import (
     get_attendance_configuration_page,
     get_attendance_rules_policies_page,
     save_attendance_configuration,
+    save_institutional_policy_row,
 )
 from app.modules.college_admin.attendance_reports_page_service import (
     create_attendance_report,
@@ -77,9 +80,19 @@ from app.modules.college_admin.attendance_admin_service import (
     refresh_submission_monitoring,
     upsert_attendance_policy,
 )
+from app.modules.college_admin.attendance_section_sub_nav_service import get_attendance_section_sub_nav
 from app.modules.college_admin.deps import college_admin_user
 
 router = APIRouter()
+
+
+@router.get("/navigation/section-sub-nav", response_model=ApiResponse[AttendanceSectionSubNavRead])
+async def attendance_section_sub_nav_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    path: str = "",
+) -> ApiResponse[AttendanceSectionSubNavRead]:
+    return success_response(await get_attendance_section_sub_nav(scope, path=path), request_id=get_request_id())
 
 
 @router.get("/configuration/page", response_model=ApiResponse[AttendanceConfigurationPageRead])
@@ -108,6 +121,20 @@ async def attendance_rules_policies_page_route(
 ) -> ApiResponse[AttendanceRulesPoliciesPageRead]:
     return success_response(
         await get_attendance_rules_policies_page(scope, page=page, page_size=page_size),
+        request_id=get_request_id(),
+    )
+
+
+@router.post("/rules-policies/save", response_model=ApiResponse[AttendanceRulesPoliciesPageRead])
+async def attendance_rules_policies_save_route(
+    payload: AttendanceInstitutionalPolicySave,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    page: int = 1,
+    page_size: int = 4,
+) -> ApiResponse[AttendanceRulesPoliciesPageRead]:
+    return success_response(
+        await save_institutional_policy_row(scope, payload, page=page, page_size=page_size),
         request_id=get_request_id(),
     )
 

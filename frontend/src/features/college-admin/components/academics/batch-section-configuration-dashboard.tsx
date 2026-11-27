@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useRouter } from "next/navigation";
@@ -208,21 +209,13 @@ export function BatchSectionConfigurationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:142356">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{data?.page_title ?? "Batch & Section Configuration"}</h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <CollegeAdminSecondaryButton disabled={autoAllocate.isPending} onClick={handleAutoAllocate}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Batch & Section Configuration"} subtitle={data?.page_subtitle} actions={<><CollegeAdminSecondaryButton disabled={autoAllocate.isPending} onClick={handleAutoAllocate}>
             <RefreshCwIcon className="size-3.5" aria-hidden />
             {data?.auto_allocate_label ?? "Auto-allocate sections"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryButton onClick={() => setShowAdd((v) => !v)}>
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_section_label ?? "Add section" } />
-          </CollegeAdminPrimaryButton>
-        </div>
-      </div>
+          </CollegeAdminPrimaryButton></>} />
 
       {data?.batch_tabs?.length ? (
         <div className="flex flex-wrap gap-2">

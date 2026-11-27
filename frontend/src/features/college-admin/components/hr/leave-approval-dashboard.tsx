@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
 import { XIcon } from "@/components/icons/erp/generated/x";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
@@ -120,12 +120,13 @@ export function LeaveApprovalDashboard() {
           <p className="text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Review leave application"}</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          <Button type="button" variant="outline" className="h-9 gap-1.5 text-xs" asChild>
-            <Link href={data?.return_href ?? "/college-admin/hr/leave-management"}>
-              <ChevronLeftIcon className="size-3.5" aria-hidden />
-              {data?.return_label ?? "Return"}
-            </Link>
-          </Button>
+          <Link
+            href={data?.return_href ?? "/college-admin/hr/leave-management"}
+            className={cn(buttonVariants({ variant: "outline" }), "h-9 gap-1.5 text-xs")}
+          >
+            <ChevronLeftIcon className="size-3.5" aria-hidden />
+            {data?.return_label ?? "Return"}
+          </Link>
           <Button
             type="button"
             variant="outline"

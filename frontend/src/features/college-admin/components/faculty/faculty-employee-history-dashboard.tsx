@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
@@ -26,15 +27,7 @@ export function FacultyEmployeeHistoryDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="CA-07.13">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Faculty / Employee History"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Changes to staff records"}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Link
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Faculty / Employee History"} subtitle={data?.page_subtitle ?? "Changes to staff records"} actions={<><Link
             href="/college-admin/faculty/employee-status-management"
             className="inline-flex h-9 items-center rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
           >
@@ -48,9 +41,7 @@ export function FacultyEmployeeHistoryDashboard() {
           >
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export"}
-          </button>
-        </div>
-      </div>
+          </button></>} />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (

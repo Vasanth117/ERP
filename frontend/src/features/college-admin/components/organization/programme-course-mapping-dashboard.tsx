@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -90,26 +91,14 @@ export function ProgrammeCourseMappingDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:134275">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Programme & Course Mapping"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Which programmes and courses each department offers and teaches"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Programme & Course Mapping"} subtitle={data?.page_subtitle ?? "Which programmes and courses each department offers and teaches"} actions={<><CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export"}
           </CollegeAdminOutlineButton>
           <CollegeAdminPrimaryLink href={data?.map_programme_href ?? "/college-admin/academics/academic-configuration-dashboard"}>
             <LinkIcon className="size-3.5" aria-hidden />
             {data?.map_programme_label ?? "Map programme"}
-          </CollegeAdminPrimaryLink>
-        </div>
-      </div>
+          </CollegeAdminPrimaryLink></>} />
 
       {data && !data.setup_empty_state ? (
         <div className="flex flex-wrap items-center gap-2">

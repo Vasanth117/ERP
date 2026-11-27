@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -112,17 +113,7 @@ export function StudentPromotionManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="158:5608">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Student Promotion Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Promote students to the next semester"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Student Promotion Management"} subtitle={data?.page_subtitle ?? "Promote students to the next semester"} actions={<><Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
@@ -140,9 +131,7 @@ export function StudentPromotionManagementDashboard() {
           >
             <CheckIcon className="size-3.5" aria-hidden />
             {data?.promote_eligible_label ?? "Promote eligible"}
-          </Button>
-        </div>
-      </div>
+          </Button></>} />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">

@@ -87,6 +87,47 @@ class LmsPublishingPolicy(Document):
         ]
 
 
+class LmsReportExportFormat(str, Enum):
+    CSV = "csv"
+    EXCEL = "excel"
+    PDF = "pdf"
+
+
+class LmsScheduledReportFrequency(str, Enum):
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    QUARTERLY = "quarterly"
+
+
+class LmsScheduledReport(Document):
+    tenant_id: PydanticObjectId
+    schedule_code: str = Field(max_length=64)
+    report_key: str = Field(max_length=64)
+    title: str = Field(max_length=200)
+    export_formats: list[str] = Field(default_factory=list)
+    frequency: LmsScheduledReportFrequency = LmsScheduledReportFrequency.MONTHLY
+    filters: dict[str, Any] = Field(default_factory=dict)
+    last_run_at: datetime | None = None
+    is_active: bool = True
+    actor_id: PydanticObjectId | None = None
+    created_at: datetime = Field(default_factory=utcnow)
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "lms_scheduled_reports"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("schedule_code", ASCENDING)],
+                unique=True,
+                name="unique_lms_scheduled_report",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("report_key", ASCENDING), ("is_active", ASCENDING)],
+                name="lms_scheduled_report_key",
+            ),
+        ]
+
+
 class LmsConfigurationHistory(Document):
     tenant_id: PydanticObjectId
     scope: str

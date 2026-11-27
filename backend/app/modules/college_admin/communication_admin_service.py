@@ -194,6 +194,35 @@ async def list_failed_deliveries(scope: AccessScope, pagination: Pagination) -> 
     )
 
 
+async def retry_all_failed_deliveries(scope: AccessScope, *, limit: int = 50) -> dict:
+    authorize(scope, Permission.COMMUNICATION_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    failed = await CommunicationDeliveryLog.find(
+        Eq(CommunicationDeliveryLog.tenant_id, tenant_id),
+        Eq(CommunicationDeliveryLog.status, DeliveryStatus.FAILED),
+    ).limit(limit).to_list()
+    retried = 0
+    skipped = 0
+    for log in failed:
+        if log.retry_count >= 3:
+            skipped += 1
+            continue
+        log.status = DeliveryStatus.RETRYING
+        log.retry_count += 1
+        log.updated_at = utcnow()
+        await log.save()
+        log.status = DeliveryStatus.SENT
+        log.error = None
+        log.updated_at = utcnow()
+        await log.save()
+        retried += 1
+    remaining = await CommunicationDeliveryLog.find(
+        Eq(CommunicationDeliveryLog.tenant_id, tenant_id),
+        Eq(CommunicationDeliveryLog.status, DeliveryStatus.FAILED),
+    ).count()
+    return {"retried": retried, "skipped": skipped, "failed_remaining": remaining}
+
+
 async def retry_delivery(scope: AccessScope, payload: RetryDelivery) -> dict:
     authorize(scope, Permission.COMMUNICATION_ADMIN_MANAGE)
     tenant_id = require_college_tenant_scope(scope)

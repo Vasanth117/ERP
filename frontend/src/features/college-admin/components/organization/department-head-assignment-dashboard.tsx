@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
@@ -163,17 +164,7 @@ export function DepartmentHeadAssignmentDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:133798">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Department Head Assignment"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Assign, change or rotate heads of department"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <CollegeAdminOutlineLink href={data?.rotation_policy_href ?? "/college-admin/institution/policies"}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Department Head Assignment"} subtitle={data?.page_subtitle ?? "Assign, change or rotate heads of department"} actions={<><CollegeAdminOutlineLink href={data?.rotation_policy_href ?? "/college-admin/institution/policies"}>
             <SlidersHorizontalIcon className="size-3.5" aria-hidden />
             {data?.rotation_policy_label ?? "Rotation policy"}
           </CollegeAdminOutlineLink>
@@ -191,9 +182,7 @@ export function DepartmentHeadAssignmentDashboard() {
           >
             {assignHeadEnabled ? <PlusIcon className="size-3.5" aria-hidden /> : null}
             {collegeAdminActionLabel(data?.assign_head_label ?? "Assign head")}
-          </CollegeAdminPrimaryButton>
-        </div>
-      </div>
+          </CollegeAdminPrimaryButton></>} />
 
       <QueryState
         isLoading={isLoading}

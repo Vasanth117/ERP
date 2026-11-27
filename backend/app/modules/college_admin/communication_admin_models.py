@@ -15,6 +15,7 @@ class AnnouncementAudience(str, Enum):
     ALL = "all"
     STUDENTS = "students"
     FACULTY = "faculty"
+    PARENTS = "parents"
     DEPARTMENT = "department"
     CUSTOM = "custom"
 
@@ -38,6 +39,9 @@ class InstitutionAnnouncement(Document):
     scheduled_for: datetime | None = None
     published_at: datetime | None = None
     channels: list[str] = Field(default_factory=lambda: ["in_app"])
+    attachment_name: str | None = None
+    department_scope: str = "all"
+    pin_to_dashboard: bool = False
     actor_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
@@ -56,6 +60,9 @@ class CommunicationTemplate(Document):
     channel: str
     subject: str | None = None
     body: str
+    category: str = "utility"
+    language: str = "en"
+    approval_status: str = "pending"
     version: int = 1
     updated_by: PydanticObjectId | None = None
     updated_at: datetime = Field(default_factory=utcnow)

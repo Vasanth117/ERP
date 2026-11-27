@@ -9,7 +9,6 @@ export function AttendanceModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Attendance"
-      moduleDescription="Student and faculty attendance, submission monitoring, corrections, policies, and compliance reports."
       landingHref={attendanceTabs[0]!.href}
       tabs={attendanceTabs}
     >

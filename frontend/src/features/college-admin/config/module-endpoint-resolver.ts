@@ -8,9 +8,9 @@ const DASHBOARD: Record<string, string> = {
   hr: "/college-admin/hr-administration/statistics",
   library: "/college-admin/library-administration/reports/summary",
   hostel: "/college-admin/hostel-administration/dashboard/page",
-  communication: "/college-admin/communication-administration/reports/summary",
+  communication: "/college-admin/communication-administration/dashboard/page",
   lms: "/college-admin/lms-administration/statistics",
-  reports: "/college-admin/reports-analytics/dashboard",
+  reports: "/college-admin/reports-analytics/dashboard/management/page",
   approvals: "/college-admin/workflow-administration/pending",
   security: "/college-admin/security-administration/reports/summary",
   "data-import": "/college-admin/data-import/templates",
@@ -37,6 +37,10 @@ const SLUG_API: Record<string, string> = {
   "faculty-attendance-overview": "/college-admin/attendance-administration/summaries/departments",
   "subject-wise-attendance": "/college-admin/attendance-administration/history",
   "attendance-monitoring": "/college-admin/attendance-administration/submissions/missing",
+  "department-summaries": "/college-admin/attendance-administration/department-wise/page",
+  "session-history": "/college-admin/attendance-administration/history",
+  "missing-submissions": "/college-admin/attendance-administration/monitoring/page",
+  "attendance-shortages": "/college-admin/attendance-administration/shortages",
   // CA 09
   "examination-dashboard": "/college-admin/examination-administration/dashboard/page",
   "examination-session-management": "/college-admin/examination-administration/sessions/page",
@@ -116,13 +120,37 @@ const SLUG_API: Record<string, string> = {
   "hostel-reports": "/college-admin/hostel-administration/reports/management/page",
   "hostel-settings": "/college-admin/hostel-administration/settings/management/page",
   // CA 14
-  "delivery-status-monitoring": "/college-admin/communication-administration/deliveries/failed",
-  "communication-history": "/college-admin/communication-administration/deliveries/failed",
+  "announcements-management": "/college-admin/communication-administration/announcements/management/page",
+  "create-announcement": "/college-admin/communication-administration/announcements/create/page",
+  "student-notifications": "/college-admin/communication-administration/audience/students/management/page",
+  "faculty-notifications": "/college-admin/communication-administration/audience/faculty/management/page",
+  "parent-communication": "/college-admin/communication-administration/audience/parents/management/page",
+  "email-communication": "/college-admin/communication-administration/channels/email/management/page",
+  "sms-communication": "/college-admin/communication-administration/channels/sms/management/page",
+  "whatsapp-communication": "/college-admin/communication-administration/channels/whatsapp/management/page",
+  "communication-templates": "/college-admin/communication-administration/templates/management/page",
+  "scheduled-messages": "/college-admin/communication-administration/scheduled/management/page",
+  "delivery-status-monitoring": "/college-admin/communication-administration/deliveries/monitoring/page",
+  "communication-history": "/college-admin/communication-administration/history/management/page",
   // CA 15
-  "lms-reports": "/college-admin/lms-administration/monitoring",
-  "subject-course-mapping": "/college-admin/lms-administration/course-mappings",
-  "lms-settings": "/college-admin/lms-administration/settings",
+  "lms-dashboard": "/college-admin/lms-administration/dashboard/page",
+  "course-management": "/college-admin/lms-administration/courses/management/page",
+  "subject-course-mapping": "/college-admin/lms-administration/subject-mapping/management/page",
+  "learning-material-management": "/college-admin/lms-administration/learning-materials/management/page",
+  "video-lecture-management": "/college-admin/lms-administration/video-lectures/management/page",
+  "assignment-management": "/college-admin/lms-administration/assignments/management/page",
+  "quiz-management": "/college-admin/lms-administration/quizzes/management/page",
+  "assessment-management": "/college-admin/lms-administration/assessments/management/page",
+  "student-learning-progress": "/college-admin/lms-administration/student-progress/management/page",
+  "faculty-content-management": "/college-admin/lms-administration/faculty-content/management/page",
+  "lms-reports": "/college-admin/lms-administration/reports/management/page",
+  "lms-settings": "/college-admin/lms-administration/settings/management/page",
   // CA 16
+  "reports-dashboard": "/college-admin/reports-analytics/dashboard/management/page",
+  "analytics-dashboard": "/college-admin/reports-analytics/dashboard/management/page",
+  "student-reports": "/college-admin/reports-analytics/academic/student/management/page",
+  "department-reports": "/college-admin/reports-analytics/academic/department/management/page",
+  "academic-performance-reports": "/college-admin/reports-analytics/academic/academic-performance/management/page",
   "export-download-history": "/college-admin/reports-analytics/exports/download",
   "scheduled-reports": "/college-admin/reports-analytics/jobs",
   // CA 17
@@ -156,6 +184,18 @@ const SLUG_API: Record<string, string> = {
   "course-catalogue": "/college-admin/academic-config/courses",
 };
 
+/** CA 16 Reports & Analytics — People section (slug overlap with HR module is route-scoped). */
+const REPORTS_MODULE_SLUG_API: Record<string, string> = {
+  "faculty-employee-reports": "/college-admin/reports-analytics/people/faculty-employee/management/page",
+  "hr-reports": "/college-admin/reports-analytics/people/hr/management/page",
+  "finance-reports": "/college-admin/reports-analytics/operations/finance/management/page",
+  "library-reports": "/college-admin/reports-analytics/operations/library/management/page",
+  "hostel-reports": "/college-admin/reports-analytics/operations/hostel/management/page",
+  "custom-report-builder": "/college-admin/reports-analytics/custom-scheduled/builder/management/page",
+  "scheduled-reports": "/college-admin/reports-analytics/custom-scheduled/scheduled/management/page",
+  "export-download-history": "/college-admin/reports-analytics/custom-scheduled/exports/management/page",
+};
+
 export function inferViewType(slug: string): ModuleViewType {
   const s = slug.toLowerCase();
   if (s.includes("dashboard")) return "dashboard";
@@ -174,7 +214,10 @@ export function resolveModuleEndpoint(
   moduleKey: string,
   slug: string,
 ): { apiPath: string; viewType: ModuleViewType } {
+  const moduleSlug =
+    moduleKey === "reports" ? REPORTS_MODULE_SLUG_API[slug] : undefined;
   const apiPath =
+    moduleSlug ??
     SLUG_API[slug] ??
     (slug.includes("dashboard")
       ? DASHBOARD[moduleKey]

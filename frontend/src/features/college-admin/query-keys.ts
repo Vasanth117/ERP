@@ -119,6 +119,86 @@ export const collegeAdminQueryKeys = {
   hostelReportsPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "hostel-reports-page", params ?? {}] as const,
   hostelSettingsPage: () => [...collegeAdminQueryKeys.all, "hostel-settings-page"] as const,
+  communicationSectionSubNav: (path: string) =>
+    [...collegeAdminQueryKeys.all, "communication-section-sub-nav", path] as const,
+  communicationDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-dashboard-page", params ?? {}] as const,
+  communicationAnnouncementsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-announcements-page", params ?? {}] as const,
+  communicationCreateAnnouncementPage: (
+    announcementId?: string,
+    audience?: string,
+    presetChannels?: string,
+    publishTiming?: string,
+  ) =>
+    [
+      ...collegeAdminQueryKeys.all,
+      "communication-create-announcement-page",
+      announcementId ?? "",
+      audience ?? "",
+      presetChannels ?? "",
+      publishTiming ?? "",
+    ] as const,
+  communicationStudentNotificationsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-student-notifications-page", params ?? {}] as const,
+  communicationFacultyNotificationsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-faculty-notifications-page", params ?? {}] as const,
+  communicationParentCommunicationPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-parent-communication-page", params ?? {}] as const,
+  communicationEmailChannelPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-email-channel-page", params ?? {}] as const,
+  communicationSmsChannelPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-sms-channel-page", params ?? {}] as const,
+  communicationWhatsappChannelPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-whatsapp-channel-page", params ?? {}] as const,
+  communicationTemplatesManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-templates-management-page", params ?? {}] as const,
+  communicationScheduledMessagesPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-scheduled-messages-page", params ?? {}] as const,
+  communicationDeliveryStatusPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-delivery-status-page", params ?? {}] as const,
+  communicationHistoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "communication-history-page", params ?? {}] as const,
+  lmsSectionSubNav: (path: string) => [...collegeAdminQueryKeys.all, "lms-section-sub-nav", path] as const,
+  lmsDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-dashboard-page", params ?? {}] as const,
+  lmsCourseManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-course-management-page", params ?? {}] as const,
+  lmsSubjectCourseMappingPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-subject-course-mapping-page", params ?? {}] as const,
+  lmsLearningMaterialManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-learning-material-management-page", params ?? {}] as const,
+  lmsVideoLectureManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-video-lecture-management-page", params ?? {}] as const,
+  lmsAssignmentManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-assignment-management-page", params ?? {}] as const,
+  lmsQuizManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-quiz-management-page", params ?? {}] as const,
+  lmsAssessmentManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-assessment-management-page", params ?? {}] as const,
+  lmsStudentLearningProgressPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-student-learning-progress-page", params ?? {}] as const,
+  lmsFacultyContentManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-faculty-content-management-page", params ?? {}] as const,
+  lmsReportsPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-reports-page", params ?? {}] as const,
+  lmsSettingsPage: () => [...collegeAdminQueryKeys.all, "lms-settings-page"] as const,
+  reportsDashboardPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "reports-dashboard-page", params ?? {}] as const,
+  reportsSectionSubNav: (path: string) => [...collegeAdminQueryKeys.all, "reports-section-sub-nav", path] as const,
+  reportsScheduledPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "reports-scheduled-page", params ?? {}] as const,
+  reportsExportHistoryPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "reports-export-history-page", params ?? {}] as const,
+  reportsCustomBuilderPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "reports-custom-builder-page", params ?? {}] as const,
+  reportsModulePage: (
+    section: string,
+    pageKey: string,
+    params?: Record<string, string | number | undefined>,
+  ) => [...collegeAdminQueryKeys.all, "reports-module-page", section, pageKey, params ?? {}] as const,
+  reportsAcademicModulePage: (pageKey: string, params?: Record<string, string | number | undefined>) =>
+    collegeAdminQueryKeys.reportsModulePage("academic", pageKey, params),
   hrEmployeeManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "hr-employee-management-page", params ?? {}] as const,
   hrRecruitmentManagementPage: (params?: Record<string, string | number | undefined>) =>
@@ -235,6 +315,8 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "student-administration-dashboard", params ?? {}] as const,
   facultyEmployeeDashboard: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "faculty-employee-dashboard", params ?? {}] as const,
+  attendanceSectionSubNav: (path: string) =>
+    [...collegeAdminQueryKeys.all, "attendance-section-sub-nav", path] as const,
   attendanceDashboard: (params?: Record<string, string | undefined>) =>
     [...collegeAdminQueryKeys.all, "attendance-dashboard", params ?? {}] as const,
   studentAttendanceOverview: (params?: Record<string, string | undefined>) =>

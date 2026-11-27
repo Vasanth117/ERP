@@ -13,13 +13,38 @@ export type AttendanceConfigurationToggleRule = {
   enabled: boolean;
 };
 
+export type AttendanceConfigurationSummaryItem = {
+  key: string;
+  label: string;
+  value_label: string;
+  section_key: string;
+  detail_description: string;
+  value_tone: string;
+};
+
+export type AttendanceConfigurationPolicyPreview = {
+  row_key: string;
+  policy_title: string;
+  value_label: string;
+  applies_to_label: string;
+};
+
 export type AttendanceConfigurationPage = {
   page_title: string;
   page_subtitle: string;
   cancel_label: string;
   save_label: string;
+  edit_settings_label: string;
+  current_settings_section_title: string;
+  view_settings_description: string;
   rules_policies_href: string;
   rules_policies_link_label: string;
+  reports_href: string;
+  reports_link_label: string;
+  related_policies_section_title: string;
+  related_policies_description: string;
+  policy_preview_rows: AttendanceConfigurationPolicyPreview[];
+  summary_items: AttendanceConfigurationSummaryItem[];
   marking_section_title: string;
   behaviour_section_title: string;
   marking_window_key: string;
@@ -55,13 +80,23 @@ export type AttendanceRulesPolicyRow = {
   status_tone: string;
 };
 
+export type AttendanceInstitutionalPolicySavePayload = {
+  policy_key?: string | null;
+  title: string;
+  value_label: string;
+  applies_to_label: string;
+  is_active: boolean;
+};
+
 export type AttendanceRulesPoliciesPage = {
   page_title: string;
   page_subtitle: string;
   configuration_href: string;
+  configuration_edit_href: string;
   back_label: string;
-  cancel_label: string;
-  save_label: string;
+  add_policy_label: string;
+  edit_policy_label: string;
+  edit_marking_settings_label: string;
   policies_section_title: string;
   policies_table_headers: string[];
   policy_rows: AttendanceRulesPolicyRow[];

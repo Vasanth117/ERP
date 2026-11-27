@@ -9,7 +9,6 @@ export function UsersModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Users & permissions"
-      moduleDescription="Manage institution accounts, roles, access rules, and account lifecycle."
       landingHref={usersTabs[0]!.href}
       tabs={usersTabs}
     >

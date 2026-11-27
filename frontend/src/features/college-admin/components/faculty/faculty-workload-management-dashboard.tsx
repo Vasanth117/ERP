@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
@@ -147,15 +148,7 @@ export function FacultyWorkloadManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:5133">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Faculty Workload Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Teaching load against policy"}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Faculty Workload Management"} subtitle={data?.page_subtitle ?? "Teaching load against policy"} actions={<><button
             type="button"
             disabled={!data}
             onClick={exportCsv}
@@ -172,9 +165,7 @@ export function FacultyWorkloadManagementDashboard() {
           >
             <RefreshCwIcon className="size-3.5" aria-hidden />
             {data?.rebalance_label ?? "Rebalance"}
-          </button>
-        </div>
-      </div>
+          </button></>} />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (

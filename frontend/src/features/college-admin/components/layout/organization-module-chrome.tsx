@@ -9,7 +9,6 @@ export function OrganizationModuleChrome({ children }: { children: ReactNode }) 
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Organization"
-      moduleDescription="Departments, hierarchy, programmes, and faculty allocation across your institution."
       landingHref={organizationTabs[0]!.href}
       tabs={organizationTabs}
     >

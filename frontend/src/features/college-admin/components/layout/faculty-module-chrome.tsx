@@ -9,7 +9,6 @@ export function FacultyModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Faculty & Employees"
-      moduleDescription="Faculty and staff directories, assignments, workload, documents, and employment status for your institution."
       landingHref={facultyTabs[0]!.href}
       tabs={facultyTabs}
     >

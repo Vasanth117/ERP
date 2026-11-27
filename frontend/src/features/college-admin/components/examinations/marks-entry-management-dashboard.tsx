@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { LockIcon } from "@/components/icons/erp/generated/lock";
@@ -75,22 +76,14 @@ export function MarksEntryManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:13777">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{data?.page_title ?? "Marks Entry Management"}</h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Track marks entry progress"}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button type="button" variant="outline" className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium" disabled={sendReminders.isPending || !data?.selected_session_id} onClick={() => sendReminders.mutate(payload(), { onSuccess: () => toast.success("Reminders sent."), onError: (e: Error) => toast.error(e.message) })}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Marks Entry Management"} subtitle={data?.page_subtitle ?? "Track marks entry progress"} actions={<><Button type="button" variant="outline" className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium" disabled={sendReminders.isPending || !data?.selected_session_id} onClick={() => sendReminders.mutate(payload(), { onSuccess: () => toast.success("Reminders sent."), onError: (e: Error) => toast.error(e.message) })}>
             <MessageSquareTextIcon className="size-3.5" aria-hidden />
             {data?.send_reminders_label ?? "Send reminders"}
           </Button>
           <Button type="button" className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]" disabled={lockEntry.isPending || !data?.selected_session_id} onClick={() => lockEntry.mutate(payload(), { onSuccess: () => toast.success("Marks entry locked."), onError: (e: Error) => toast.error(e.message) })}>
             <LockIcon className="size-3.5" aria-hidden />
             {data?.lock_entry_label ?? "Lock entry"}
-          </Button>
-        </div>
-      </div>
+          </Button></>} />
 
       {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 

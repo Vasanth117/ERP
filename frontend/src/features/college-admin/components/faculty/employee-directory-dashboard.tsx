@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -110,17 +111,7 @@ export function EmployeeDirectoryDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:3382">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Employee Directory"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Teaching and non-teaching staff"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Employee Directory"} subtitle={data?.page_subtitle ?? "Teaching and non-teaching staff"} actions={<><button
             type="button"
             onClick={handleExport}
             disabled={!data}
@@ -134,9 +125,7 @@ export function EmployeeDirectoryDashboard() {
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_employee_label ?? "Add employee" } />
-          </Link>
-        </div>
-      </div>
+          </Link></>} />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative max-w-xl flex-1">

@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { CircleAlertIcon } from "@/components/icons/erp/generated/circle-alert";
 import { Button } from "@/components/ui/button";
@@ -9,6 +11,7 @@ import {
   CollegeAdminUserDashboardKpiCard,
 } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import {
   useAttendanceMonitoringPage,
   useNotifyFacultyMissingAttendance,
@@ -48,8 +51,33 @@ export function AttendanceMonitoringDashboard() {
   const { data, isLoading, isError, error, refetch } = useAttendanceMonitoringPage(queryParams);
   const notify = useNotifyFacultyMissingAttendance(queryParams);
 
+  const notMarkedTotal = useMemo(() => {
+    const raw = data?.kpis.find((k) => k.key === "not_marked")?.value ?? "0";
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 0;
+  }, [data?.kpis]);
+
+  const pageSize = queryParams.page_size ?? 10;
+  const hasPrevious = page > 1;
+  const hasNext = page * pageSize < notMarkedTotal;
+
+  const handleNotify = () => {
+    notify.mutate(undefined, {
+      onSuccess: (result) => {
+        const count = result?.notified_count ?? 0;
+        if (count > 0) {
+          toast.success(`Reminder sent for ${count} class${count === 1 ? "" : "es"}`);
+        } else {
+          toast.message("No pending classes need a reminder right now");
+        }
+        void refetch();
+      },
+      onError: onCollegeAdminMutationError,
+    });
+  };
+
   return (
-    <div className="space-y-5" data-figma-frame="159:8573">
+    <CollegeAdminModulePageLayout figmaFrame="159:8573">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
@@ -62,8 +90,8 @@ export function AttendanceMonitoringDashboard() {
         <Button
           type="button"
           className="h-9 shrink-0 gap-1.5 bg-[#245dd8] text-xs font-medium text-white hover:bg-[#1f4fb8]"
-          disabled={notify.isPending || isLoading}
-          onClick={() => notify.mutate()}
+          disabled={notify.isPending || isLoading || !data}
+          onClick={handleNotify}
         >
           <CircleAlertIcon className="size-3.5" aria-hidden />
           {data?.notify_faculty_label ?? "Notify faculty"}
@@ -129,7 +157,7 @@ export function AttendanceMonitoringDashboard() {
                 <div className="flex gap-1">
                   <button
                     type="button"
-                    disabled={page <= 1}
+                    disabled={!hasPrevious}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     className="rounded px-2 py-0.5 text-[12px] text-[#6b7280] hover:bg-[#f3f4f6] disabled:opacity-40"
                   >
@@ -137,8 +165,9 @@ export function AttendanceMonitoringDashboard() {
                   </button>
                   <button
                     type="button"
+                    disabled={!hasNext}
                     onClick={() => setPage((p) => p + 1)}
-                    className="rounded px-2 py-0.5 text-[12px] text-[#6b7280] hover:bg-[#f3f4f6]"
+                    className="rounded px-2 py-0.5 text-[12px] text-[#6b7280] hover:bg-[#f3f4f6] disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -149,6 +178,6 @@ export function AttendanceMonitoringDashboard() {
           </>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

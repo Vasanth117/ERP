@@ -3,6 +3,7 @@ import { apiRequest } from "@/lib/api/client";
 import type {
   AttendanceConfigurationPage,
   AttendanceConfigurationSavePayload,
+  AttendanceInstitutionalPolicySavePayload,
   AttendanceRulesPoliciesPage,
   AttendanceRulesPoliciesQuery,
 } from "@/features/college-admin/types/attendance-configuration";
@@ -30,5 +31,15 @@ function buildPoliciesQuery(params?: AttendanceRulesPoliciesQuery): string {
 export function fetchAttendanceRulesPoliciesPage(params?: AttendanceRulesPoliciesQuery) {
   return apiRequest<AttendanceRulesPoliciesPage>(
     `/college-admin/attendance-administration/rules-policies/page${buildPoliciesQuery(params)}`,
+  );
+}
+
+export function saveAttendanceInstitutionalPolicy(
+  payload: AttendanceInstitutionalPolicySavePayload,
+  params?: AttendanceRulesPoliciesQuery,
+) {
+  return apiRequest<AttendanceRulesPoliciesPage>(
+    `/college-admin/attendance-administration/rules-policies/save${buildPoliciesQuery(params)}`,
+    { method: "POST", body: payload },
   );
 }

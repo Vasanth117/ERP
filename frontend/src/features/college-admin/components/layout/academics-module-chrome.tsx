@@ -9,7 +9,6 @@ export function AcademicsModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Academics"
-      moduleDescription="Academic years, programmes, curriculum, grading rules, and configuration history for your institution."
       landingHref={academicsTabs[0]!.href}
       tabs={academicsTabs}
     >

@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
@@ -124,7 +125,7 @@ export function LibrarySettingsDashboard() {
   };
 
   return (
-    <div className="space-y-5" data-figma-frame="160:15223">
+    <CollegeAdminModulePageLayout figmaFrame="160:15223">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
@@ -196,6 +197,6 @@ export function LibrarySettingsDashboard() {
           </div>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

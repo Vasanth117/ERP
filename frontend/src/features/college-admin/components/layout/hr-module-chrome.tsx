@@ -14,10 +14,6 @@ export function HrModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Human Resources"
-      moduleDescriptionLines={[
-        "Employee records, recruitment and onboarding, attendance and leave,",
-        "payroll, benefits, performance, and HR reporting.",
-      ]}
       landingHref={HR_LANDING_HREF}
       tabs={hrModuleTabs}
     >

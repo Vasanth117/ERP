@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -93,15 +94,7 @@ export function SubjectManagementDashboard() {
     <div className="space-y-5" data-figma-frame="69:141053">
       {data?.sub_nav.length ? <CourseCurriculumSubNav items={data.sub_nav} /> : null}
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Subject Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Subject Management"} subtitle={data?.page_subtitle} actions={<><button
             type="button"
             disabled
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#dce3ec] bg-white px-4 text-xs font-medium text-[#374151] opacity-60"
@@ -114,9 +107,7 @@ export function SubjectManagementDashboard() {
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_subject_label ?? "Add subject" } />
-          </Link>
-        </div>
-      </div>
+          </Link></>} />
 
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
         <div className="relative max-w-xl flex-1">

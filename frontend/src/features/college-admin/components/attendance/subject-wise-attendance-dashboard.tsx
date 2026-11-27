@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import { useCallback, useEffect, useState } from "react";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
@@ -76,7 +77,7 @@ export function SubjectWiseAttendanceDashboard() {
   }, [data]);
 
   return (
-    <div className="space-y-5" data-figma-frame="159:7922">
+    <CollegeAdminModulePageLayout figmaFrame="159:7922">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
@@ -170,6 +171,6 @@ export function SubjectWiseAttendanceDashboard() {
           </>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

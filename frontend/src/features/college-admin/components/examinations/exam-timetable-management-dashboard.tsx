@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
@@ -105,15 +106,7 @@ export function ExamTimetableManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:11789">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Exam Timetable Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "—"}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Exam Timetable Management"} subtitle={data?.page_subtitle ?? "—"} actions={<><Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
@@ -131,9 +124,7 @@ export function ExamTimetableManagementDashboard() {
           >
             <SendIcon className="size-3.5" aria-hidden />
             {data?.publish_label ?? "Publish"}
-          </Button>
-        </div>
-      </div>
+          </Button></>} />
 
       <p className="text-[12px] text-[#9ca3af]">
         {data?.timetable_status_label ? `Status · ${data.timetable_status_label}` : null}

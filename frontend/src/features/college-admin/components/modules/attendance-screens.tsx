@@ -49,6 +49,34 @@ export function AttendanceScreen({ slug, title }: { slug: string; title: string 
   if (slug === "attendance-reports" || slug === "compliance-reports") {
     return <AttendanceReportsDashboard />;
   }
+  if (slug === "department-summaries") {
+    return <DepartmentWiseAttendanceDashboard />;
+  }
+  if (slug === "missing-submissions") {
+    return <AttendanceMonitoringDashboard />;
+  }
+  if (slug === "attendance-shortages" || slug === "attendance-shortage-report") {
+    return (
+      <GenericModuleScreen
+        moduleKey="attendance"
+        slug={slug}
+        title={title}
+        apiPath="/college-admin/attendance-administration/shortages"
+        viewType="list"
+      />
+    );
+  }
+  if (slug === "session-history") {
+    return (
+      <GenericModuleScreen
+        moduleKey="attendance"
+        slug={slug}
+        title={title}
+        apiPath="/college-admin/attendance-administration/history?page=1&page_size=50"
+        viewType="list"
+      />
+    );
+  }
   return (
     <GenericModuleScreen
       moduleKey="attendance"

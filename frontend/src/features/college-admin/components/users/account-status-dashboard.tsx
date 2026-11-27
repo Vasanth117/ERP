@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { BanIcon } from "@/components/icons/erp/generated/ban";
@@ -146,15 +147,7 @@ export function AccountStatusDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:127501">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "User Account Activation / Suspension"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "User Account Activation / Suspension"} subtitle={data?.page_subtitle} actions={<><button
             type="button"
             disabled={!data || isBusy}
             onClick={() =>
@@ -174,9 +167,7 @@ export function AccountStatusDashboard() {
           >
             <BanIcon className="size-3.5" aria-hidden />
             {data?.suspend_account_label ?? "Suspend account"}
-          </button>
-        </div>
-      </div>
+          </button></>} />
 
       <QueryState query={pageQuery}>
         {data ? (
