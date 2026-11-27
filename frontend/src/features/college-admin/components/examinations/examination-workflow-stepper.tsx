@@ -15,9 +15,13 @@ function withSessionId(href: string, sessionId?: string | null): string {
 export function ExaminationWorkflowStepper({
   steps,
   sessionId,
+  linkMode = "page",
+  onStepNavigate,
 }: {
   steps: ExaminationWorkflowStep[];
   sessionId?: string | null;
+  linkMode?: "page" | "modal";
+  onStepNavigate?: (href: string) => void;
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white px-4 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-6">
@@ -47,13 +51,21 @@ export function ExaminationWorkflowStepper({
               </span>
             </>
           );
+          const href = wizardStep.href ? withSessionId(wizardStep.href, sessionId) : "";
+          const useModalNav = linkMode === "modal" && Boolean(onStepNavigate) && Boolean(href) && !active;
+
           return (
             <div key={wizardStep.key} className="flex min-w-0 flex-1 items-center last:flex-none">
-              {wizardStep.href && !active ? (
-                <Link
-                  href={withSessionId(wizardStep.href, sessionId)}
+              {useModalNav ? (
+                <button
+                  type="button"
+                  onClick={() => onStepNavigate?.(href)}
                   className="flex min-w-0 items-center hover:opacity-90"
                 >
+                  {inner}
+                </button>
+              ) : href && !active ? (
+                <Link href={href} className="flex min-w-0 items-center hover:opacity-90">
                   {inner}
                 </Link>
               ) : (

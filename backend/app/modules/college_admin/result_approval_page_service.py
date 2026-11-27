@@ -192,11 +192,12 @@ async def get_result_approval_page(
     page_rows = all_rows[start : start + _PAGE_SIZE]
 
     panel_empty = empty_state_for_step("result_approval", session.session_id) if total == 0 else None
+    chrome = workflow_chrome("result_approval", session.session_id)
     return ResultApprovalPageRead(
         page_title="Result Approval",
-        page_subtitle=f"Result approval · {session.name}",
+        page_subtitle=f"{chrome['step_progress_label']} · {session.name}",
         panel_empty_state=panel_empty,
-        **workflow_chrome("result_approval", session.session_id),  # type: ignore[arg-type]
+        **chrome,  # type: ignore[arg-type]
         return_label="Return",
         approve_label="Approve",
         sub_nav=examination_results_sub_nav("result-approval"),

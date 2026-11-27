@@ -204,11 +204,12 @@ async def get_examination_hall_seating_management_page(
 
     showing = f"{len(page_rows)} of {total:,} halls" if total else "0 of 0 halls"
     panel_empty = empty_state_for_step("assign_halls", session.session_id) if total == 0 else None
+    chrome = workflow_chrome("assign_halls", session.session_id)
     return ExaminationHallSeatingManagementPageRead(
         page_title="Examination Hall & Seating Management",
-        page_subtitle=f"Assign halls · {session.name}",
+        page_subtitle=f"{chrome['step_progress_label']} · {session.name}",
         panel_empty_state=panel_empty,
-        **workflow_chrome("assign_halls", session.session_id),  # type: ignore[arg-type]
+        **chrome,  # type: ignore[arg-type]
         auto_allocate_label="Auto-allocate",
         confirm_label="Confirm",
         sub_nav=examination_halls_invigilation_sub_nav("examination-hall-seating-management"),

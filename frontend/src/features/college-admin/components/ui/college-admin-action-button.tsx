@@ -58,3 +58,21 @@ export function CollegeAdminPrimaryLink({
     </Link>
   );
 }
+
+export function CollegeAdminSecondaryLink({
+  href,
+  children,
+  className,
+}: {
+  href: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={cn(secondaryClass, "no-underline", className)}>
+      {children}
+    </Link>
+  );
+}
+
+export { primaryClass as collegeAdminPrimaryActionClass, secondaryClass as collegeAdminSecondaryActionClass };

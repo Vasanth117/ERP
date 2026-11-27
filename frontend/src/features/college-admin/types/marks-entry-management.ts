@@ -26,6 +26,7 @@ export type MarksEntryManagementPage = {
   save_draft_label: string;
   continue_label: string;
   continue_href: string;
+  continue_enabled?: boolean;
   workflow_active_key: string;
   send_reminders_label: string;
   lock_entry_label: string;

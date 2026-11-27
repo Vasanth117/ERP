@@ -4,6 +4,7 @@ import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components
 import Link from "next/link";
 import { useState } from "react";
 
+import { useExaminationCreationFlow } from "@/features/college-admin/context/examination-creation-flow-context";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useExaminationSessionManagementPage } from "@/features/college-admin/hooks/use-examination-session-management";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ function StatusPill({ label, tone }: { label: string; tone: string }) {
 
 export function ExaminationSessionManagementDashboard() {
   const [page, setPage] = useState(1);
+  const { openCreation } = useExaminationCreationFlow();
   const { data, isLoading, isError, error, refetch } = useExaminationSessionManagementPage({ page });
 
   return (
@@ -51,12 +53,13 @@ export function ExaminationSessionManagementDashboard() {
           </h2>
           <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "—"}</p>
         </div>
-        <Link
-          href={data?.create_session_href ?? "/college-admin/examinations/examination-configuration?mode=new"}
+        <button
+          type="button"
+          onClick={() => openCreation()}
           className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
         >
           <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_session_label ?? "Create session" } />
-        </Link>
+        </button>
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>

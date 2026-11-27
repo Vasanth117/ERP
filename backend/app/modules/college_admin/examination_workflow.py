@@ -45,14 +45,18 @@ def workflow_back_href(step_key: str, session_id: str | None) -> str:
 
 
 def workflow_chrome(step_key: str, session_id: str | None) -> dict[str, object]:
+    step_index = next((i for i, (key, *_) in enumerate(WORKFLOW_DEF) if key == step_key), 0)
+    _key, step_label, step_number, _href = WORKFLOW_DEF[step_index]
     next_href = workflow_href_after(step_key, session_id) or ""
     return {
         "workflow_steps": workflow_steps(step_key),
         "workflow_active_key": step_key,
+        "step_progress_label": f"Step {step_number} of {len(WORKFLOW_DEF)} · {step_label}",
         "back_href": workflow_back_href(step_key, session_id),
         "save_draft_label": "Save draft",
         "continue_label": "Continue",
         "continue_href": next_href,
+        "continue_enabled": bool(next_href),
     }
 
 
@@ -88,21 +92,19 @@ def empty_state_for_step(step_key: str, session_id: str | None) -> ExaminationWo
         return ExaminationWorkflowEmptyState(
             icon_slug="book-open",
             title="No assessment pattern yet",
-            description="Add an assessment pattern for this academic scope, or register students for the session before continuing.",
-            primary_action_label="Open exam registration",
-            primary_action_href=registrations_href,
-            secondary_action_label="Continue to timetable" if next_href else None,
-            secondary_action_href=next_href,
+            description="Create an assessment pattern for this academic year and semester. It applies to all programmes in scope—individual student registration is not required here.",
+            primary_action_label="Create assessment pattern",
+            primary_action_key="create_assessment_pattern",
         )
     if step_key == "generate_timetable":
         return ExaminationWorkflowEmptyState(
             icon_slug="calendar",
             title="No timetable entries yet",
-            description="Build the timetable from confirmed registrations. You can regenerate any time until you publish.",
+            description="Generate papers from the curriculum mapped to this academic year and semester. Regenerate any time until you publish.",
             primary_action_label="Generate timetable",
             primary_action_key="regenerate_timetable",
-            secondary_action_label="Review registrations",
-            secondary_action_href=registrations_href,
+            secondary_action_label="Open course curriculum",
+            secondary_action_href="/college-admin/academics/curriculum-management",
         )
     if step_key == "assign_halls":
         return ExaminationWorkflowEmptyState(
@@ -126,7 +128,7 @@ def empty_state_for_step(step_key: str, session_id: str | None) -> ExaminationWo
         )
     if step_key == "result_approval":
         return ExaminationWorkflowEmptyState(
-            icon_slug="check-circle",
+            icon_slug="check",
             title="No programme summaries yet",
             description="Process results and complete marks entry before this approval step is available.",
             primary_action_label="Open result processing",

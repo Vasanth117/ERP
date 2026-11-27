@@ -5,6 +5,8 @@ import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
+import { useExaminationCreationFlow } from "@/features/college-admin/context/examination-creation-flow-context";
+
 import { Button } from "@/components/ui/button";
 import {
   CollegeAdminDownload,
@@ -80,6 +82,7 @@ function PendingRow({ item }: { item: StudentAdminWorkQueueItem }) {
 
 export function ExaminationDashboard() {
   const [page, setPage] = useState(1);
+  const { openCreation } = useExaminationCreationFlow();
   const { data, isLoading, isError, error, refetch } = useExaminationDashboardPage({ page });
 
   const handleExport = useCallback(() => {
@@ -105,12 +108,13 @@ export function ExaminationDashboard() {
             <CollegeAdminDownload className="size-3.5" />
             {data?.export_label ?? "Export"}
           </Button>
-          <Link
-            href={data?.create_examination_href ?? "/college-admin/examinations/examination-configuration?mode=new"}
+          <button
+            type="button"
+            onClick={() => openCreation()}
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_examination_label ?? "Create examination" } />
-          </Link></>} />
+          </button></>} />
 
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>

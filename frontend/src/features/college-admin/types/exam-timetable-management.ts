@@ -33,6 +33,7 @@ export type ExamTimetableManagementPage = {
   save_draft_label: string;
   continue_label: string;
   continue_href: string;
+  continue_enabled?: boolean;
   workflow_steps: ExaminationWorkflowStep[];
   workflow_active_key: string;
   regenerate_label: string;

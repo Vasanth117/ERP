@@ -38,10 +38,12 @@ export type ExaminationConfigurationPageQuery = {
 export type ExaminationConfigurationPage = {
   page_title: string;
   page_subtitle: string;
+  step_progress_label?: string;
   back_href: string;
   save_draft_label: string;
   continue_label: string;
   continue_href: string;
+  continue_enabled?: boolean;
   workflow_steps: ExaminationWorkflowStep[];
   workflow_active_key: string;
   setup_section_title: string;

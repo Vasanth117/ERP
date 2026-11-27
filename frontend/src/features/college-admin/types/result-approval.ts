@@ -31,6 +31,7 @@ export type ResultApprovalPage = {
   save_draft_label: string;
   continue_label: string;
   continue_href: string;
+  continue_enabled?: boolean;
   workflow_steps: ExaminationWorkflowStep[];
   workflow_active_key: string;
   return_label: string;

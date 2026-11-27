@@ -171,11 +171,12 @@ async def get_marks_entry_management_page(
     page_rows = all_rows[start : start + _PAGE_SIZE]
 
     panel_empty = empty_state_for_step("marks_entry", session.session_id) if total == 0 else None
+    chrome = workflow_chrome("marks_entry", session.session_id)
     return MarksEntryManagementPageRead(
         page_title="Marks Entry Management",
-        page_subtitle=f"Marks entry · {session.name}",
+        page_subtitle=f"{chrome['step_progress_label']} · {session.name}",
         panel_empty_state=panel_empty,
-        **workflow_chrome("marks_entry", session.session_id),  # type: ignore[arg-type]
+        **chrome,  # type: ignore[arg-type]
         send_reminders_label="Send reminders",
         lock_entry_label="Lock entry",
         sub_nav=examination_marks_assessment_sub_nav("marks-entry-management"),

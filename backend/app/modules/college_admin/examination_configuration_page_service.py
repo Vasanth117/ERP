@@ -40,6 +40,7 @@ from app.modules.examinations.exam_cell_session_service import (
 )
 from app.modules.examinations.exam_cell_schemas import ExamSessionTransitionRequest
 
+from app.modules.college_admin.examination_session_bootstrap import bootstrap_examination_session_preparation
 from app.modules.college_admin.examination_workflow import workflow_chrome, workflow_href_after
 
 _IST = ZoneInfo("Asia/Kolkata")
@@ -142,10 +143,7 @@ def _field_meta() -> list[ExaminationSetupFieldMeta]:
         ExaminationSetupFieldMeta(key="semester_label", label="Semester group", required=True, field_type="select"),
         ExaminationSetupFieldMeta(key="examination_start_at", label="Start date", required=True, field_type="date"),
         ExaminationSetupFieldMeta(key="examination_end_at", label="End date", required=True, field_type="date"),
-        ExaminationSetupFieldMeta(
-            key="registration_end_at", label="Registration closes", required=True, field_type="date"
-        ),
-        ExaminationSetupFieldMeta(key="result_target_at", label="Result target", required=True, field_type="date"),
+        ExaminationSetupFieldMeta(key="result_target_at", label="Result target", required=False, field_type="date"),
     ]
 
 
@@ -186,9 +184,9 @@ async def get_examination_configuration_page(
             registration_end_at=_fmt_date_input(session.registration_end_at),
             result_target_at=_fmt_date_input(session.result_processing_deadline_at),
         )
-        page_subtitle = f"Create Examination · {session.name}"
-        toggles = await _toggle_rules_for_session(tenant_id, session.id, attendance_hint=attendance_hint)
         chrome = workflow_chrome("create_examination", session.session_id)
+        page_subtitle = f"{chrome['step_progress_label']} · {session.name}"
+        toggles = await _toggle_rules_for_session(tenant_id, session.id, attendance_hint=attendance_hint)
         continue_href = chrome["continue_href"] or (
             f"/college-admin/examinations/internal-external-assessment?session_id={session.session_id}"
         )
@@ -204,9 +202,9 @@ async def get_examination_configuration_page(
             registration_end_at="",
             result_target_at="",
         )
-        page_subtitle = "Create Examination"
-        toggles = await _toggle_rules_for_session(tenant_id, None, attendance_hint=attendance_hint)
         chrome = workflow_chrome("create_examination", None)
+        page_subtitle = str(chrome["step_progress_label"])
+        toggles = await _toggle_rules_for_session(tenant_id, None, attendance_hint=attendance_hint)
         continue_href = "/college-admin/examinations/examination-configuration"
 
     return ExaminationConfigurationPageRead(
@@ -219,7 +217,7 @@ async def get_examination_configuration_page(
         workflow_steps=chrome["workflow_steps"],  # type: ignore[arg-type]
         workflow_active_key="create_examination",
         setup_section_title="Examination setup",
-        rules_section_title="Rules",
+        rules_section_title="Eligibility rules (optional)",
         form=form,
         field_meta=_field_meta(),
         type_options=type_options,
@@ -284,11 +282,15 @@ async def save_examination_configuration_page(
 
     exam_start = _parse_form_date(form.examination_start_at)
     exam_end = _parse_form_date(form.examination_end_at)
-    registration_end = _parse_form_date(form.registration_end_at)
+    if form.registration_end_at.strip():
+        registration_end = _parse_form_date(form.registration_end_at)
+    else:
+        registration_end = exam_start - timedelta(days=1)
     result_target = _parse_form_date(form.result_target_at) if form.result_target_at.strip() else None
     registration_start = min(utcnow(), registration_end - timedelta(days=1))
 
     session: ExamSession | None = None
+    creating_new = not payload.session_id
     if payload.session_id:
         session = await ExamSession.find_one(
             Eq(ExamSession.tenant_id, tenant_id),
@@ -336,6 +338,9 @@ async def save_examination_configuration_page(
 
     assert session is not None
     await _upsert_registration_rules(tenant_id, session.id, payload.toggle_rules)
+
+    if creating_new or payload.advance_workflow:
+        await bootstrap_examination_session_preparation(scope, user, session_id=session.session_id)
 
     if payload.advance_workflow and session.status == ExamSessionStatus.DRAFT:
         await transition_exam_session(

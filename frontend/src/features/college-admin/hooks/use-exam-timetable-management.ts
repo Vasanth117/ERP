@@ -23,15 +23,18 @@ export function useRegenerateExamTimetable() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (payload: ExamTimetableManagementActionPayload) => regenerateExamTimetable(payload),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       void client.setQueryData(
         collegeAdminQueryKeys.examTimetableManagementPage({
-          session_id: data.selected_session_id,
-          programme_code: data.selected_programme_code || undefined,
-          page: data.pagination.page,
+          session_id: data.selected_session_id || variables.session_id,
+          programme_code: data.selected_programme_code || variables.programme_code || undefined,
+          page: variables.page ?? data.pagination.page,
         }),
         data,
       );
+      void client.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "exam-timetable-management-page"],
+      });
     },
   });
 }
@@ -40,15 +43,18 @@ export function usePublishExamTimetable() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (payload: ExamTimetableManagementActionPayload) => publishExamTimetable(payload),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       void client.setQueryData(
         collegeAdminQueryKeys.examTimetableManagementPage({
-          session_id: data.selected_session_id,
-          programme_code: data.selected_programme_code || undefined,
-          page: data.pagination.page,
+          session_id: data.selected_session_id || variables.session_id,
+          programme_code: data.selected_programme_code || variables.programme_code || undefined,
+          page: variables.page ?? data.pagination.page,
         }),
         data,
       );
+      void client.invalidateQueries({
+        queryKey: [...collegeAdminQueryKeys.all, "exam-timetable-management-page"],
+      });
     },
   });
 }

@@ -4,96 +4,101 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 
-import { ChevronRightIcon } from "@/components/icons/erp/generated/chevron-right";
-import {
-  CollegeAdminDownload,
-  getCollegeAdminErpIcon,
-  resolveCollegeAdminIconSlug,
-} from "@/features/college-admin/components/layout/college-admin-erp-icons";
+import { ChevronLeftIcon } from "@/components/icons/erp/generated/chevron-left";
 import { ExaminationWorkflowStepper } from "@/features/college-admin/components/examinations/examination-workflow-stepper";
-import { Button } from "@/components/ui/button";
+import { ExaminationWorkflowHeaderActions } from "@/features/college-admin/components/examinations/examination-workflow-header-actions";
+import { useExaminationCreationFlowOptional } from "@/features/college-admin/context/examination-creation-flow-context";
 import type { ExaminationWorkflowStep } from "@/features/college-admin/types/examination-dashboard";
 
-type ExaminationCreationWorkflowHeaderProps = {
+export type ExaminationCreationWorkflowHeaderProps = {
   pageTitle: string;
   pageSubtitle: string;
   backHref: string;
+  backLabel?: string;
   saveDraftLabel?: string;
   continueLabel?: string;
   workflowSteps?: ExaminationWorkflowStep[];
   sessionId?: string | null;
-  saving?: boolean;
-  continuing?: boolean;
+  busy?: boolean;
   onSaveDraft?: () => void;
   onContinue?: () => void;
-  continueDisabled?: boolean;
-  saveDisabled?: boolean;
+  continueEnabled?: boolean;
+  controlsDisabled?: boolean;
   children?: ReactNode;
+  /** When set, stepper uses in-modal navigation instead of page links. */
+  stepLinkMode?: "page" | "modal";
+  onBack?: () => void;
+  onStepNavigate?: (href: string) => void;
+  headerActions?: ReactNode;
 };
 
 export function ExaminationCreationWorkflowHeader({
   pageTitle,
   pageSubtitle,
   backHref,
+  backLabel = "Back",
   saveDraftLabel = "Save draft",
   continueLabel = "Continue",
   workflowSteps,
   sessionId,
-  saving,
-  continuing,
+  busy,
   onSaveDraft,
   onContinue,
-  continueDisabled,
-  saveDisabled,
+  continueEnabled = true,
+  controlsDisabled,
   children,
+  stepLinkMode = "page",
+  onBack,
+  onStepNavigate,
+  headerActions,
 }: ExaminationCreationWorkflowHeaderProps) {
-  const BackIcon = getCollegeAdminErpIcon(resolveCollegeAdminIconSlug("arrow-left"));
+  const disabled = Boolean(controlsDisabled || busy);
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex gap-3">
-          <Link
-            href={backHref}
-            className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-md border border-[#dce3ec] text-[#6b7280] hover:bg-[#f9fafb]"
-            aria-label="Back"
-          >
-            {BackIcon ? <BackIcon className="size-4" /> : "←"}
-          </Link>
-          <div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-[#374151] hover:bg-[#f3f4f6]"
+                aria-label={backLabel}
+              >
+                <ChevronLeftIcon className="size-5" />
+              </button>
+            ) : (
+              <Link
+                href={backHref}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-[#374151] hover:bg-[#f3f4f6]"
+                aria-label={backLabel}
+              >
+                <ChevronLeftIcon className="size-5" />
+              </Link>
+            )}
             <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{pageTitle}</h2>
-            <p className="mt-1 text-[14px] text-[#6b7280]">{pageSubtitle}</p>
           </div>
+          <p className="mt-1 pl-9 text-[14px] text-[#6b7280]">{pageSubtitle}</p>
         </div>
-        {onSaveDraft || onContinue ? (
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {onSaveDraft ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-                disabled={saving || saveDisabled}
-                onClick={onSaveDraft}
-              >
-                <CollegeAdminDownload className="size-3.5" />
-                {saveDraftLabel}
-              </Button>
-            ) : null}
-            {onContinue ? (
-              <Button
-                type="button"
-                className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-                disabled={continuing || continueDisabled}
-                onClick={onContinue}
-              >
-                {continueLabel}
-                <ChevronRightIcon className="size-3.5" aria-hidden />
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
+        <ExaminationWorkflowHeaderActions
+          headerActions={headerActions}
+          saveDraftLabel={saveDraftLabel}
+          continueLabel={continueLabel}
+          onSaveDraft={onSaveDraft}
+          onContinue={onContinue}
+          continueEnabled={continueEnabled}
+          disabled={disabled}
+        />
       </div>
-      {workflowSteps?.length ? <ExaminationWorkflowStepper steps={workflowSteps} sessionId={sessionId} /> : null}
+      {workflowSteps?.length ? (
+        <ExaminationWorkflowStepper
+          steps={workflowSteps}
+          sessionId={sessionId}
+          linkMode={stepLinkMode}
+          onStepNavigate={onStepNavigate}
+        />
+      ) : null}
       {children}
     </div>
   );
@@ -101,7 +106,13 @@ export function ExaminationCreationWorkflowHeader({
 
 export function useExaminationWorkflowContinue() {
   const router = useRouter();
+  const flow = useExaminationCreationFlowOptional();
   return (continueHref: string | undefined) => {
-    if (continueHref) router.push(continueHref);
+    if (!continueHref) return;
+    if (flow?.isModalOpen) {
+      flow.advanceFromHref(continueHref);
+      return;
+    }
+    router.push(continueHref);
   };
 }

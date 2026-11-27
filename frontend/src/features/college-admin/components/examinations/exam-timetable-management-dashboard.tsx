@@ -2,11 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useExaminationCreationSessionId } from "@/features/college-admin/hooks/use-examination-creation-flow";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import {
-  ExaminationCreationWorkflowHeader,
-  useExaminationWorkflowContinue,
-} from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { useExaminationWorkflowContinue } from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowOrPageHeading } from "@/features/college-admin/components/examinations/examination-workflow-or-page-heading";
+import { useExaminationCreationWorkflowVisible } from "@/features/college-admin/context/examination-creation-flow-context";
 import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
@@ -14,7 +14,10 @@ import { FilterIcon } from "@/components/icons/erp/generated/filter";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
 import { SendIcon } from "@/components/icons/erp/generated/send";
 import { TriangleAlertIcon } from "@/components/icons/erp/generated/triangle-alert";
-import { Button } from "@/components/ui/button";
+import {
+  CollegeAdminPrimaryButton,
+  CollegeAdminSecondaryButton,
+} from "@/features/college-admin/components/ui/college-admin-action-button";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useExamTimetableManagementPage,
@@ -65,7 +68,9 @@ function FilterSelect({
 
 export function ExamTimetableManagementDashboard() {
   const searchParams = useSearchParams();
-  const sessionFromUrl = useMemo(() => searchParams.get("session_id") ?? "", [searchParams]);
+  const inCreationModal = useExaminationCreationWorkflowVisible();
+  const creationSessionId = useExaminationCreationSessionId();
+  const sessionFromUrl = useMemo(() => creationSessionId ?? searchParams.get("session_id") ?? "", [creationSessionId, searchParams]);
   const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
   const [sessionId, setSessionId] = useState(sessionFromUrl);
@@ -92,63 +97,88 @@ export function ExamTimetableManagementDashboard() {
     }
   }, [data?.selected_session_id, sessionId, sessionFromUrl]);
 
+  const effectiveSessionId = (data?.selected_session_id || sessionId || "").trim();
+
   const actionPayload = () => ({
-    session_id: data?.selected_session_id ?? sessionId,
+    session_id: effectiveSessionId,
     programme_code: programme || undefined,
     page,
   });
 
   const handleRegenerate = () => {
-    if (!data?.selected_session_id) return;
+    if (!effectiveSessionId) {
+      toast.error("Select an exam session before generating the timetable.");
+      return;
+    }
     regenerate.mutate(actionPayload(), {
-      onSuccess: () => toast.success("Timetable regenerated."),
+      onSuccess: (result) => {
+        void refetch();
+        if (!result.rows.length) {
+          toast.message(
+            "No papers found — map courses to this academic year and semester under Academics, then regenerate.",
+          );
+        } else {
+          toast.success("Timetable generated.");
+        }
+      },
       onError: onCollegeAdminMutationError,
     });
   };
 
   const handlePublish = () => {
-    if (!data?.selected_session_id) return;
+    if (!effectiveSessionId) {
+      toast.error("Select an exam session before publishing.");
+      return;
+    }
     publish.mutate(actionPayload(), {
-      onSuccess: () => toast.success("Timetable published."),
+      onSuccess: () => {
+        void refetch();
+        toast.success("Timetable published.");
+      },
       onError: onCollegeAdminMutationError,
     });
   };
 
   return (
     <div className="space-y-5" data-figma-frame="159:11789">
-      <ExaminationCreationWorkflowHeader
+      <ExaminationWorkflowOrPageHeading
         pageTitle={data?.page_title ?? "Exam Timetable Management"}
         pageSubtitle={data?.page_subtitle ?? "Generate and publish the timetable"}
         backHref={data?.back_href ?? "/college-admin/examinations/internal-external-assessment"}
         saveDraftLabel={data?.save_draft_label}
         continueLabel={data?.continue_label}
-        workflowSteps={data?.workflow_steps}
-        sessionId={data?.selected_session_id || sessionId}
-        onSaveDraft={() => toast.success("Draft saved")}
-        onContinue={() => continueTo(data?.continue_href)}
+        workflowSteps={inCreationModal ? data?.workflow_steps : undefined}
+        sessionId={effectiveSessionId || undefined}
+        busy={regenerate.isPending || publish.isPending}
+        controlsDisabled={isLoading || !data}
+        continueEnabled={data?.continue_enabled ?? Boolean(data?.continue_href)}
+        onSaveDraft={() => {
+          void refetch();
+          toast.success("Draft saved");
+        }}
+        onContinue={() => {
+          if (!data?.continue_href) {
+            toast.error("Generate the timetable before continuing.");
+            return;
+          }
+          continueTo(data.continue_href);
+        }}
+        headerActions={
+          <>
+            <CollegeAdminSecondaryButton
+              disabled={regenerate.isPending || !effectiveSessionId}
+              onClick={handleRegenerate}
+            >
+              <RefreshCwIcon className="size-3.5" aria-hidden />
+              {data?.regenerate_label ?? "Regenerate"}
+            </CollegeAdminSecondaryButton>
+            <CollegeAdminPrimaryButton disabled={publish.isPending || !data?.publish_enabled} onClick={handlePublish}>
+              <SendIcon className="size-3.5" aria-hidden />
+              {data?.publish_label ?? "Publish"}
+            </CollegeAdminPrimaryButton>
+          </>
+        }
       />
-
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-          disabled={regenerate.isPending || !data?.selected_session_id}
-          onClick={handleRegenerate}
-        >
-          <RefreshCwIcon className="size-3.5" aria-hidden />
-          {data?.regenerate_label ?? "Regenerate"}
-        </Button>
-        <Button
-          type="button"
-          className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-          disabled={publish.isPending || !data?.publish_enabled}
-          onClick={handlePublish}
-        >
-          <SendIcon className="size-3.5" aria-hidden />
-          {data?.publish_label ?? "Publish"}
-        </Button>
-      </div>
 
       <p className="text-[12px] text-[#9ca3af]">
         {data?.timetable_status_label ? `Status · ${data.timetable_status_label}` : null}
@@ -225,7 +255,7 @@ export function ExamTimetableManagementDashboard() {
               ) : data.panel_empty_state ? (
                 <ExaminationWorkflowPanelEmpty
                   state={data.panel_empty_state}
-                  primaryDisabled={regenerate.isPending || !data.selected_session_id}
+                  primaryDisabled={regenerate.isPending || !effectiveSessionId}
                   onInlineAction={(key) => {
                     if (key === "regenerate_timetable") handleRegenerate();
                   }}

@@ -246,6 +246,13 @@ export function saveInternalExternalAssessment(
   );
 }
 
+export function createInternalExternalAssessmentPattern(sessionId: string) {
+  return apiRequest<import("@/features/college-admin/types/internal-external-assessment").InternalExternalAssessmentPage>(
+    "/college-admin/examination-administration/assessment-pattern/create",
+    { method: "POST", body: JSON.stringify({ session_id: sessionId }) },
+  );
+}
+
 export function fetchResultProcessingPage(params?: { session_id?: string }) {
   const search = new URLSearchParams();
   if (params?.session_id) search.set("session_id", params.session_id);

@@ -1,27 +1,26 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { ChevronRightIcon } from "@/components/icons/erp/generated/chevron-right";
-import { CollegeAdminDownload, getCollegeAdminErpIcon, resolveCollegeAdminIconSlug } from "@/features/college-admin/components/layout/college-admin-erp-icons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ExaminationWorkflowStepper } from "@/features/college-admin/components/examinations/examination-workflow-stepper";
+import { useExaminationWorkflowContinue } from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowOrPageHeading } from "@/features/college-admin/components/examinations/examination-workflow-or-page-heading";
+import { useExaminationCreationFlowOptional } from "@/features/college-admin/context/examination-creation-flow-context";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import {
   useExaminationConfigurationPage,
   useSaveExaminationConfiguration,
 } from "@/features/college-admin/hooks/use-examination-configuration";
+import { useExaminationCreationSessionId } from "@/features/college-admin/hooks/use-examination-creation-flow";
 import type {
   ExaminationSetupFieldMeta,
   ExaminationSetupFormValues,
   ExaminationSetupToggleRule,
 } from "@/features/college-admin/types/examination-configuration";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 function RuleSwitch({
@@ -124,6 +123,15 @@ function SetupField({
   );
 }
 
+const CREATION_SETUP_FIELD_KEYS = new Set([
+  "session_name",
+  "examination_type",
+  "academic_year_label",
+  "semester_label",
+  "examination_start_at",
+  "examination_end_at",
+  "result_target_at",
+]);
 
 function optionsForField(
   key: string,
@@ -142,8 +150,11 @@ function optionsForField(
 export function ExaminationConfigurationDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id") ?? undefined;
+  const sessionId = useExaminationCreationSessionId();
+  const creationFlow = useExaminationCreationFlowOptional();
+  const continueTo = useExaminationWorkflowContinue();
   const mode = searchParams.get("mode") ?? undefined;
+  const inCreationModal = Boolean(creationFlow?.isModalOpen);
 
   const query = useMemo(
     () => ({ session_id: sessionId, mode: sessionId ? undefined : mode }),
@@ -166,8 +177,6 @@ export function ExaminationConfigurationDashboard() {
     setToggles(next);
   }, [data]);
 
-  const BackIcon = getCollegeAdminErpIcon(resolveCollegeAdminIconSlug("arrow-left"));
-
   const persist = async (advance: boolean) => {
     if (!form || !data) return;
     try {
@@ -177,84 +186,83 @@ export function ExaminationConfigurationDashboard() {
         toggle_rules: toggles,
         advance_workflow: advance,
       });
-      if (result.session_id && !sessionId) {
-        router.replace(`/college-admin/examinations/examination-configuration?session_id=${result.session_id}`);
+      if (result.session_id) {
+        creationFlow?.setSessionId(result.session_id);
+        if (!inCreationModal && !sessionId) {
+          router.replace(`/college-admin/examinations/examination-configuration?session_id=${result.session_id}`);
+        }
       }
       if (advance) {
-        toast.success("Step saved — continue to next stage");
-        router.push(result.continue_href);
+        if (!result.continue_href) {
+          toast.error("Unable to continue — save the draft first.");
+          return;
+        }
+        toast.success(
+          inCreationModal
+            ? "Examination saved for this year and semester — timetable prepared for all programmes."
+            : "Step saved — continue to next stage",
+        );
+        continueTo(result.continue_href);
       } else {
-        toast.success("Draft saved");
+        toast.success(
+          inCreationModal && result.session_id
+            ? "Draft saved — assessment pattern and timetable prepared."
+            : "Draft saved",
+        );
       }
     } catch (e) {
       onCollegeAdminMutationError(e as Error & { details?: unknown });
     }
   };
 
+  const busy = save.isPending;
+  const controlsDisabled = isLoading || !form || !data;
+
   return (
     <div className="space-y-5" data-figma-frame="159:11453">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex gap-3">
-          <Link
-            href={data?.back_href ?? "/college-admin/examinations/examination-session-management"}
-            className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-md border border-[#dce3ec] text-[#6b7280] hover:bg-[#f9fafb]"
-            aria-label="Back"
-          >
-            {BackIcon ? <BackIcon className="size-4" /> : "←"}
-          </Link>
-          <div>
-            <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-              {data?.page_title ?? "Examination Configuration"}
-            </h2>
-            <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "—"}</p>
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-            disabled={save.isPending || !form}
-            onClick={() => void persist(false)}
-          >
-            <CollegeAdminDownload className="size-3.5" />
-            {data?.save_draft_label ?? "Save draft"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-            disabled={save.isPending || !form}
-            onClick={() => void persist(true)}
-          >
-            {data?.continue_label ?? "Continue"}
-            <ChevronRightIcon className="size-3.5" aria-hidden />
-          </Button>
-        </div>
-      </div>
+      <ExaminationWorkflowOrPageHeading
+        pageTitle={data?.page_title ?? "Examination Configuration"}
+        pageSubtitle={data?.page_subtitle ?? "Step 1 of 6 · Create examination"}
+        backHref={data?.back_href ?? "/college-admin/examinations/examination-session-management"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={inCreationModal ? data?.workflow_steps : undefined}
+        sessionId={data?.session_id ?? sessionId}
+        busy={busy}
+        controlsDisabled={controlsDisabled}
+        continueEnabled={data?.continue_enabled ?? true}
+        onSaveDraft={() => void persist(false)}
+        onContinue={() => void persist(true)}
+      />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data && form ? (
-          <>
-            {data.workflow_steps?.length ? (
-              <ExaminationWorkflowStepper steps={data.workflow_steps} sessionId={data.session_id} />
-            ) : null}
+          <div className={cn("grid grid-cols-1 gap-5", !inCreationModal && "xl:grid-cols-[1fr_320px]")}>
+            <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-6">
+              <h3 className="mb-5 text-[14px] font-semibold text-[#111827]">{data.setup_section_title}</h3>
+              {inCreationModal ? (
+                <p className="mb-4 text-[12px] text-[#6b7280]">
+                  Scope applies to every programme in the selected academic year and semester. Per-student exam
+                  registration is handled separately, not during this setup.
+                </p>
+              ) : null}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {(inCreationModal
+                  ? data.field_meta.filter((meta) => CREATION_SETUP_FIELD_KEYS.has(meta.key))
+                  : data.field_meta
+                ).map((meta) => (
+                  <SetupField
+                    key={meta.key}
+                    meta={meta}
+                    value={form[meta.key]}
+                    options={optionsForField(meta.key, data)}
+                    onChange={(v) => setForm((prev) => (prev ? { ...prev, [meta.key]: v } : prev))}
+                  />
+                ))}
+              </div>
+            </section>
 
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
-              <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-6">
-                <h3 className="mb-5 text-[14px] font-semibold text-[#111827]">{data.setup_section_title}</h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {data.field_meta.map((meta) => (
-                    <SetupField
-                      key={meta.key}
-                      meta={meta}
-                      value={form[meta.key]}
-                      options={optionsForField(meta.key, data)}
-                      onChange={(v) => setForm((prev) => (prev ? { ...prev, [meta.key]: v } : prev))}
-                    />
-                  ))}
-                </div>
-              </section>
-
+            {!inCreationModal ? (
               <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <h3 className="mb-1 text-[14px] font-semibold text-[#111827]">{data.rules_section_title}</h3>
                 <div className="mt-2">
@@ -268,9 +276,8 @@ export function ExaminationConfigurationDashboard() {
                   ))}
                 </div>
               </section>
-            </div>
-
-          </>
+            ) : null}
+          </div>
         ) : null}
       </QueryState>
     </div>
