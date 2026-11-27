@@ -10,7 +10,9 @@ import { CollegeAdminDownload, getCollegeAdminErpIcon, resolveCollegeAdminIconSl
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ExaminationWorkflowStepper } from "@/features/college-admin/components/examinations/examination-workflow-stepper";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import {
   useExaminationConfigurationPage,
   useSaveExaminationConfiguration,
@@ -179,12 +181,13 @@ export function ExaminationConfigurationDashboard() {
         router.replace(`/college-admin/examinations/examination-configuration?session_id=${result.session_id}`);
       }
       if (advance) {
+        toast.success("Step saved — continue to next stage");
         router.push(result.continue_href);
       } else {
         toast.success("Draft saved");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+      onCollegeAdminMutationError(e as Error & { details?: unknown });
     }
   };
 
@@ -232,6 +235,10 @@ export function ExaminationConfigurationDashboard() {
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data && form ? (
           <>
+            {data.workflow_steps?.length ? (
+              <ExaminationWorkflowStepper steps={data.workflow_steps} sessionId={data.session_id} />
+            ) : null}
+
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
               <section className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-6">
                 <h3 className="mb-5 text-[14px] font-semibold text-[#111827]">{data.setup_section_title}</h3>

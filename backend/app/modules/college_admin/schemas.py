@@ -9312,6 +9312,8 @@ class ExaminationConfigurationPageRead(BaseModel):
     save_draft_label: str
     continue_label: str
     continue_href: str
+    workflow_steps: list[FacultyAssignmentWorkflowStep]
+    workflow_active_key: str
     setup_section_title: str
     rules_section_title: str
     form: ExaminationSetupFormValues

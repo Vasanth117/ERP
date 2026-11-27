@@ -40,6 +40,8 @@ from app.modules.examinations.exam_cell_session_service import (
 )
 from app.modules.examinations.exam_cell_schemas import ExamSessionTransitionRequest
 
+from app.modules.college_admin.examination_workflow import workflow_href_after, workflow_steps
+
 _IST = ZoneInfo("Asia/Kolkata")
 
 _TYPE_OPTIONS: list[tuple[ExamSessionType, str]] = [
@@ -186,7 +188,12 @@ async def get_examination_configuration_page(
         )
         page_subtitle = f"Create Examination · {session.name}"
         toggles = await _toggle_rules_for_session(tenant_id, session.id, attendance_hint=attendance_hint)
-        continue_href = f"/college-admin/examinations/exam-configuration?session_id={session.session_id}"
+        active_key = (
+            "create_examination" if session.status == ExamSessionStatus.DRAFT else "configure_subjects"
+        )
+        continue_href = workflow_href_after(active_key, session.session_id) or (
+            f"/college-admin/examinations/exam-timetable-management?session_id={session.session_id}"
+        )
     else:
         default_year = await _default_academic_year(tenant_id)
         form = ExaminationSetupFormValues(
@@ -201,7 +208,8 @@ async def get_examination_configuration_page(
         )
         page_subtitle = "Create Examination"
         toggles = await _toggle_rules_for_session(tenant_id, None, attendance_hint=attendance_hint)
-        continue_href = "/college-admin/examinations/exam-configuration"
+        active_key = "create_examination"
+        continue_href = "/college-admin/examinations/examination-configuration"
 
     return ExaminationConfigurationPageRead(
         page_title="Examination Configuration",
@@ -210,6 +218,8 @@ async def get_examination_configuration_page(
         save_draft_label="Save draft",
         continue_label="Continue",
         continue_href=continue_href,
+        workflow_steps=workflow_steps(active_key),
+        workflow_active_key=active_key,
         setup_section_title="Examination setup",
         rules_section_title="Rules",
         form=form,
@@ -337,4 +347,10 @@ async def save_examination_configuration_page(
             ExamSessionTransitionRequest(action=ExamSessionLifecycleAction.SCHEDULE),
         )
 
-    return await get_examination_configuration_page(scope, session_id=session.session_id)
+    page = await get_examination_configuration_page(scope, session_id=session.session_id)
+    if payload.advance_workflow:
+        step_before = "create_examination" if not payload.session_id else "configure_subjects"
+        next_href = workflow_href_after(step_before, session.session_id)
+        if next_href:
+            return page.model_copy(update={"continue_href": next_href})
+    return page

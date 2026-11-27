@@ -33,7 +33,7 @@ export function ExaminationsScreen({ slug, title }: { slug: string; title: strin
   if (slug === "examination-session-management") {
     return <ExaminationSessionManagementDashboard />;
   }
-  if (slug === "examination-configuration") {
+  if (slug === "examination-configuration" || slug === "exam-configuration") {
     return <ExaminationConfigurationDashboard />;
   }
   if (slug === "exam-timetable-management") {

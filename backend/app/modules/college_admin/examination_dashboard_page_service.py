@@ -62,19 +62,7 @@ _SESSION_STATUS: dict[ExamSessionStatus, tuple[str, str]] = {
     ExamSessionStatus.CANCELLED: ("Cancelled", "error"),
 }
 
-_WORKFLOW_DEF: list[tuple[str, str, int, str]] = [
-    ("create_examination", "Create examination", 1, "/college-admin/examinations/examination-session-management"),
-    ("configure_subjects", "Configure subjects", 2, "/college-admin/examinations/examination-configuration"),
-    ("generate_timetable", "Generate timetable", 3, "/college-admin/examinations/exam-timetable-management"),
-    ("assign_halls", "Assign halls", 4, "/college-admin/examinations/examination-hall-seating-management"),
-    ("marks_entry", "Marks entry", 5, "/college-admin/examinations/marks-entry-management"),
-    (
-        "result_approval",
-        "Result approval and publication",
-        6,
-        "/college-admin/examinations/result-approval",
-    ),
-]
+from app.modules.college_admin.examination_workflow import WORKFLOW_DEF as _WORKFLOW_DEF, workflow_steps as _workflow_steps
 
 
 def _page_numbers(total_pages: int) -> list[int]:
@@ -153,20 +141,6 @@ async def _workflow_active_key(tenant_id: PydanticObjectId, focus: ExamSession |
     if focus.status not in (ExamSessionStatus.PUBLISHED, ExamSessionStatus.COMPLETED):
         return "result_approval"
     return "result_approval"
-
-
-def _workflow_steps(active_key: str) -> list[FacultyAssignmentWorkflowStep]:
-    active_index = next((i for i, (key, *_) in enumerate(_WORKFLOW_DEF) if key == active_key), 0)
-    steps: list[FacultyAssignmentWorkflowStep] = []
-    for index, (key, label, number, href) in enumerate(_WORKFLOW_DEF):
-        if index < active_index:
-            status = "done"
-        elif index == active_index:
-            status = "active"
-        else:
-            status = "pending"
-        steps.append(FacultyAssignmentWorkflowStep(key=key, label=label, step_number=number, status=status, href=href))
-    return steps
 
 
 async def _programmes_label(tenant_id: PydanticObjectId, session_id: PydanticObjectId) -> str:
@@ -399,7 +373,7 @@ async def get_examination_dashboard_page(
         page_subtitle=_focus_subtitle(focus),
         export_label="Export",
         create_examination_label="Create examination",
-        create_examination_href="/college-admin/examinations/examination-session-management",
+        create_examination_href="/college-admin/examinations/examination-configuration?mode=new",
         scope_indicator_label="College scope",
         updated_at_label=_fmt_time_label(now),
         workflow_steps=_workflow_steps(active_key),

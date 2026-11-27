@@ -1,3 +1,5 @@
+import type { ExaminationWorkflowStep } from "@/features/college-admin/types/examination-dashboard";
+
 export type ExaminationSetupFormValues = {
   session_name: string;
   examination_type: string;
@@ -40,6 +42,8 @@ export type ExaminationConfigurationPage = {
   save_draft_label: string;
   continue_label: string;
   continue_href: string;
+  workflow_steps: ExaminationWorkflowStep[];
+  workflow_active_key: string;
   setup_section_title: string;
   rules_section_title: string;
   form: ExaminationSetupFormValues;
