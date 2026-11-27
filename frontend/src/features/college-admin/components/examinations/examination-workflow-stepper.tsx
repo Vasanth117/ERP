@@ -6,7 +6,23 @@ import { CheckIcon } from "@/components/icons/erp/generated/check";
 import type { ExaminationWorkflowStep } from "@/features/college-admin/types/examination-dashboard";
 import { cn } from "@/lib/utils";
 
-export function ExaminationWorkflowStepper({ steps }: { steps: ExaminationWorkflowStep[] }) {
+function withSessionId(href: string, sessionId?: string | null): string {
+  if (!sessionId || !href || href.includes("session_id=")) return href;
+  const join = href.includes("?") ? "&" : "?";
+  return `${href}${join}session_id=${encodeURIComponent(sessionId)}`;
+}
+
+export function ExaminationWorkflowStepper({
+  steps,
+  sessionId,
+  linkMode = "page",
+  onStepNavigate,
+}: {
+  steps: ExaminationWorkflowStep[];
+  sessionId?: string | null;
+  linkMode?: "page" | "modal";
+  onStepNavigate?: (href: string) => void;
+}) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white px-4 py-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-6">
       <div className="flex flex-wrap items-center gap-y-3 sm:flex-nowrap">
@@ -35,10 +51,21 @@ export function ExaminationWorkflowStepper({ steps }: { steps: ExaminationWorkfl
               </span>
             </>
           );
+          const href = wizardStep.href ? withSessionId(wizardStep.href, sessionId) : "";
+          const useModalNav = linkMode === "modal" && Boolean(onStepNavigate) && Boolean(href) && !active;
+
           return (
             <div key={wizardStep.key} className="flex min-w-0 flex-1 items-center last:flex-none">
-              {wizardStep.href && !active ? (
-                <Link href={wizardStep.href} className="flex min-w-0 items-center hover:opacity-90">
+              {useModalNav ? (
+                <button
+                  type="button"
+                  onClick={() => onStepNavigate?.(href)}
+                  className="flex min-w-0 items-center hover:opacity-90"
+                >
+                  {inner}
+                </button>
+              ) : href && !active ? (
+                <Link href={href} className="flex min-w-0 items-center hover:opacity-90">
                   {inner}
                 </Link>
               ) : (

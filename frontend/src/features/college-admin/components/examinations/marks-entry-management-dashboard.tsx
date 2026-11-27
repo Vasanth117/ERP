@@ -2,15 +2,21 @@
 
 import { useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import { useExaminationWorkflowContinue } from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowOrPageHeading } from "@/features/college-admin/components/examinations/examination-workflow-or-page-heading";
+import { useExaminationCreationWorkflowVisible } from "@/features/college-admin/context/examination-creation-flow-context";
+import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
 import { LockIcon } from "@/components/icons/erp/generated/lock";
 import { MessageSquareTextIcon } from "@/components/icons/erp/generated/message-square-text";
-import { Button } from "@/components/ui/button";
+import {
+  CollegeAdminPrimaryButton,
+  CollegeAdminSecondaryButton,
+} from "@/features/college-admin/components/ui/college-admin-action-button";
 import { ExaminationRegistrationSubNav } from "@/features/college-admin/components/examinations/examination-registration-sub-nav";
-import { ExaminationWorkflowStepper } from "@/features/college-admin/components/examinations/examination-workflow-stepper";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { useExaminationCreationSessionId } from "@/features/college-admin/hooks/use-examination-creation-flow";
 import {
   useLockMarksEntry,
   useMarksEntryManagementPage,
@@ -67,30 +73,76 @@ function Pagination({ data, page, setPage }: { data: MarksEntryManagementPage; p
 }
 
 export function MarksEntryManagementDashboard() {
+  const sessionId = useExaminationCreationSessionId();
+  const inCreationModal = useExaminationCreationWorkflowVisible();
+  const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, error, refetch } = useMarksEntryManagementPage({ page });
+  const { data, isLoading, isError, error, refetch } = useMarksEntryManagementPage({ page, session_id: sessionId });
   const sendReminders = useSendMarksEntryReminders();
   const lockEntry = useLockMarksEntry();
 
-  const payload = () => ({ session_id: data?.selected_session_id ?? "", page });
+  const effectiveSessionId = (data?.selected_session_id || sessionId || "").trim();
+  const payload = () => ({ session_id: effectiveSessionId, page });
 
   return (
     <div className="space-y-5" data-figma-frame="159:13777">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Marks Entry Management"} subtitle={data?.page_subtitle ?? "Track marks entry progress"} actions={<><Button type="button" variant="outline" className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium" disabled={sendReminders.isPending || !data?.selected_session_id} onClick={() => sendReminders.mutate(payload(), { onSuccess: () => toast.success("Reminders sent."), onError: (e: Error) => toast.error(e.message) })}>
-            <MessageSquareTextIcon className="size-3.5" aria-hidden />
-            {data?.send_reminders_label ?? "Send reminders"}
-          </Button>
-          <Button type="button" className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]" disabled={lockEntry.isPending || !data?.selected_session_id} onClick={() => lockEntry.mutate(payload(), { onSuccess: () => toast.success("Marks entry locked."), onError: (e: Error) => toast.error(e.message) })}>
-            <LockIcon className="size-3.5" aria-hidden />
-            {data?.lock_entry_label ?? "Lock entry"}
-          </Button></>} />
+      <ExaminationWorkflowOrPageHeading
+        pageTitle={data?.page_title ?? "Marks Entry Management"}
+        pageSubtitle={data?.page_subtitle ?? "Track marks entry progress"}
+        backHref={data?.back_href ?? "/college-admin/examinations/examination-hall-seating-management"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={inCreationModal ? data?.workflow_steps : undefined}
+        sessionId={effectiveSessionId || undefined}
+        busy={sendReminders.isPending || lockEntry.isPending}
+        controlsDisabled={isLoading || !data}
+        continueEnabled={data?.continue_enabled ?? Boolean(data?.continue_href)}
+        onSaveDraft={() => {
+          void refetch();
+          toast.success("Draft saved");
+        }}
+        onContinue={() => {
+          if (!data?.continue_href) {
+            toast.error("Complete marks entry setup before continuing.");
+            return;
+          }
+          continueTo(data.continue_href);
+        }}
+        headerActions={
+          <>
+            <CollegeAdminSecondaryButton
+              disabled={sendReminders.isPending || !effectiveSessionId}
+              onClick={() =>
+                sendReminders.mutate(payload(), {
+                  onSuccess: () => toast.success("Reminders sent."),
+                  onError: (e: Error) => toast.error(e.message),
+                })
+              }
+            >
+              <MessageSquareTextIcon className="size-3.5" aria-hidden />
+              {data?.send_reminders_label ?? "Send reminders"}
+            </CollegeAdminSecondaryButton>
+            <CollegeAdminPrimaryButton
+              disabled={lockEntry.isPending || !effectiveSessionId}
+              onClick={() =>
+                lockEntry.mutate(payload(), {
+                  onSuccess: () => toast.success("Marks entry locked."),
+                  onError: (e: Error) => toast.error(e.message),
+                })
+              }
+            >
+              <LockIcon className="size-3.5" aria-hidden />
+              {data?.lock_entry_label ?? "Lock entry"}
+            </CollegeAdminPrimaryButton>
+          </>
+        }
+      />
 
-      {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
+      {data?.sub_nav?.length && !sessionId ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
           <>
-            {data.workflow_steps.length ? <ExaminationWorkflowStepper steps={data.workflow_steps} /> : null}
 
             <section className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
               <div className="border-b border-[#f1f5f9] px-5 py-3.5">
@@ -125,7 +177,11 @@ export function MarksEntryManagementDashboard() {
                   </table>
                 </div>
               ) : (
-                <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No papers registered for marks entry yet.</p>
+                data.panel_empty_state ? (
+                  <ExaminationWorkflowPanelEmpty state={data.panel_empty_state} />
+                ) : (
+                  <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No papers registered for marks entry yet.</p>
+                )
               )}
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                 <span>{data.showing_label}</span>

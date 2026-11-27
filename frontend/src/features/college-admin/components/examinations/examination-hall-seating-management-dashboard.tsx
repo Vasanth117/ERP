@@ -2,14 +2,21 @@
 
 import { useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import { useExaminationWorkflowContinue } from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowOrPageHeading } from "@/features/college-admin/components/examinations/examination-workflow-or-page-heading";
+import { useExaminationCreationWorkflowVisible } from "@/features/college-admin/context/examination-creation-flow-context";
+import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
-import { Button } from "@/components/ui/button";
+import {
+  CollegeAdminPrimaryButton,
+  CollegeAdminSecondaryButton,
+} from "@/features/college-admin/components/ui/college-admin-action-button";
 import { ExaminationRegistrationSubNav } from "@/features/college-admin/components/examinations/examination-registration-sub-nav";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { useExaminationCreationSessionId } from "@/features/college-admin/hooks/use-examination-creation-flow";
 import {
   useAutoAllocateHallSeating,
   useConfirmHallSeating,
@@ -94,15 +101,19 @@ function Pagination({
 }
 
 export function ExaminationHallSeatingManagementDashboard() {
+  const sessionId = useExaminationCreationSessionId();
+  const inCreationModal = useExaminationCreationWorkflowVisible();
+  const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
-  const { data, isLoading, isError, error, refetch } = useExaminationHallSeatingManagementPage({ page });
+  const { data, isLoading, isError, error, refetch } = useExaminationHallSeatingManagementPage({ page, session_id: sessionId });
   const autoAllocate = useAutoAllocateHallSeating();
   const confirm = useConfirmHallSeating();
 
-  const payload = () => ({ session_id: data?.selected_session_id ?? "", page });
+  const effectiveSessionId = (data?.selected_session_id || sessionId || "").trim();
+  const payload = () => ({ session_id: effectiveSessionId, page });
 
   const onAutoAllocate = () => {
-    if (!data?.selected_session_id) return;
+    if (!effectiveSessionId) return;
     autoAllocate.mutate(payload(), {
       onSuccess: () => toast.success("Seating auto-allocated."),
       onError: onCollegeAdminMutationError,
@@ -110,7 +121,7 @@ export function ExaminationHallSeatingManagementDashboard() {
   };
 
   const onConfirm = () => {
-    if (!data?.selected_session_id) return;
+    if (!effectiveSessionId) return;
     confirm.mutate(payload(), {
       onSuccess: () => toast.success("Seating confirmed."),
       onError: onCollegeAdminMutationError,
@@ -119,27 +130,49 @@ export function ExaminationHallSeatingManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:13128">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Examination Hall & Seating Management"} subtitle={data?.page_subtitle ?? "Assign halls and generate seating"} actions={<><Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-            disabled={autoAllocate.isPending || !data?.selected_session_id}
-            onClick={onAutoAllocate}
-          >
-            <RefreshCwIcon className="size-3.5" aria-hidden />
-            {data?.auto_allocate_label ?? "Auto-allocate"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-            disabled={confirm.isPending || !data?.selected_session_id}
-            onClick={onConfirm}
-          >
-            <CheckIcon className="size-3.5" aria-hidden />
-            {data?.confirm_label ?? "Confirm"}
-          </Button></>} />
+      <ExaminationWorkflowOrPageHeading
+        pageTitle={data?.page_title ?? "Examination Hall & Seating Management"}
+        pageSubtitle={data?.page_subtitle ?? "Assign halls and generate seating"}
+        backHref={data?.back_href ?? "/college-admin/examinations/exam-timetable-management"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={inCreationModal ? data?.workflow_steps : undefined}
+        sessionId={effectiveSessionId || undefined}
+        busy={autoAllocate.isPending || confirm.isPending}
+        controlsDisabled={isLoading || !data}
+        continueEnabled={data?.continue_enabled ?? Boolean(data?.continue_href)}
+        onSaveDraft={() => {
+          void refetch();
+          toast.success("Draft saved");
+        }}
+        onContinue={() => {
+          if (!data?.continue_href) {
+            toast.error("Allocate halls before continuing.");
+            return;
+          }
+          continueTo(data.continue_href);
+        }}
+        headerActions={
+          <>
+            <CollegeAdminSecondaryButton
+              disabled={autoAllocate.isPending || !effectiveSessionId}
+              onClick={onAutoAllocate}
+            >
+              <RefreshCwIcon className="size-3.5" aria-hidden />
+              {data?.auto_allocate_label ?? "Auto-allocate"}
+            </CollegeAdminSecondaryButton>
+            <CollegeAdminPrimaryButton
+              disabled={confirm.isPending || !effectiveSessionId}
+              onClick={onConfirm}
+            >
+              <CheckIcon className="size-3.5" aria-hidden />
+              {data?.confirm_label ?? "Confirm"}
+            </CollegeAdminPrimaryButton>
+          </>
+        }
+      />
 
-      {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
+      {data?.sub_nav?.length && !sessionId ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
@@ -179,6 +212,14 @@ export function ExaminationHallSeatingManagementDashboard() {
                       </tbody>
                     </table>
                   </div>
+                ) : data.panel_empty_state ? (
+                  <ExaminationWorkflowPanelEmpty
+                    state={data.panel_empty_state}
+                    primaryDisabled={autoAllocate.isPending || !data.selected_session_id}
+                    onInlineAction={(key) => {
+                      if (key === "auto_allocate_seating") onAutoAllocate();
+                    }}
+                  />
                 ) : (
                   <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No exam halls configured for this session.</p>
                 )}

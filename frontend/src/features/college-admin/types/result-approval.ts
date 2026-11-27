@@ -1,4 +1,6 @@
 import type { ExaminationRegistrationSubNavItem } from "@/features/college-admin/types/examination-registration-shared";
+import type { ExaminationWorkflowStep } from "@/features/college-admin/types/examination-dashboard";
+import type { ExaminationWorkflowEmptyState } from "@/features/college-admin/types/examination-workflow-empty";
 import type { PoliciesPagination } from "@/features/college-admin/types/institution";
 
 export type ResultApprovalPageQuery = {
@@ -24,6 +26,14 @@ export type ResultApprovalRouteStep = {
 export type ResultApprovalPage = {
   page_title: string;
   page_subtitle: string;
+  panel_empty_state?: ExaminationWorkflowEmptyState | null;
+  back_href: string;
+  save_draft_label: string;
+  continue_label: string;
+  continue_href: string;
+  continue_enabled?: boolean;
+  workflow_steps: ExaminationWorkflowStep[];
+  workflow_active_key: string;
   return_label: string;
   approve_label: string;
   sub_nav: ExaminationRegistrationSubNavItem[];

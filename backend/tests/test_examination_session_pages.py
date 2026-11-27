@@ -127,3 +127,5 @@ async def test_examination_configuration_new_and_save(db_ready):
     saved = await save_examination_configuration_page(scope, save)
     assert saved.session_id
     assert saved.form.session_name == "Test End Semester"
+    assert saved.workflow_active_key == "create_examination"
+    assert any(s.key == "create_examination" and s.status == "active" for s in saved.workflow_steps)

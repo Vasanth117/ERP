@@ -19,6 +19,7 @@ from app.core.exceptions import AppError
 from app.modules.auth.models import User
 from app.modules.college_admin.academic_config_models import AcademicProgramme
 from app.modules.college_admin.examination_overview_service import _pick_focus_session
+from app.modules.college_admin.examination_workflow import empty_state_for_step, workflow_chrome
 from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
     ExamTimetableClashBanner,
@@ -30,6 +31,8 @@ from app.modules.college_admin.schemas import (
 )
 from app.modules.college_admin.student_administration_dashboard_page_service import _fmt_time_label
 from app.modules.college_admin.student_admin_models import StudentRecord
+from app.modules.students.curriculum_models import CourseCatalogReference
+from app.modules.students.enums import StudentEnrollmentStatus
 from app.modules.examinations.exam_cell_models import ExamSession
 from app.modules.examinations.exam_cell_registration_enums import ExamRegistrationStatus
 from app.modules.examinations.exam_cell_registration_models import ExamRegistration, ExamRegistrationSubject
@@ -177,6 +180,163 @@ async def _ensure_timetable(
     return doc
 
 
+async def _active_student_counts_by_programme(tenant_id: PydanticObjectId) -> dict[str, int]:
+    rows = await StudentRecord.find(
+        Eq(StudentRecord.tenant_id, tenant_id),
+        Eq(StudentRecord.enrollment_status, StudentEnrollmentStatus.ACTIVE),
+    ).to_list()
+    counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        if row.programme_code:
+            counts[row.programme_code.upper()] += 1
+    return counts
+
+
+async def _papers_from_term_catalog(
+    tenant_id: PydanticObjectId,
+    session: ExamSession,
+) -> dict[str, dict]:
+    """Build examination papers from programme curriculum for the session year/semester (all students)."""
+    catalog_rows = await CourseCatalogReference.find(
+        Eq(CourseCatalogReference.tenant_id, tenant_id),
+        Eq(CourseCatalogReference.academic_year_label, session.academic_year_label),
+        Eq(CourseCatalogReference.semester_label, session.semester_label),
+    ).to_list()
+    if not catalog_rows:
+        return {}
+
+    prog_counts = await _active_student_counts_by_programme(tenant_id)
+    papers: dict[str, dict] = {}
+    for row in catalog_rows:
+        prog = row.programme_code.upper()
+        course = row.course_code.upper()
+        paper_key = f"{prog}:{course}"
+        if paper_key in papers:
+            continue
+        subject_name = row.course_code
+        meta = getattr(row, "metadata", None) or {}
+        if isinstance(meta, dict) and meta.get("title"):
+            subject_name = str(meta["title"])
+        papers[paper_key] = {
+            "programme_code": prog,
+            "subject_code": row.course_code,
+            "course_code": course,
+            "subject_name": subject_name,
+            "student_count": prog_counts.get(prog, 0),
+        }
+    return papers
+
+
+async def _papers_from_registrations(
+    tenant_id: PydanticObjectId,
+    session: ExamSession,
+) -> dict[str, dict]:
+    subjects = await ExamRegistrationSubject.find(
+        Eq(ExamRegistrationSubject.tenant_id, tenant_id),
+        Eq(ExamRegistrationSubject.exam_session_id, session.id),
+    ).to_list()
+    if not subjects:
+        return {}
+
+    student_ids = {s.student_user_id for s in subjects}
+    records = await StudentRecord.find(
+        Eq(StudentRecord.tenant_id, tenant_id),
+        In(StudentRecord.user_id, list(student_ids)),
+    ).to_list()
+    prog_by_user = {r.user_id: (r.programme_code or "ALL").upper() for r in records}
+
+    papers: dict[str, dict] = {}
+    for sub in subjects:
+        prog = prog_by_user.get(sub.student_user_id, "ALL")
+        course = sub.course_code.upper()
+        paper_key = course if prog == "ALL" else f"{prog}:{course}"
+        if paper_key not in papers:
+            papers[paper_key] = {
+                "programme_code": prog,
+                "subject_code": sub.subject_code or sub.course_code,
+                "course_code": course,
+                "subject_name": sub.subject_code or sub.course_code,
+                "student_count": 0,
+                "students": set(),
+            }
+        papers[paper_key]["students"].add(sub.student_user_id)
+        if prog != "ALL":
+            papers[paper_key]["programme_code"] = prog
+    for info in papers.values():
+        info["student_count"] = len(info.pop("students", set()))
+    return papers
+
+
+async def _schedule_papers_into_timetable(
+    tenant_id: PydanticObjectId,
+    session: ExamSession,
+    timetable: ExamTimetable,
+    papers: dict[str, dict],
+) -> None:
+    if not papers:
+        return
+
+    by_programme: dict[str, list[str]] = defaultdict(list)
+    for paper_key, info in sorted(papers.items()):
+        by_programme[info["programme_code"]].append(paper_key)
+
+    rooms = await ExamRoom.find(
+        Eq(ExamRoom.tenant_id, tenant_id),
+        Eq(ExamRoom.exam_session_id, session.id),
+        Eq(ExamRoom.active, True),
+    ).to_list()
+    room_labels = [r.room_label for r in rooms] if rooms else ["Main Block"]
+
+    exam_start = as_utc_aware(session.examination_start_at).astimezone(_IST)
+    day_cursor = 0
+    room_i = 0
+    now = utcnow()
+
+    for prog_code, paper_keys in sorted(by_programme.items()):
+        idx = 0
+        while idx < len(paper_keys):
+            pair = paper_keys[idx : idx + 2]
+            local_day = (exam_start + timedelta(days=day_cursor)).date()
+            slot = "FN" if day_cursor % 2 == 0 else "AN"
+            start_hour = 9 if slot == "FN" else 14
+            local_start = datetime(local_day.year, local_day.month, local_day.day, start_hour, 0, tzinfo=_IST)
+            local_end = local_start + timedelta(hours=3)
+            group_label = f"{prog_code}-{session.semester_label}"
+            room = room_labels[room_i % len(room_labels)]
+            room_i += 1
+            for paper_key in pair:
+                info = papers[paper_key]
+                course_code = info["course_code"]
+                entry = ExamTimetableEntry(
+                    tenant_id=tenant_id,
+                    timetable_id=timetable.id,
+                    entry_code=f"TE-{uuid4().hex[:8].upper()}",
+                    course_code=course_code,
+                    subject_code=info["subject_code"],
+                    paper_code=info["subject_code"],
+                    programme_code=prog_code if prog_code != "ALL" else None,
+                    student_group_label=group_label,
+                    scheduled_start=local_start.astimezone(timezone.utc),
+                    scheduled_end=local_end.astimezone(timezone.utc),
+                    duration_minutes=180,
+                    shift_label=slot,
+                    session_label=slot,
+                    room_label=room,
+                    centre_code="MAIN",
+                    metadata={
+                        "subject_name": info.get("subject_name") or course_code,
+                        "eligible_students": int(info.get("student_count") or 0),
+                        "scope": "academic_term",
+                    },
+                )
+                await entry.insert()
+            idx += 2
+            day_cursor += 1
+
+    timetable.status = ExamTimetableStatus.DRAFT
+    timetable.updated_at = now
+
+
 async def _regenerate_entries(
     scope: AccessScope,
     user: User,
@@ -195,90 +355,16 @@ async def _regenerate_entries(
         entry.updated_at = now
         await entry.save()
 
-    subjects = await ExamRegistrationSubject.find(
-        Eq(ExamRegistrationSubject.tenant_id, tenant_id),
-        Eq(ExamRegistrationSubject.exam_session_id, session.id),
-    ).to_list()
-    if not subjects:
+    papers = await _papers_from_registrations(tenant_id, session)
+    if not papers:
+        papers = await _papers_from_term_catalog(tenant_id, session)
+
+    if not papers:
         timetable.updated_at = now
         await timetable.save()
         return
 
-    student_ids = {s.student_user_id for s in subjects}
-    records = await StudentRecord.find(
-        Eq(StudentRecord.tenant_id, tenant_id),
-        In(StudentRecord.user_id, list(student_ids)),
-    ).to_list()
-    prog_by_user = {r.user_id: (r.programme_code or "ALL").upper() for r in records}
-
-    papers: dict[str, dict] = {}
-    for sub in subjects:
-        prog = prog_by_user.get(sub.student_user_id, "ALL")
-        if sub.course_code not in papers:
-            papers[sub.course_code] = {
-                "programme_code": prog,
-                "subject_code": sub.subject_code or sub.course_code,
-                "students": set(),
-            }
-        papers[sub.course_code]["students"].add(sub.student_user_id)
-        if prog != "ALL":
-            papers[sub.course_code]["programme_code"] = prog
-
-    by_programme: dict[str, list[str]] = defaultdict(list)
-    for course_code, info in sorted(papers.items()):
-        by_programme[info["programme_code"]].append(course_code)
-
-    rooms = await ExamRoom.find(
-        Eq(ExamRoom.tenant_id, tenant_id),
-        Eq(ExamRoom.exam_session_id, session.id),
-        Eq(ExamRoom.active, True),
-    ).to_list()
-    room_labels = [r.room_label for r in rooms] if rooms else ["Main Block"]
-
-    exam_start = as_utc_aware(session.examination_start_at).astimezone(_IST)
-    day_cursor = 0
-    room_i = 0
-
-    for prog_code, course_list in sorted(by_programme.items()):
-        idx = 0
-        while idx < len(course_list):
-            pair = course_list[idx : idx + 2]
-            local_day = (exam_start + timedelta(days=day_cursor)).date()
-            slot = "FN" if day_cursor % 2 == 0 else "AN"
-            start_hour = 9 if slot == "FN" else 14
-            local_start = datetime(local_day.year, local_day.month, local_day.day, start_hour, 0, tzinfo=_IST)
-            local_end = local_start + timedelta(hours=3)
-            group_label = f"{prog_code}-{session.semester_label}"
-            room = room_labels[room_i % len(room_labels)]
-            room_i += 1
-            for course_code in pair:
-                entry = ExamTimetableEntry(
-                    tenant_id=tenant_id,
-                    timetable_id=timetable.id,
-                    entry_code=f"TE-{uuid4().hex[:8].upper()}",
-                    course_code=course_code.upper(),
-                    subject_code=papers[course_code]["subject_code"],
-                    paper_code=papers[course_code]["subject_code"],
-                    programme_code=prog_code if prog_code != "ALL" else None,
-                    student_group_label=group_label,
-                    scheduled_start=local_start.astimezone(timezone.utc),
-                    scheduled_end=local_end.astimezone(timezone.utc),
-                    duration_minutes=180,
-                    shift_label=slot,
-                    session_label=slot,
-                    room_label=room,
-                    centre_code="MAIN",
-                    metadata={
-                        "subject_name": course_code,
-                        "registered_students": len(papers[course_code]["students"]),
-                    },
-                )
-                await entry.insert()
-            idx += 2
-            day_cursor += 1
-
-    timetable.status = ExamTimetableStatus.DRAFT
-    timetable.updated_at = now
+    await _schedule_papers_into_timetable(tenant_id, session, timetable, papers)
     await timetable.save()
 
 
@@ -332,6 +418,7 @@ async def get_exam_timetable_management_page(
         return ExamTimetableManagementPageRead(
             page_title="Exam Timetable Management",
             page_subtitle="Generate and publish the timetable",
+            **workflow_chrome("generate_timetable", session_id),  # type: ignore[arg-type]
             regenerate_label="Regenerate",
             publish_label="Publish",
             session_filter_label="Exam session",
@@ -426,9 +513,13 @@ async def get_exam_timetable_management_page(
     publish_enabled = bool(timetable and total and not conflicts and timetable.status != ExamTimetableStatus.PUBLISHED)
     status_label = timetable.status.value.replace("_", " ").title() if timetable else "No timetable"
 
+    panel_empty = empty_state_for_step("generate_timetable", session.session_id) if not total else None
+    chrome = workflow_chrome("generate_timetable", session.session_id)
     return ExamTimetableManagementPageRead(
         page_title="Exam Timetable Management",
-        page_subtitle="Generate and publish the timetable",
+        page_subtitle=f"{chrome['step_progress_label']} · {session.name}",
+        panel_empty_state=panel_empty,
+        **chrome,  # type: ignore[arg-type]
         regenerate_label="Regenerate",
         publish_label="Publish",
         session_filter_label="Exam session",

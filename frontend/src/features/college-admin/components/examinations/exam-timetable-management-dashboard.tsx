@@ -1,15 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useExaminationCreationSessionId } from "@/features/college-admin/hooks/use-examination-creation-flow";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
-import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import { useExaminationWorkflowContinue } from "@/features/college-admin/components/examinations/examination-creation-workflow-header";
+import { ExaminationWorkflowOrPageHeading } from "@/features/college-admin/components/examinations/examination-workflow-or-page-heading";
+import { useExaminationCreationWorkflowVisible } from "@/features/college-admin/context/examination-creation-flow-context";
+import { ExaminationWorkflowPanelEmpty } from "@/features/college-admin/components/examinations/examination-workflow-panel-empty";
 import { toast } from "sonner";
 
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
 import { SendIcon } from "@/components/icons/erp/generated/send";
 import { TriangleAlertIcon } from "@/components/icons/erp/generated/triangle-alert";
-import { Button } from "@/components/ui/button";
+import {
+  CollegeAdminPrimaryButton,
+  CollegeAdminSecondaryButton,
+} from "@/features/college-admin/components/ui/college-admin-action-button";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import {
   useExamTimetableManagementPage,
@@ -59,8 +67,13 @@ function FilterSelect({
 
 
 export function ExamTimetableManagementDashboard() {
+  const searchParams = useSearchParams();
+  const inCreationModal = useExaminationCreationWorkflowVisible();
+  const creationSessionId = useExaminationCreationSessionId();
+  const sessionFromUrl = useMemo(() => creationSessionId ?? searchParams.get("session_id") ?? "", [creationSessionId, searchParams]);
+  const continueTo = useExaminationWorkflowContinue();
   const [page, setPage] = useState(1);
-  const [sessionId, setSessionId] = useState("");
+  const [sessionId, setSessionId] = useState(sessionFromUrl);
   const [programme, setProgramme] = useState("");
 
   useEffect(() => {
@@ -77,54 +90,95 @@ export function ExamTimetableManagementDashboard() {
   const publish = usePublishExamTimetable();
 
   useEffect(() => {
-    if (data?.selected_session_id && !sessionId) {
+    if (sessionFromUrl) {
+      setSessionId(sessionFromUrl);
+    } else if (data?.selected_session_id && !sessionId) {
       setSessionId(data.selected_session_id);
     }
-  }, [data?.selected_session_id, sessionId]);
+  }, [data?.selected_session_id, sessionId, sessionFromUrl]);
+
+  const effectiveSessionId = (data?.selected_session_id || sessionId || "").trim();
 
   const actionPayload = () => ({
-    session_id: data?.selected_session_id ?? sessionId,
+    session_id: effectiveSessionId,
     programme_code: programme || undefined,
     page,
   });
 
   const handleRegenerate = () => {
-    if (!data?.selected_session_id) return;
+    if (!effectiveSessionId) {
+      toast.error("Select an exam session before generating the timetable.");
+      return;
+    }
     regenerate.mutate(actionPayload(), {
-      onSuccess: () => toast.success("Timetable regenerated."),
+      onSuccess: (result) => {
+        void refetch();
+        if (!result.rows.length) {
+          toast.message(
+            "No papers found — map courses to this academic year and semester under Academics, then regenerate.",
+          );
+        } else {
+          toast.success("Timetable generated.");
+        }
+      },
       onError: onCollegeAdminMutationError,
     });
   };
 
   const handlePublish = () => {
-    if (!data?.selected_session_id) return;
+    if (!effectiveSessionId) {
+      toast.error("Select an exam session before publishing.");
+      return;
+    }
     publish.mutate(actionPayload(), {
-      onSuccess: () => toast.success("Timetable published."),
+      onSuccess: () => {
+        void refetch();
+        toast.success("Timetable published.");
+      },
       onError: onCollegeAdminMutationError,
     });
   };
 
   return (
     <div className="space-y-5" data-figma-frame="159:11789">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Exam Timetable Management"} subtitle={data?.page_subtitle ?? "—"} actions={<><Button
-            type="button"
-            variant="outline"
-            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
-            disabled={regenerate.isPending || !data?.selected_session_id}
-            onClick={handleRegenerate}
-          >
-            <RefreshCwIcon className="size-3.5" aria-hidden />
-            {data?.regenerate_label ?? "Regenerate"}
-          </Button>
-          <Button
-            type="button"
-            className="h-9 gap-1.5 bg-[#245dd8] text-xs font-medium hover:bg-[#1f4fb8]"
-            disabled={publish.isPending || !data?.publish_enabled}
-            onClick={handlePublish}
-          >
-            <SendIcon className="size-3.5" aria-hidden />
-            {data?.publish_label ?? "Publish"}
-          </Button></>} />
+      <ExaminationWorkflowOrPageHeading
+        pageTitle={data?.page_title ?? "Exam Timetable Management"}
+        pageSubtitle={data?.page_subtitle ?? "Generate and publish the timetable"}
+        backHref={data?.back_href ?? "/college-admin/examinations/internal-external-assessment"}
+        saveDraftLabel={data?.save_draft_label}
+        continueLabel={data?.continue_label}
+        workflowSteps={inCreationModal ? data?.workflow_steps : undefined}
+        sessionId={effectiveSessionId || undefined}
+        busy={regenerate.isPending || publish.isPending}
+        controlsDisabled={isLoading || !data}
+        continueEnabled={data?.continue_enabled ?? Boolean(data?.continue_href)}
+        onSaveDraft={() => {
+          void refetch();
+          toast.success("Draft saved");
+        }}
+        onContinue={() => {
+          if (!data?.continue_href) {
+            toast.error("Generate the timetable before continuing.");
+            return;
+          }
+          continueTo(data.continue_href);
+        }}
+        headerActions={
+          <>
+            <CollegeAdminSecondaryButton
+              disabled={regenerate.isPending || !effectiveSessionId}
+              onClick={handleRegenerate}
+            >
+              <RefreshCwIcon className="size-3.5" aria-hidden />
+              {data?.regenerate_label ?? "Regenerate"}
+            </CollegeAdminSecondaryButton>
+            <CollegeAdminPrimaryButton disabled={publish.isPending || !data?.publish_enabled} onClick={handlePublish}>
+              <SendIcon className="size-3.5" aria-hidden />
+              {data?.publish_label ?? "Publish"}
+            </CollegeAdminPrimaryButton>
+          </>
+        }
+      />
 
       <p className="text-[12px] text-[#9ca3af]">
         {data?.timetable_status_label ? `Status · ${data.timetable_status_label}` : null}
@@ -198,10 +252,16 @@ export function ExamTimetableManagementDashboard() {
                     </tbody>
                   </table>
                 </div>
+              ) : data.panel_empty_state ? (
+                <ExaminationWorkflowPanelEmpty
+                  state={data.panel_empty_state}
+                  primaryDisabled={regenerate.isPending || !effectiveSessionId}
+                  onInlineAction={(key) => {
+                    if (key === "regenerate_timetable") handleRegenerate();
+                  }}
+                />
               ) : (
-                <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">
-                  No timetable entries yet. Regenerate to build from confirmed registrations.
-                </p>
+                <p className="px-5 py-10 text-center text-sm text-[#9ca3af]">No timetable entries yet.</p>
               )}
               <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280]">
                 <span>{data.papers_count_label}</span>

@@ -37,6 +37,7 @@ from app.modules.college_admin.schemas import (
     ExaminationHallSeatingManagementPageRead,
     HallTicketAdministrationActionPayload,
     HallTicketAdministrationPageRead,
+    InternalExternalAssessmentCreatePatternPayload,
     InternalExternalAssessmentPageRead,
     InternalExternalAssessmentSavePayload,
     InvigilatorAllocationActionPayload,
@@ -83,6 +84,7 @@ from app.modules.college_admin.hall_ticket_administration_page_service import (
     release_hall_tickets_page,
 )
 from app.modules.college_admin.internal_external_assessment_page_service import (
+    create_session_assessment_pattern_page,
     get_internal_external_assessment_page,
     save_internal_external_assessment_page,
 )
@@ -587,6 +589,18 @@ async def internal_external_assessment_save_route(
 ) -> ApiResponse[InternalExternalAssessmentPageRead]:
     return success_response(
         await save_internal_external_assessment_page(scope, payload),
+        request_id=get_request_id(),
+    )
+
+
+@router.post("/assessment-pattern/create", response_model=ApiResponse[InternalExternalAssessmentPageRead])
+async def internal_external_assessment_create_pattern_route(
+    payload: InternalExternalAssessmentCreatePatternPayload,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[InternalExternalAssessmentPageRead]:
+    return success_response(
+        await create_session_assessment_pattern_page(scope, session_id=payload.session_id),
         request_id=get_request_id(),
     )
 

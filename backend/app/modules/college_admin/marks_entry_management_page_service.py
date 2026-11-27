@@ -14,7 +14,7 @@ from app.common.time import utcnow
 from app.core.exceptions import AppError
 from app.modules.auth.models import User
 from app.modules.college_admin.exam_registration_management_page_service import _select_session
-from app.modules.college_admin.examination_dashboard_page_service import _workflow_active_key, _workflow_steps
+from app.modules.college_admin.examination_workflow import empty_state_for_step, workflow_chrome
 from app.modules.college_admin.examination_marks_assessment_nav import examination_marks_assessment_sub_nav
 from app.modules.college_admin.examination_overview_service import _pick_focus_session
 from app.modules.college_admin.policy import require_college_tenant_scope
@@ -148,6 +148,7 @@ async def get_marks_entry_management_page(
         return MarksEntryManagementPageRead(
             page_title="Marks Entry Management",
             page_subtitle="Track marks entry progress",
+            **workflow_chrome("marks_entry", session_id),  # type: ignore[arg-type]
             send_reminders_label="Send reminders",
             lock_entry_label="Lock entry",
             sub_nav=examination_marks_assessment_sub_nav("marks-entry-management"),
@@ -156,14 +157,12 @@ async def get_marks_entry_management_page(
             progress_rows=[],
             showing_label="0 of 0 papers",
             pagination=empty_pagination,
-            workflow_steps=_workflow_steps("marks_entry"),
             selected_session_id="",
             footer_disclaimer="Live institutional data · Marks entry · All times IST",
             footer_snapshot_label="Sample snapshot",
             generated_at=now,
         )
 
-    active_key = await _workflow_active_key(tenant_id, session, has_sessions=True)
     all_rows = await _build_progress_rows(tenant_id, session)
     total = len(all_rows)
     total_pages = max(1, math.ceil(total / _PAGE_SIZE)) if total else 0
@@ -171,9 +170,13 @@ async def get_marks_entry_management_page(
     start = (page - 1) * _PAGE_SIZE
     page_rows = all_rows[start : start + _PAGE_SIZE]
 
+    panel_empty = empty_state_for_step("marks_entry", session.session_id) if total == 0 else None
+    chrome = workflow_chrome("marks_entry", session.session_id)
     return MarksEntryManagementPageRead(
         page_title="Marks Entry Management",
-        page_subtitle="Track marks entry progress",
+        page_subtitle=f"{chrome['step_progress_label']} · {session.name}",
+        panel_empty_state=panel_empty,
+        **chrome,  # type: ignore[arg-type]
         send_reminders_label="Send reminders",
         lock_entry_label="Lock entry",
         sub_nav=examination_marks_assessment_sub_nav("marks-entry-management"),
@@ -190,7 +193,6 @@ async def get_marks_entry_management_page(
             has_previous=page > 1,
             has_next=page < total_pages,
         ),
-        workflow_steps=_workflow_steps(active_key),
         selected_session_id=session.session_id,
         footer_disclaimer="Live institutional data · Marks entry · All times IST",
         footer_snapshot_label="Sample snapshot",

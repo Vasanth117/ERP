@@ -237,15 +237,19 @@ export function fetchInternalExternalAssessmentPage(params?: { session_id?: stri
   );
 }
 
-export function saveInternalExternalAssessment(payload: {
-  session_id: string;
-  config_id: string;
-  moderation_range: string;
-  pass_mark_percent: string;
-}) {
+export function saveInternalExternalAssessment(
+  payload: import("@/features/college-admin/types/internal-external-assessment").InternalExternalAssessmentSavePayload,
+) {
   return apiRequest<import("@/features/college-admin/types/internal-external-assessment").InternalExternalAssessmentPage>(
     "/college-admin/examination-administration/assessment-pattern/save",
     { method: "POST", body: JSON.stringify(payload) },
+  );
+}
+
+export function createInternalExternalAssessmentPattern(sessionId: string) {
+  return apiRequest<import("@/features/college-admin/types/internal-external-assessment").InternalExternalAssessmentPage>(
+    "/college-admin/examination-administration/assessment-pattern/create",
+    { method: "POST", body: JSON.stringify({ session_id: sessionId }) },
   );
 }
 

@@ -1,4 +1,6 @@
 import type { PoliciesPagination } from "@/features/college-admin/types/institution";
+import type { ExaminationWorkflowStep } from "@/features/college-admin/types/examination-dashboard";
+import type { ExaminationWorkflowEmptyState } from "@/features/college-admin/types/examination-workflow-empty";
 
 export type ExamTimetableManagementPageQuery = {
   page?: number;
@@ -26,6 +28,14 @@ export type ExamTimetableManagementRow = {
 export type ExamTimetableManagementPage = {
   page_title: string;
   page_subtitle: string;
+  panel_empty_state?: ExaminationWorkflowEmptyState | null;
+  back_href: string;
+  save_draft_label: string;
+  continue_label: string;
+  continue_href: string;
+  continue_enabled?: boolean;
+  workflow_steps: ExaminationWorkflowStep[];
+  workflow_active_key: string;
   regenerate_label: string;
   publish_label: string;
   session_filter_label: string;
