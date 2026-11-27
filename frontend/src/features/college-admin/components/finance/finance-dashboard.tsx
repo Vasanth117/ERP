@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -168,17 +169,7 @@ export function FinanceDashboard() {
   return (
     <div className="space-y-5" data-figma-frame="160:2199">
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-              {data?.page_title ?? "Finance Dashboard"}
-            </h2>
-            <p className="mt-1 text-[14px] text-[#6b7280]">
-              {data?.page_subtitle ?? "Fee collection and payment monitoring"}
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Button
+        <CollegeAdminModulePageHeading title={data?.page_title ?? "Finance Dashboard"} subtitle={data?.page_subtitle ?? "Fee collection and payment monitoring"} actions={<><Button
               type="button"
               variant="outline"
               className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
@@ -194,9 +185,7 @@ export function FinanceDashboard() {
             >
               {data?.open_portal_label ?? "Open Finance portal"}
               <CollegeAdminChevronRight className="size-3.5" aria-hidden />
-            </Link>
-          </div>
-        </div>
+            </Link></>} />
 
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect

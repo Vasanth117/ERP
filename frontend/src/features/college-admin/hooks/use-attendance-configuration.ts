@@ -5,10 +5,12 @@ import {
   fetchAttendanceConfigurationPage,
   fetchAttendanceRulesPoliciesPage,
   saveAttendanceConfiguration,
+  saveAttendanceInstitutionalPolicy,
 } from "@/features/college-admin/api/attendance-configuration";
 import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 import type {
   AttendanceConfigurationSavePayload,
+  AttendanceInstitutionalPolicySavePayload,
   AttendanceRulesPoliciesQuery,
 } from "@/features/college-admin/types/attendance-configuration";
 
@@ -34,5 +36,17 @@ export function useAttendanceRulesPoliciesPage(params?: AttendanceRulesPoliciesQ
   return useQuery({
     queryKey: collegeAdminQueryKeys.attendanceRulesPolicies(params),
     queryFn: () => fetchAttendanceRulesPoliciesPage(params),
+  });
+}
+
+export function useSaveAttendanceInstitutionalPolicy(params?: AttendanceRulesPoliciesQuery) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: AttendanceInstitutionalPolicySavePayload) =>
+      saveAttendanceInstitutionalPolicy(payload, params),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.attendanceRulesPolicies(params) });
+      await queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.attendanceConfiguration() });
+    },
   });
 }

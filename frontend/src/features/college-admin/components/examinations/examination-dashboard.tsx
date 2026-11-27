@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -145,17 +146,7 @@ export function ExaminationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:10708">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Examination Dashboard"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Exam sessions, registration and results"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Examination Dashboard"} subtitle={data?.page_subtitle ?? "Exam sessions, registration and results"} actions={<><Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
@@ -170,9 +161,7 @@ export function ExaminationDashboard() {
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_examination_label ?? "Create examination" } />
-          </Link>
-        </div>
-      </div>
+          </Link></>} />
 
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>

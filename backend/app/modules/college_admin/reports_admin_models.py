@@ -64,6 +64,10 @@ class InstitutionReportJob(Document):
     error_message: str | None = None
     snapshot_id: str | None = None
     schedule_cron: str | None = None
+    schedule_frequency_label: str | None = None
+    schedule_recipients: list[str] = Field(default_factory=list)
+    schedule_format: str = "excel"
+    schedule_paused: bool = False
     next_run_at: datetime | None = None
     actor_id: PydanticObjectId | None = None
     created_at: datetime = Field(default_factory=utcnow)
@@ -109,6 +113,34 @@ class InstitutionAnalyticsSnapshot(Document):
         indexes = [
             IndexModel([("tenant_id", ASCENDING), ("snapshot_id", ASCENDING)], unique=True, name="unique_analytics_snapshot"),
             IndexModel([("tenant_id", ASCENDING), ("report_key", ASCENDING), ("generated_at", DESCENDING)], name="snapshots_by_report"),
+        ]
+
+
+class InstitutionReportsAcademicDefinition(Document):
+    tenant_id: PydanticObjectId
+    page_key: str = Field(max_length=48)
+    report_key: str = Field(max_length=64)
+    title: str = Field(max_length=200)
+    period_label: str = Field(max_length=80)
+    export_formats: list[str] = Field(default_factory=list)
+    schedule_label: str = Field(max_length=40)
+    last_run_at: datetime | None = None
+    sort_order: int = 0
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "institution_reports_academic_definitions"
+        indexes = [
+            IndexModel(
+                [("tenant_id", ASCENDING), ("page_key", ASCENDING), ("report_key", ASCENDING)],
+                unique=True,
+                name="unique_reports_academic_definition",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("page_key", ASCENDING), ("sort_order", ASCENDING)],
+                name="reports_academic_by_page",
+            ),
         ]
 
 

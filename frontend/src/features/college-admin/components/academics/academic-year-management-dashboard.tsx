@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -120,17 +121,7 @@ export function AcademicYearManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:139876">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Academic Year Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Create, open and close academic years"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <CollegeAdminSecondaryButton
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Academic Year Management"} subtitle={data?.page_subtitle ?? "Create, open and close academic years"} actions={<><CollegeAdminSecondaryButton
             disabled={!data?.close_current_year_enabled || closeYear.isPending}
             onClick={() => closeYear.mutate()}
           >
@@ -139,9 +130,7 @@ export function AcademicYearManagementDashboard() {
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={createHref}>
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_academic_year_label ?? "New academic year" } />
-          </CollegeAdminPrimaryLink>
-        </div>
-      </div>
+          </CollegeAdminPrimaryLink></>} />
 
       {data?.sub_nav?.length ? <YearsSemestersSubNav items={data.sub_nav} /> : null}
 

@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -184,17 +185,7 @@ export function InstitutionalPoliciesDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="72:8805">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Institutional Policies"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Policies published to students, faculty and staff"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Institutional Policies"} subtitle={data?.page_subtitle ?? "Policies published to students, faculty and staff"} actions={<><Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 border-[#dce3ec] text-xs"
@@ -211,9 +202,7 @@ export function InstitutionalPoliciesDashboard() {
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8] disabled:opacity-50"
           >
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_policy_label ?? "Add policy" } />
-          </button>
-        </div>
-      </div>
+          </button></>} />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative max-w-md flex-1">

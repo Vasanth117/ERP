@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -161,13 +162,7 @@ export function EmployeeManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="160:7538">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{view.page_title}</h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{view.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
+      <CollegeAdminModulePageHeading title={view.page_title} subtitle={view.page_subtitle} actions={<><button
             type="button"
             onClick={handleExport}
             disabled={!data}
@@ -181,9 +176,7 @@ export function EmployeeManagementDashboard() {
             className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
           >
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={view.add_employee_label} />
-          </Link>
-        </div>
-      </div>
+          </Link></>} />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         <div className="relative max-w-md flex-1">

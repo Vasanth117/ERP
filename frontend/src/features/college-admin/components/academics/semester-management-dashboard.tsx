@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -75,25 +76,13 @@ export function SemesterManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:140138">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Semester Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Configure semesters, teaching periods and academic milestones"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <CollegeAdminSecondaryButton onClick={handleExport} disabled={isLoading || !data}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Semester Management"} subtitle={data?.page_subtitle ?? "Configure semesters, teaching periods and academic milestones"} actions={<><CollegeAdminSecondaryButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={createHref}>
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.new_semester_label ?? "New semester" } />
-          </CollegeAdminPrimaryLink>
-        </div>
-      </div>
+          </CollegeAdminPrimaryLink></>} />
 
       {data?.sub_nav?.length ? <YearsSemestersSubNav items={data.sub_nav} /> : null}
 

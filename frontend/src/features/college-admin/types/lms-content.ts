@@ -1,0 +1,65 @@
+import type { PoliciesPagination } from "@/features/college-admin/types/institution";
+import type { UserDashboardKpi } from "@/features/college-admin/types/user-management-dashboard";
+
+export type LmsLearningMaterialRow = {
+  row_key: string;
+  material_label: string;
+  course_code: string;
+  type_label: string;
+  uploaded_by_label: string;
+  date_label: string;
+  status_label: string;
+  status_tone: string;
+  detail_href: string;
+};
+
+export type LmsLearningMaterialManagementPage = {
+  page_title: string;
+  page_subtitle: string;
+  primary_action_label: string;
+  primary_action_href: string;
+  materials_section_title: string;
+  table_headers: string[];
+  material_rows: LmsLearningMaterialRow[];
+  empty_table_message: string;
+  showing_label: string;
+  pagination: PoliciesPagination;
+  generated_at: string;
+};
+
+export type LmsLearningMaterialPageQuery = {
+  page?: number;
+  page_size?: number;
+};
+
+export type LmsVideoLectureRow = {
+  row_key: string;
+  lecture_label: string;
+  course_code: string;
+  length_label: string;
+  views_label: string;
+  uploaded_label: string;
+  status_label: string;
+  status_tone: string;
+  detail_href: string;
+};
+
+export type LmsVideoLectureManagementPage = {
+  page_title: string;
+  page_subtitle: string;
+  primary_action_label: string;
+  primary_action_href: string;
+  kpis: UserDashboardKpi[];
+  videos_section_title: string;
+  table_headers: string[];
+  video_rows: LmsVideoLectureRow[];
+  empty_table_message: string;
+  count_footer_label: string;
+  pagination: PoliciesPagination;
+  generated_at: string;
+};
+
+export type LmsVideoLecturePageQuery = {
+  page?: number;
+  page_size?: number;
+};

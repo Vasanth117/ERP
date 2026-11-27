@@ -1,4 +1,5 @@
 "use client";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
@@ -111,25 +112,13 @@ export function ProgrammeManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:140372">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Programme Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Degree programmes, intake and duration offered by the college"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <CollegeAdminSecondaryButton onClick={handleExport} disabled={!data}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Programme Management"} subtitle={data?.page_subtitle ?? "Degree programmes, intake and duration offered by the college"} actions={<><CollegeAdminSecondaryButton onClick={handleExport} disabled={!data}>
             <CollegeAdminDownload className="size-3.5" />
             {data?.export_label ?? "Export"}
           </CollegeAdminSecondaryButton>
           <CollegeAdminPrimaryLink href={createHref}>
             <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.add_programme_label ?? "Add programme" } />
-          </CollegeAdminPrimaryLink>
-        </div>
-      </div>
+          </CollegeAdminPrimaryLink></>} />
 
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
         <div className="relative max-w-xl flex-1">

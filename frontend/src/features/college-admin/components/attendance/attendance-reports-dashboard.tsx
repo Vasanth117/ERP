@@ -1,4 +1,6 @@
 "use client";
+
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import { useState } from "react";
@@ -41,7 +43,7 @@ export function AttendanceReportsDashboard() {
   };
 
   return (
-    <div className="space-y-5" data-figma-frame="159:10420">
+    <CollegeAdminModulePageLayout figmaFrame="159:10420">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
@@ -146,6 +148,6 @@ export function AttendanceReportsDashboard() {
           </>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

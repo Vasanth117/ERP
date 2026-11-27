@@ -71,6 +71,10 @@ class ReportJobRead(BaseModel):
     error_message: str | None
     snapshot_id: str | None
     schedule_cron: str | None
+    schedule_frequency_label: str | None = None
+    schedule_recipients: list[str] = Field(default_factory=list)
+    schedule_format: str = "excel"
+    schedule_paused: bool = False
     next_run_at: datetime | None
     created_at: datetime
     completed_at: datetime | None
@@ -80,6 +84,10 @@ class ReportScheduleRequest(BaseModel):
     report_key: str
     filter_id: str | None = None
     schedule_cron: str = Field(min_length=5, max_length=120)
+    frequency_label: str | None = Field(default=None, max_length=40)
+    export_format: str = Field(default="excel", max_length=16)
+    recipients: list[str] = Field(default_factory=list)
+    paused: bool = False
 
 
 class AnalyticsSnapshotRead(BaseModel):

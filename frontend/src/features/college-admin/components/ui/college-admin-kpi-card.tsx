@@ -139,7 +139,24 @@ export function resolveCollegeAdminKpiCardTone({
   return collegeAdminKpiToneForKey(kpiKey ?? label);
 }
 
+const KPI_INDEX_FALLBACK_ICONS: ErpIconName[] = [
+  "layout-grid",
+  "layers",
+  "chart-bar",
+  "clipboard-check",
+  "wallet",
+  "calendar-days",
+  "users",
+  "file-text",
+  "graduation-cap",
+  "building-2",
+];
+
 const KPI_KEY_ICON: Array<{ test: (key: string, label: string) => boolean; icon: ErpIconName }> = [
+  { test: (k) => k === "registered", icon: "user-check" },
+  { test: (k) => k === "hall_tickets", icon: "life-buoy" },
+  { test: (k) => k === "not_eligible", icon: "circle-x" },
+  { test: (k) => k === "papers_overdue" || k.includes("papers_over"), icon: "file-text" },
   { test: (k, l) => k.includes("upload") || l.includes("upload"), icon: "upload" },
   { test: (k, l) => k.includes("import") || l.includes("import"), icon: "download" },
   { test: (k, l) => k.includes("calendar") || l.includes("calendar") || l.includes("semester"), icon: "calendar-days" },
@@ -179,13 +196,13 @@ const KPI_KEY_ICON: Array<{ test: (key: string, label: string) => boolean; icon:
   { test: (k, l) => k.includes("total"), icon: "layers" },
 ];
 
-export function resolveCollegeAdminKpiIconSlug(key: string, label: string): ErpIconName {
+export function resolveCollegeAdminKpiIconSlug(key: string, label: string, index = 0): ErpIconName {
   const k = key.toLowerCase();
   const l = label.toLowerCase();
   for (const rule of KPI_KEY_ICON) {
     if (rule.test(k, l)) return rule.icon;
   }
-  return "layout-grid";
+  return KPI_INDEX_FALLBACK_ICONS[Math.abs(index) % KPI_INDEX_FALLBACK_ICONS.length] ?? "layout-grid";
 }
 
 function ErpKpiIcon({ slug, className }: { slug: ErpIconName; className?: string }) {
@@ -237,7 +254,7 @@ export function CollegeAdminKpiCard({
   const key = kpiKey ?? label;
   const cardTone = resolveCollegeAdminKpiCardTone({ tone, index, kpiKey: key, label });
   const styles = TONE_STYLES[cardTone];
-  const slug = iconSlug ?? resolveCollegeAdminKpiIconSlug(key, label);
+  const slug = iconSlug ?? resolveCollegeAdminKpiIconSlug(key, label, index ?? 0);
   const hintClass = hintToneClass(hintTone) ?? styles.hint;
   const resolvedValueTone =
     valueTone ?? (hintTone === "danger" || hintTone === "error" ? hintTone : undefined);

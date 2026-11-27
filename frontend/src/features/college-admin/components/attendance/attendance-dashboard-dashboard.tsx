@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -246,7 +247,7 @@ export function AttendanceDashboardDashboard() {
   }, [data]);
 
   return (
-    <div className="space-y-5" data-figma-frame="159:6844">
+    <CollegeAdminModulePageLayout figmaFrame="159:6844">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
@@ -373,6 +374,6 @@ export function AttendanceDashboardDashboard() {
           </div>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

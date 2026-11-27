@@ -401,6 +401,7 @@ def document_models() -> list[type]:
         LmsContentCategory,
         LmsCourseMapping,
         LmsPublishingPolicy,
+        LmsScheduledReport,
     )
     from app.modules.college_admin.reports_admin_models import (
         InstitutionAnalyticsSnapshot,
@@ -409,6 +410,7 @@ def document_models() -> list[type]:
         InstitutionReportExport,
         InstitutionReportFilter,
         InstitutionReportJob,
+        InstitutionReportsAcademicDefinition,
     )
     from app.modules.college_admin.workflow_admin_models import (
         InstitutionApprovalHistory,
@@ -1375,12 +1377,14 @@ def document_models() -> list[type]:
         LmsContentCategory,
         LmsPublishingPolicy,
         LmsConfigurationHistory,
+        LmsScheduledReport,
         InstitutionReportDefinition,
         InstitutionReportFilter,
         InstitutionReportJob,
         InstitutionReportExport,
         InstitutionAnalyticsSnapshot,
         InstitutionReportAccessLog,
+        InstitutionReportsAcademicDefinition,
         InstitutionWorkflowDefinition,
         InstitutionWorkflowStage,
         InstitutionWorkflowInstance,

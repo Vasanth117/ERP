@@ -234,7 +234,7 @@ export function AttendanceOverviewDashboard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link
-            href="/college-admin/attendance-administration/shortages"
+            href="/college-admin/attendance/attendance-shortage-report"
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#e5e7eb] bg-white px-3 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
           >
             <MailIcon className="size-3.5" />
@@ -326,14 +326,14 @@ export function AttendanceOverviewDashboard() {
               <div className="space-y-4 xl:col-span-2">
                 <Panel
                   title="Daily student attendance"
-                  actionHref="/college-admin/attendance-administration"
+                  actionHref="/college-admin/attendance/attendance-dashboard"
                   actionLabel="Attendance administration →"
                 >
                   <DailyAttendanceChart points={chartPoints} />
                 </Panel>
                 <Panel
                   title="Department-wise attendance"
-                  actionHref="/college-admin/attendance-administration/summaries/departments"
+                  actionHref="/college-admin/attendance/department-wise-attendance"
                   actionLabel="View all departments →"
                 >
                   {data.department_rows.length ? (
@@ -383,7 +383,7 @@ export function AttendanceOverviewDashboard() {
                 <Panel title="Attendance by year">
                   <YearAttendanceBars items={yearBars} />
                 </Panel>
-                <Panel title="Correction requests" actionHref="/college-admin/attendance-administration/corrections" actionLabel="View all →">
+                <Panel title="Correction requests" actionHref="/college-admin/attendance/attendance-correction-requests" actionLabel="View all →">
                   <ul className="divide-y divide-[#f1f5f9]">
                     {data.correction_requests.map((item) => (
                       <li key={item.bucket_key} className="flex items-center justify-between gap-2 py-3 first:pt-0">
@@ -393,7 +393,7 @@ export function AttendanceOverviewDashboard() {
                     ))}
                   </ul>
                 </Panel>
-                <Panel title="Shortage alerts" actionHref="/college-admin/attendance-administration/shortages" actionLabel="View shortage report →">
+                <Panel title="Shortage alerts" actionHref="/college-admin/attendance/attendance-shortage-report" actionLabel="View shortage report →">
                   <ul className="divide-y divide-[#f1f5f9]">
                     {data.shortage_alerts.map((item) => (
                       <li key={item.alert_key} className="flex items-center justify-between gap-2 py-3 first:pt-0">

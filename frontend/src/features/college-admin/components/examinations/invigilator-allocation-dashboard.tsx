@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { RefreshCwIcon } from "@/components/icons/erp/generated/refresh-cw";
@@ -110,13 +111,7 @@ export function InvigilatorAllocationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="159:13433">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">{data?.page_title ?? "Invigilator Allocation"}</h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle ?? "Duty roster for the session"}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <Button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Invigilator Allocation"} subtitle={data?.page_subtitle ?? "Duty roster for the session"} actions={<><Button
             type="button"
             variant="outline"
             className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium"
@@ -134,9 +129,7 @@ export function InvigilatorAllocationDashboard() {
           >
             <SendIcon className="size-3.5" aria-hidden />
             {data?.publish_roster_label ?? "Publish roster"}
-          </Button>
-        </div>
-      </div>
+          </Button></>} />
 
       {data?.sub_nav?.length ? <ExaminationRegistrationSubNav items={data.sub_nav} /> : null}
 

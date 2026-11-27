@@ -2,6 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { toast } from "sonner";
 
 import { CheckIcon } from "@/components/icons/erp/generated/check";
@@ -181,15 +182,7 @@ export function PermissionManagementDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:126902">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Permission Management"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">{data?.page_subtitle}</p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <button
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Permission Management"} subtitle={data?.page_subtitle} actions={<><button
             type="button"
             disabled={!data || isBusy}
             onClick={() => handleExport()}
@@ -206,9 +199,7 @@ export function PermissionManagementDashboard() {
           >
             <CheckIcon className="size-3.5" aria-hidden />
             {data?.save_changes_label ?? "Save changes"}
-          </button>
-        </div>
-      </div>
+          </button></>} />
 
       {data?.matrix_read_only_reason ? (
         <div className="rounded-xl border border-[#e8ecf2] bg-[#f9fafb] px-4 py-3 text-[13px] text-[#6b7280]">

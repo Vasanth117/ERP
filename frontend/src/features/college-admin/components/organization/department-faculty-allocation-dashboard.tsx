@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { onCollegeAdminMutationError } from "@/features/college-admin/context/college-admin-validation-context";
 import { toast } from "sonner";
@@ -183,26 +184,14 @@ export function DepartmentFacultyAllocationDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:134506">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Department Faculty Allocation"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Allocate faculty to departments and balance teaching capacity"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Department Faculty Allocation"} subtitle={data?.page_subtitle ?? "Allocate faculty to departments and balance teaching capacity"} actions={<><CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export"}
           </CollegeAdminOutlineButton>
           <CollegeAdminPrimaryButton onClick={scrollToForm} disabled={!data || !allocateEnabled}>
             {allocateEnabled ? <PlusIcon className="size-3.5" aria-hidden /> : null}
             {collegeAdminActionLabel(data?.allocate_faculty_label ?? "Allocate faculty")}
-          </CollegeAdminPrimaryButton>
-        </div>
-      </div>
+          </CollegeAdminPrimaryButton></>} />
 
       {data ? (
         <div className="flex flex-col gap-3 rounded-xl border border-[#e8ecf2] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">

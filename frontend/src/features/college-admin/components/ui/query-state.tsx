@@ -14,7 +14,7 @@ type QueryStateProps = {
   emptyMessage?: string;
   onRetry?: () => void;
   query?: Pick<UseQueryResult, "isLoading" | "isError" | "error" | "refetch">;
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 export function QueryState({

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
@@ -24,8 +25,11 @@ from app.modules.college_admin.policy import require_college_tenant_scope
 from app.modules.college_admin.schemas import (
     AttendanceConfigurationFieldMeta,
     AttendanceConfigurationPageRead,
+    AttendanceConfigurationPolicyPreview,
     AttendanceConfigurationSave,
+    AttendanceConfigurationSummaryItem,
     AttendanceConfigurationToggleRule,
+    AttendanceInstitutionalPolicySave,
     AttendanceRulesPoliciesPageRead,
     AttendanceRulesPolicyTableRow,
     InstitutionFieldOption,
@@ -157,6 +161,69 @@ async def _ensure_policy_catalog(tenant_id: PydanticObjectId) -> list[Attendance
     return rows
 
 
+def _option_label(options: list[InstitutionFieldOption], value: str) -> str:
+    return next((o.label for o in options if o.value == value), value)
+
+
+_MARKING_DETAIL: dict[str, str] = {
+    "marking_window_key": "Faculty must submit attendance before this daily cutoff.",
+    "correction_window_key": "Students and approvers may request corrections within this window.",
+    "late_mark_after_key": "Marks recorded after this delay from session start are flagged as late.",
+    "session_length_key": "Default class length used for timetable and attendance sessions.",
+}
+
+
+def _configuration_summary(cfg: InstitutionAttendanceMarkingConfig) -> list[AttendanceConfigurationSummaryItem]:
+    items = [
+        AttendanceConfigurationSummaryItem(
+            key="marking_window_key",
+            label="Marking window",
+            value_label=_option_label(_MARKING_WINDOW_OPTIONS, cfg.marking_window_key),
+            section_key="marking",
+            detail_description=_MARKING_DETAIL["marking_window_key"],
+        ),
+        AttendanceConfigurationSummaryItem(
+            key="correction_window_key",
+            label="Correction window",
+            value_label=_option_label(_CORRECTION_WINDOW_OPTIONS, cfg.correction_window_key),
+            section_key="marking",
+            detail_description=_MARKING_DETAIL["correction_window_key"],
+        ),
+        AttendanceConfigurationSummaryItem(
+            key="late_mark_after_key",
+            label="Late mark after",
+            value_label=_option_label(_LATE_MARK_OPTIONS, cfg.late_mark_after_key),
+            section_key="marking",
+            detail_description=_MARKING_DETAIL["late_mark_after_key"],
+        ),
+        AttendanceConfigurationSummaryItem(
+            key="session_length_key",
+            label="Session length",
+            value_label=_option_label(_SESSION_LENGTH_OPTIONS, cfg.session_length_key),
+            section_key="marking",
+            detail_description=_MARKING_DETAIL["session_length_key"],
+        ),
+    ]
+    for rule in _toggle_rules(cfg):
+        enabled = rule.enabled
+        items.append(
+            AttendanceConfigurationSummaryItem(
+                key=rule.key,
+                label=rule.label,
+                value_label="On" if enabled else "Off",
+                section_key="behaviour",
+                detail_description=rule.description,
+                value_tone="success" if enabled else "muted",
+            ),
+        )
+    return items
+
+
+def _slug_policy_key(title: str) -> str:
+    base = re.sub(r"[^a-z0-9]+", "_", title.lower()).strip("_")[:48]
+    return base or "custom_policy"
+
+
 def _field_meta() -> list[AttendanceConfigurationFieldMeta]:
     return [
         AttendanceConfigurationFieldMeta(key="marking_window_key", label="Marking window"),
@@ -194,15 +261,33 @@ async def get_attendance_configuration_page(scope: AccessScope) -> AttendanceCon
     tenant_id = require_college_tenant_scope(scope)
     now = utcnow()
     cfg = await _get_or_create_marking_config(tenant_id, scope.user_id)
-    await _ensure_policy_catalog(tenant_id)
+    catalog = await _ensure_policy_catalog(tenant_id)
+    policy_preview = [
+        AttendanceConfigurationPolicyPreview(
+            row_key=row.policy_key,
+            policy_title=row.title,
+            value_label=row.value_label,
+            applies_to_label=row.applies_to_label,
+        )
+        for row in catalog[:3]
+    ]
 
     return AttendanceConfigurationPageRead(
         page_title="Attendance Configuration",
-        page_subtitle="Marking windows and sessions",
+        page_subtitle="Current marking windows, sessions, and behaviour",
         cancel_label="Cancel",
-        save_label="Save",
+        save_label="Save changes",
+        edit_settings_label="Edit configuration",
+        current_settings_section_title="Current configuration",
+        view_settings_description="These settings apply institution-wide. Tap a row for details, edit to change values, or open policies and reports below.",
         rules_policies_href="/college-admin/attendance/attendance-rules-policies",
         rules_policies_link_label="Rules & policies",
+        reports_href="/college-admin/attendance/attendance-reports",
+        reports_link_label="Attendance reports",
+        related_policies_section_title="Institutional policies",
+        related_policies_description="Preview of active policy rows linked to marking and eligibility.",
+        policy_preview_rows=policy_preview,
+        summary_items=_configuration_summary(cfg),
         marking_section_title="Marking rules",
         behaviour_section_title="Behaviour",
         marking_window_key=cfg.marking_window_key,
@@ -329,9 +414,11 @@ async def get_attendance_rules_policies_page(
         page_title="Attendance Rules & Policies",
         page_subtitle="Minimum attendance and condonation",
         configuration_href="/college-admin/attendance/attendance-configuration",
+        configuration_edit_href="/college-admin/attendance/attendance-configuration?edit=1",
         back_label="Back to configuration",
-        cancel_label="Cancel",
-        save_label="Save",
+        add_policy_label="Add policy",
+        edit_policy_label="Edit",
+        edit_marking_settings_label="Edit marking settings",
         policies_section_title="Policies",
         policies_table_headers=["Policy", "Value", "Applies to", "Effective", "Status"],
         policy_rows=table_rows,
@@ -340,3 +427,65 @@ async def get_attendance_rules_policies_page(
         footer_snapshot_label=_fmt_snapshot(now),
         generated_at=now,
     )
+
+
+async def save_institutional_policy_row(
+    scope: AccessScope,
+    payload: AttendanceInstitutionalPolicySave,
+    *,
+    page: int = 1,
+    page_size: int = _POLICIES_PAGE_SIZE,
+) -> AttendanceRulesPoliciesPageRead:
+    authorize(scope, Permission.ATTENDANCE_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    now = utcnow()
+
+    if payload.policy_key:
+        row = await AttendanceInstitutionalPolicyRow.find_one(
+            Eq(AttendanceInstitutionalPolicyRow.tenant_id, tenant_id),
+            Eq(AttendanceInstitutionalPolicyRow.policy_key, payload.policy_key),
+        )
+        if row is None:
+            raise AppError(code="NOT_FOUND", message="Policy not found", status_code=404)
+        row.title = payload.title.strip()
+        row.value_label = payload.value_label.strip()
+        row.applies_to_label = payload.applies_to_label.strip()
+        row.is_active = payload.is_active
+        row.updated_at = now
+        await row.save()
+    else:
+        key = _slug_policy_key(payload.title)
+        suffix = 0
+        candidate = key
+        while await AttendanceInstitutionalPolicyRow.find_one(
+            Eq(AttendanceInstitutionalPolicyRow.tenant_id, tenant_id),
+            Eq(AttendanceInstitutionalPolicyRow.policy_key, candidate),
+        ):
+            suffix += 1
+            candidate = f"{key}_{suffix}"[:64]
+        max_sort = await AttendanceInstitutionalPolicyRow.find(
+            Eq(AttendanceInstitutionalPolicyRow.tenant_id, tenant_id),
+        ).sort("-sort_order").limit(1).to_list()
+        next_order = (max_sort[0].sort_order + 1) if max_sort else 0
+        doc = AttendanceInstitutionalPolicyRow(
+            tenant_id=tenant_id,
+            policy_key=candidate,
+            title=payload.title.strip(),
+            value_label=payload.value_label.strip(),
+            applies_to_label=payload.applies_to_label.strip(),
+            effective_from=now.date(),
+            is_active=payload.is_active,
+            sort_order=next_order,
+        )
+        await doc.insert()
+
+    from app.modules.audit.service import record_audit
+
+    await record_audit(
+        actor_id=scope.user_id,
+        action="college.attendance.policy_row_saved",
+        resource_type="attendance_institutional_policy_row",
+        resource_id=payload.policy_key or payload.title,
+        tenant_id=tenant_id,
+    )
+    return await get_attendance_rules_policies_page(scope, page=page, page_size=page_size)

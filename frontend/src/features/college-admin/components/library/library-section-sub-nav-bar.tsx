@@ -15,7 +15,7 @@ export function LibrarySectionSubNavBar() {
 
   return (
     <CollegeAdminSectionNav
-      className="mb-6"
+      className="mb-0"
       items={data.items.map((item) => ({
         key: item.icon_key || item.key,
         label: item.label,

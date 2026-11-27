@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -101,7 +102,7 @@ export function AttendanceApprovalDashboard() {
   };
 
   return (
-    <div className="space-y-5" data-figma-frame="159:9528">
+    <CollegeAdminModulePageLayout figmaFrame="159:9528">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <Link
@@ -232,6 +233,6 @@ export function AttendanceApprovalDashboard() {
           </>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

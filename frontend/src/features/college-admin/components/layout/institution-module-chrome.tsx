@@ -9,7 +9,6 @@ export function InstitutionModuleChrome({ children }: { children: ReactNode }) {
   return (
     <CollegeAdminSectionChrome
       moduleTitle="Institution & campus"
-      moduleDescription="Profile, branding, policies, and campus configuration for your college."
       landingHref={institutionTabs[0]!.href}
       tabs={institutionTabs}
     >

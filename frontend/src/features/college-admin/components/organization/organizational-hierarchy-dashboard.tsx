@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Building2Icon } from "@/components/icons/erp/generated/building-2";
@@ -169,17 +170,7 @@ export function OrganizationalHierarchyDashboard() {
 
   return (
     <div className="space-y-5" data-figma-frame="69:134048">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
-            {data?.page_title ?? "Organizational Hierarchy"}
-          </h2>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {data?.page_subtitle ?? "Reporting structure from governing council to departments"}
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
-          <CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
+      <CollegeAdminModulePageHeading title={data?.page_title ?? "Organizational Hierarchy"} subtitle={data?.page_subtitle ?? "Reporting structure from governing council to departments"} actions={<><CollegeAdminOutlineButton onClick={handleExport} disabled={isLoading || !data}>
             <CollegeAdminDownload className="size-3.5" aria-hidden />
             {data?.export_label ?? "Export chart"}
           </CollegeAdminOutlineButton>
@@ -191,9 +182,7 @@ export function OrganizationalHierarchyDashboard() {
           >
             <PencilIcon className="size-3.5" aria-hidden />
             {data?.edit_structure_label ?? "Edit structure"}
-          </CollegeAdminPrimaryLink>
-        </div>
-      </div>
+          </CollegeAdminPrimaryLink></>} />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()} isEmpty={false}>
         {data ? (

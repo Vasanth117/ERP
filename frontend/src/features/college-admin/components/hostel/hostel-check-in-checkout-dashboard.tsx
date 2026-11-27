@@ -1,5 +1,6 @@
 "use client";
 
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -130,7 +131,7 @@ export function HostelCheckInCheckoutDashboard() {
   const view = mergeView(data);
 
   return (
-    <div className="space-y-5" data-figma-frame="161:4221">
+    <CollegeAdminModulePageLayout figmaFrame="161:4221">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
@@ -234,6 +235,6 @@ export function HostelCheckInCheckoutDashboard() {
           </section>
         </>
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

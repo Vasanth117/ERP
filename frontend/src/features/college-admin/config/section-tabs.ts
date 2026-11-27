@@ -1,11 +1,14 @@
 import { academicsTabs as academicsSectionTabs } from "@/features/college-admin/config/academics-section-tabs";
 import { attendanceSectionTabs } from "@/features/college-admin/config/attendance-section-tabs";
+import { communicationSectionTabs } from "@/features/college-admin/config/communication-section-tabs";
 import { examinationsSectionTabs } from "@/features/college-admin/config/examinations-section-tabs";
 import { facultySectionTabs } from "@/features/college-admin/config/faculty-section-tabs";
 import { financeSectionTabs } from "@/features/college-admin/config/finance-section-tabs";
 import { hrSectionTabs } from "@/features/college-admin/config/hr-section-tabs";
 import { hostelSectionTabs } from "@/features/college-admin/config/hostel-section-tabs";
 import { librarySectionTabs } from "@/features/college-admin/config/library-section-tabs";
+import { lmsSectionTabs } from "@/features/college-admin/config/lms-section-tabs";
+import { reportsSectionTabs } from "@/features/college-admin/config/reports-section-tabs";
 import { studentsSectionTabs } from "@/features/college-admin/config/students-section-tabs";
 
 export type CollegeAdminTab = {
@@ -265,6 +268,12 @@ export const libraryTabs: CollegeAdminTab[] = librarySectionTabs as CollegeAdmin
 
 export const hostelTabs: CollegeAdminTab[] = hostelSectionTabs as CollegeAdminTab[];
 
+export const communicationTabs: CollegeAdminTab[] = communicationSectionTabs as CollegeAdminTab[];
+
+export const lmsTabs: CollegeAdminTab[] = lmsSectionTabs as CollegeAdminTab[];
+
+export const reportsTabs: CollegeAdminTab[] = reportsSectionTabs as CollegeAdminTab[];
+
 export function resolveSectionTabs(
   pathname: string,
 ): { section: string; tabs: CollegeAdminTab[] } | null {
@@ -306,6 +315,15 @@ export function resolveSectionTabs(
   }
   if (pathname.startsWith("/college-admin/hostel")) {
     return { section: "Hostel", tabs: hostelTabs };
+  }
+  if (pathname.startsWith("/college-admin/communication")) {
+    return { section: "Communication", tabs: communicationTabs };
+  }
+  if (pathname.startsWith("/college-admin/lms")) {
+    return { section: "LMS", tabs: lmsTabs };
+  }
+  if (pathname.startsWith("/college-admin/reports")) {
+    return { section: "Reports", tabs: reportsTabs };
   }
   return null;
 }
