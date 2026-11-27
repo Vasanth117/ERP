@@ -5,6 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchCourseInfo,
   fetchCurriculum,
+  fetchCurriculumOverview,
+  fetchCurriculumSemesterPage,
+  fetchCurriculumSubjectDetail,
+  fetchCurriculumSubjectList,
+  fetchCurriculumCategoriesElectivesPage,
+  fetchCurriculumHistoryPage,
+  fetchCurriculumSyllabusPage,
+  type CurriculumSubjectListParams,
   fetchEnrolledCourses,
   fetchLearningOutcomes,
   fetchPrerequisites,
@@ -18,6 +26,39 @@ export function useCurriculum() {
   return useQuery({
     queryKey: studentQueryKeys.curriculum(),
     queryFn: fetchCurriculum,
+  });
+}
+
+export function useCurriculumOverview() {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumOverview(),
+    queryFn: fetchCurriculumOverview,
+    retry: false,
+  });
+}
+
+export function useCurriculumSemesterPage(semester?: number) {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumSemester(semester),
+    queryFn: () => fetchCurriculumSemesterPage(semester),
+    retry: false,
+  });
+}
+
+export function useCurriculumSubjectList(params?: CurriculumSubjectListParams) {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumSubjectList(params),
+    queryFn: () => fetchCurriculumSubjectList(params),
+    retry: false,
+  });
+}
+
+export function useCurriculumSubjectDetail(courseCode: string | null) {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumSubjectDetail(courseCode ?? ""),
+    queryFn: () => fetchCurriculumSubjectDetail(courseCode!),
+    enabled: Boolean(courseCode),
+    retry: false,
   });
 }
 
@@ -48,6 +89,31 @@ export function useSyllabus(courseCode: string | null, subjectId?: string) {
     queryKey: studentQueryKeys.syllabus(courseCode ?? "", subjectId),
     queryFn: () => fetchSyllabus(courseCode!, subjectId),
     enabled: Boolean(courseCode),
+  });
+}
+
+export function useCurriculumHistoryPage() {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumHistory(),
+    queryFn: fetchCurriculumHistoryPage,
+    retry: false,
+  });
+}
+
+export function useCurriculumCategoriesElectivesPage() {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumCategoriesElectives(),
+    queryFn: fetchCurriculumCategoriesElectivesPage,
+    retry: false,
+  });
+}
+
+export function useCurriculumSyllabusPage(courseCode: string | null, unitNo?: number | null) {
+  return useQuery({
+    queryKey: studentQueryKeys.curriculumSyllabusPage(courseCode ?? "", unitNo ?? undefined),
+    queryFn: () => fetchCurriculumSyllabusPage(courseCode!, unitNo ?? undefined),
+    enabled: Boolean(courseCode),
+    retry: false,
   });
 }
 

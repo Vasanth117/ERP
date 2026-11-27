@@ -3,7 +3,17 @@
 import { useCallback } from "react";
 import { ArrowDownToLineIcon } from "@/components/icons/erp/generated/arrow-down-to-line";
 import { CheckIcon } from "@/components/icons/erp/generated/check";
+import {
+  CollegeAdminDashboardKpiCard,
+  CollegeAdminKpiGrid,
+} from "@/features/college-admin/components/ui/college-admin-kpi-card";
+import { StudentPageHeading } from "@/features/student/components/layout/student-page-heading";
 import { StudentEnrollmentDetailsSection } from "@/features/student/components/ui/student-enrollment-details-section";
+import {
+  STUDENT_BTN_GHOST_SM,
+  STUDENT_BTN_PRIMARY,
+  PORTAL_CARD,
+} from "@/features/student/components/ui/student-portal-tokens";
 import { QueryState } from "@/features/student/components/ui/student-screen-ui";
 import { useAcademicDetails } from "@/features/student/hooks/use-student-academics";
 import {
@@ -102,33 +112,22 @@ export function AcademicOverviewScreen() {
 
   return (
     <div className="space-y-6" data-figma-page="ST 02" data-figma-frame="164:3628">
-      {/* 1. Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-[26px] font-bold tracking-tight text-[#111827]">
-            Academic Overview
-          </h1>
-          <p className="mt-1 text-[14px] text-[#6b7280]">
-            {semesterSubtitle}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <a
-            href="#official-enrollment"
-            className="inline-flex h-[33px] items-center rounded-md border border-[#e5e7eb] bg-white px-3.5 text-[12px] font-semibold text-[#374151] hover:bg-[#f8fafc]"
-          >
-            Enrollment details
-          </a>
-          <button
-            type="button"
-            onClick={handleDownloadSummary}
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#2563eb] px-4 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#1d4ed8]"
-          >
-            <ArrowDownToLineIcon className="size-3.5 stroke-[2]" aria-hidden />
-            <span>Download summary</span>
-          </button>
-        </div>
-      </div>
+      <StudentPageHeading
+        title="Academic Overview"
+        description={semesterSubtitle}
+        figmaFrame="164:3628"
+        actions={
+          <>
+            <a href="#official-enrollment" className={STUDENT_BTN_GHOST_SM}>
+              Enrollment details
+            </a>
+            <button type="button" onClick={handleDownloadSummary} className={STUDENT_BTN_PRIMARY}>
+              <ArrowDownToLineIcon className="size-3.5 stroke-[2]" aria-hidden />
+              <span>Download summary</span>
+            </button>
+          </>
+        }
+      />
 
       <QueryState
         isLoading={isLoading}
@@ -140,10 +139,7 @@ export function AcademicOverviewScreen() {
           <>
         {/* 2. Semester Stepper / Timeline Card */}
         {semestersList.length > 0 && currentSemester != null ? (
-        <section
-          aria-label="Semester progress timeline"
-          className="overflow-x-auto rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
-        >
+        <section aria-label="Semester progress timeline" className={cn(PORTAL_CARD, "overflow-x-auto p-5")}>
           <div className="flex min-w-[720px] items-center justify-between py-1">
             {semestersList.map((sem, idx) => {
               const isCompleted = sem < currentSemester;
@@ -208,59 +204,42 @@ export function AcademicOverviewScreen() {
         </section>
         ) : null}
 
-        {/* 3. 4-Column Stat Cards Row */}
-        <section aria-label="Academic key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Programme */}
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Programme</span>
-            <div className="mt-2">
-              <p className="text-[22px] font-bold tracking-tight text-[#111827]">
-                {programmeDisplay}
-              </p>
-              <p className="mt-1 text-[13px] font-medium text-[#2563eb]">
-                {regulationLabel}
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2: Current semester */}
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Current semester</span>
-            <div className="mt-2">
-              <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#111827]">
-                {currentSemester ?? "—"}
-              </p>
-              <p className="mt-1.5 text-[13px] font-medium text-[#2563eb]">
-                {totalSemesters != null ? `of ${totalSemesters}` : "—"}
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3: Credits earned */}
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Credits earned</span>
-            <div className="mt-2">
-              <p className="text-[28px] font-bold leading-none tracking-tight tabular-nums text-[#111827]">
-                {creditsEarned}
-              </p>
-              <p className="mt-1.5 text-[13px] font-medium text-[#6b7280]">
-                {totalCredits != null ? `of ${totalCredits}` : "—"}
-              </p>
-            </div>
-          </div>
-
-          {/* Card 4: Status */}
-          <div className="flex min-h-[110px] flex-col justify-between rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="text-[13px] font-medium text-[#6b7280]">Status</span>
-            <div className="mt-2">
-              <p className="text-[22px] font-bold tracking-tight text-[#111827]">
-                {statusDisplay}
-              </p>
-              <p className="mt-1 text-[13px] font-medium text-[#059669]">
-                {admissionType}
-              </p>
-            </div>
-          </div>
+        <section aria-label="Academic key metrics">
+          <CollegeAdminKpiGrid>
+            <CollegeAdminDashboardKpiCard
+              label="Programme"
+              value={programmeDisplay}
+              hint={regulationLabel}
+              index={0}
+              tone="blue"
+              iconSlug="graduation-cap"
+            />
+            <CollegeAdminDashboardKpiCard
+              label="Current semester"
+              value={currentSemester ?? "—"}
+              hint={totalSemesters != null ? `of ${totalSemesters}` : undefined}
+              index={1}
+              tone="purple"
+              iconSlug="calendar-days"
+            />
+            <CollegeAdminDashboardKpiCard
+              label="Credits earned"
+              value={creditsEarned}
+              hint={totalCredits != null ? `of ${totalCredits}` : undefined}
+              index={2}
+              tone="green"
+              iconSlug="award"
+            />
+            <CollegeAdminDashboardKpiCard
+              label="Status"
+              value={statusDisplay}
+              hint={admissionType !== "—" ? admissionType : undefined}
+              hintTone="text-[#059669]"
+              index={3}
+              tone="amber"
+              iconSlug="badge-check"
+            />
+          </CollegeAdminKpiGrid>
         </section>
 
         {/* 4. Bottom Main Content Grid (Registered Subjects Table & Programme Progress) */}
@@ -268,7 +247,7 @@ export function AcademicOverviewScreen() {
           {/* Left: Registered Subjects (No Search Bar, Clean Department Style Table) */}
           <section
             aria-label="Registered subjects"
-            className="overflow-hidden rounded-xl border border-[#e8ecf2] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] lg:col-span-8"
+            className={cn(PORTAL_CARD, "lg:col-span-8")}
           >
             <div className="border-b border-[#f1f5f9] px-5 py-4">
               <h2 className="text-[15px] font-semibold text-[#111827]">

@@ -8,8 +8,14 @@ import type { CollegeAdminTab } from "@/features/college-admin/config/section-ta
 import { StudentPageTabs } from "@/features/student/components/layout/student-page-tabs";
 import { StudentSt01ModuleNav } from "@/features/student/components/layout/student-st01-module-nav";
 import { StudentSt02ModuleNav } from "@/features/student/components/layout/student-st02-module-nav";
+import { StudentSt03ModuleNav } from "@/features/student/components/layout/student-st03-module-nav";
+import { StudentSt04ModuleNav } from "@/features/student/components/layout/student-st04-module-nav";
+import { StudentSt05ModuleNav } from "@/features/student/components/layout/student-st05-module-nav";
 import { isStudentSt01Path } from "@/features/student/config/st01-tabs";
 import { isStudentSt02Path } from "@/features/student/config/st02-tabs";
+import { isStudentSt03Path } from "@/features/student/config/st03-tabs";
+import { isStudentSt04Path } from "@/features/student/config/st04-tabs";
+import { isStudentSt05Path } from "@/features/student/config/st05-tabs";
 import {
   resolveStudentModuleKey,
   studentModuleChrome,
@@ -17,7 +23,7 @@ import {
   studentTabsForModule,
   type StudentModuleKey,
 } from "@/features/student/config/section-tabs";
-import { PORTAL_MODULE_TITLE } from "@/lib/portal/shell-styles";
+import { PORTAL_MODULE_TITLE } from "@/features/student/components/ui/student-portal-tokens";
 import { cn } from "@/lib/utils";
 
 function isPortalModuleTabActive(pathname: string, tab: CollegeAdminTab): boolean {
@@ -56,13 +62,37 @@ export function StudentPortalChrome({ children }: { children: ReactNode }) {
     );
   }
 
+  if (isStudentSt03Path(pathname)) {
+    return (
+      <div className="mx-auto w-full max-w-[1440px]" data-figma-page="ST 03">
+        <StudentSt03ModuleNav />
+        {children}
+      </div>
+    );
+  }
+
+  if (isStudentSt04Path(pathname)) {
+    return (
+      <div className="mx-auto w-full max-w-[1440px]" data-figma-page="ST 04">
+        <StudentSt04ModuleNav />
+        {children}
+      </div>
+    );
+  }
+
+  if (isStudentSt05Path(pathname)) {
+    return (
+      <div className="mx-auto w-full max-w-[1440px]" data-figma-page="ST 05">
+        <StudentSt05ModuleNav />
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[1440px]" data-figma-page={def.figmaPage}>
       <header className="mb-3">
-        <h1 className={PORTAL_MODULE_TITLE}>Student Portal</h1>
-        <p className="mt-2 max-w-3xl text-[14px] leading-relaxed text-[#6b7280]">
-          {moduleSectionSubtitle(moduleKey)}
-        </p>
+        <h1 className={PORTAL_MODULE_TITLE}>{def.title}</h1>
       </header>
 
       <nav className="mb-4 border-b border-[#e8ecf2]" aria-label="Student modules">
@@ -88,13 +118,9 @@ export function StudentPortalChrome({ children }: { children: ReactNode }) {
         </div>
       </nav>
 
-      <StudentPageTabs tabs={sectionTabs} className="mb-6" />
+      <StudentPageTabs tabs={sectionTabs} className="mb-4" />
 
       <div>{children}</div>
     </div>
   );
-}
-
-function moduleSectionSubtitle(key: StudentModuleKey): string {
-  return studentModuleChrome[key].description;
 }

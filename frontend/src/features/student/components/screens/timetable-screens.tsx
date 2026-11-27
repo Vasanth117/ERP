@@ -15,6 +15,7 @@ import {
   EventsList,
   TimetableSlotsTable,
 } from "@/features/student/components/screens/shared-tables";
+import { TimetableOverviewScreen } from "@/features/student/components/screens/timetable-overview-screen";
 import {
   useAcademicCalendar,
   useCalendarDeadlines,
@@ -44,6 +45,9 @@ export type TimetableSlug =
   | "cancelled-sessions";
 
 export function TimetableScreen({ slug }: { slug: TimetableSlug }) {
+  if (slug === "timetable") {
+    return <TimetableOverviewScreen />;
+  }
   const def = screenBySlug(slug);
   return (
     <div>
@@ -55,8 +59,6 @@ export function TimetableScreen({ slug }: { slug: TimetableSlug }) {
 
 function TimetableBody({ slug }: { slug: TimetableSlug }) {
   switch (slug) {
-    case "timetable":
-      return <TimetableHub />;
     case "daily-timetable":
       return <DailyTimetableView />;
     case "weekly-timetable":
@@ -78,40 +80,6 @@ function TimetableBody({ slug }: { slug: TimetableSlug }) {
     default:
       return null;
   }
-}
-
-function TimetableHub() {
-  const daily = useDailyTimetable(todayIso());
-  const calendar = useAcademicCalendar();
-  const exams = useExaminationSchedule();
-  return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <SectionPanel title="Today">
-        <QueryState isLoading={daily.isLoading} isError={daily.isError} error={daily.error} onRetry={() => void daily.refetch()}>
-          {daily.data ? <TimetableSlotsTable slots={daily.data.slots} /> : null}
-        </QueryState>
-      </SectionPanel>
-      <SectionPanel title="Upcoming exams">
-        <QueryState isLoading={exams.isLoading} isError={exams.isError} error={exams.error} onRetry={() => void exams.refetch()} isEmpty={!exams.data?.length}>
-          {exams.data ? (
-            <EventsList
-              items={exams.data.map((e) => ({
-                id: e.id,
-                title: `${e.course_code} — ${e.title}`,
-                description: e.room,
-                event_at: e.scheduled_at,
-              }))}
-            />
-          ) : null}
-        </QueryState>
-      </SectionPanel>
-      <SectionPanel title="Calendar events" className="lg:col-span-2">
-        <QueryState isLoading={calendar.isLoading} isError={calendar.isError} error={calendar.error} onRetry={() => void calendar.refetch()} isEmpty={!calendar.data?.length}>
-          {calendar.data ? <EventsList items={calendar.data} /> : null}
-        </QueryState>
-      </SectionPanel>
-    </div>
-  );
 }
 
 function DailyTimetableView() {

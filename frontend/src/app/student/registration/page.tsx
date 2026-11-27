@@ -1,5 +1,5 @@
-import { StudentScreen } from "@/features/student/components/student-screen";
+import { RegistrationOverviewScreen } from "@/features/student/components/screens/registration-overview-screen";
 
 export default function Page() {
-  return <StudentScreen slug="registration" />;
+  return <RegistrationOverviewScreen />;
 }

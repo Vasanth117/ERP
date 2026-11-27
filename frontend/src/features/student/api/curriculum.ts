@@ -3,6 +3,13 @@ import { apiRequest } from "@/lib/api/client";
 import type {
   CourseInfo,
   Curriculum,
+  CurriculumOverview,
+  CurriculumSemesterPage,
+  CurriculumSubjectDetail,
+  CurriculumSubjectList,
+  CurriculumCategoriesElectivesPage,
+  CurriculumHistoryPage,
+  CurriculumSyllabusPage,
   EnrolledCourseItem,
   LearningOutcomesDetail,
   PrerequisiteDetail,
@@ -11,10 +18,45 @@ import type {
   SyllabusDetail,
 } from "@/features/student/types/curriculum";
 
+/** ST 03 — student curriculum read APIs (`/api/v1/students/me/curriculum/*`). */
 const BASE = "/students";
 
 export async function fetchCurriculum(): Promise<Curriculum> {
   return apiRequest<Curriculum>(`${BASE}/me/curriculum/programme`);
+}
+
+export async function fetchCurriculumOverview(): Promise<CurriculumOverview> {
+  return apiRequest<CurriculumOverview>(`${BASE}/me/curriculum/overview`);
+}
+
+export async function fetchCurriculumSemesterPage(semester?: number): Promise<CurriculumSemesterPage> {
+  const q = semester != null ? `?semester=${semester}` : "";
+  return apiRequest<CurriculumSemesterPage>(`${BASE}/me/curriculum/semesters${q}`);
+}
+
+export type CurriculumSubjectListParams = {
+  semester?: number;
+  category?: string;
+  status?: string;
+  q?: string;
+};
+
+export async function fetchCurriculumSubjectList(
+  params?: CurriculumSubjectListParams,
+): Promise<CurriculumSubjectList> {
+  const search = new URLSearchParams();
+  if (params?.semester != null) search.set("semester", String(params.semester));
+  if (params?.category) search.set("category", params.category);
+  if (params?.status) search.set("status", params.status);
+  if (params?.q) search.set("q", params.q);
+  const qs = search.toString();
+  return apiRequest<CurriculumSubjectList>(`${BASE}/me/curriculum/subjects${qs ? `?${qs}` : ""}`);
+}
+
+export async function fetchCurriculumSubjectDetail(courseCode: string): Promise<CurriculumSubjectDetail> {
+  return apiRequest<CurriculumSubjectDetail>(
+    `${BASE}/me/curriculum/subjects/${encodeURIComponent(courseCode)}`,
+  );
 }
 
 export async function fetchEnrolledCourses(): Promise<EnrolledCourseItem[]> {
@@ -28,6 +70,24 @@ export async function fetchSemesterSubjects(): Promise<SemesterSubjects> {
 export async function fetchSubjectsForCourse(courseCode: string): Promise<SubjectItem[]> {
   return apiRequest<SubjectItem[]>(
     `${BASE}/me/curriculum/courses/${encodeURIComponent(courseCode)}/subjects`,
+  );
+}
+
+export async function fetchCurriculumHistoryPage(): Promise<CurriculumHistoryPage> {
+  return apiRequest<CurriculumHistoryPage>(`${BASE}/me/curriculum/history`);
+}
+
+export async function fetchCurriculumCategoriesElectivesPage(): Promise<CurriculumCategoriesElectivesPage> {
+  return apiRequest<CurriculumCategoriesElectivesPage>(`${BASE}/me/curriculum/categories-electives`);
+}
+
+export async function fetchCurriculumSyllabusPage(
+  courseCode: string,
+  unitNo?: number,
+): Promise<CurriculumSyllabusPage> {
+  const q = unitNo != null ? `?unit=${unitNo}` : "";
+  return apiRequest<CurriculumSyllabusPage>(
+    `${BASE}/me/curriculum/syllabus/${encodeURIComponent(courseCode)}${q}`,
   );
 }
 

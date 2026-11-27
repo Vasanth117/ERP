@@ -13,7 +13,7 @@ const inter = Inter({
 export default function StudentLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className={`${inter.className} ${inter.variable} text-[#172b45] antialiased`}
+      className={`${inter.className} ${inter.variable} text-[#111827] antialiased`}
       data-student-portal=""
       data-college-admin-font=""
     >

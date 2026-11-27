@@ -21,6 +21,22 @@ export const studentQueryKeys = {
   enrollmentRequests: (limit: number, offset: number) =>
     [...studentQueryKeys.all, "enrollment-requests", limit, offset] as const,
   curriculum: () => [...studentQueryKeys.all, "curriculum"] as const,
+  curriculumOverview: () => [...studentQueryKeys.all, "curriculum-overview"] as const,
+  curriculumSemester: (semester?: number) =>
+    [...studentQueryKeys.all, "curriculum-semester", semester ?? "current"] as const,
+  curriculumSubjectList: (params?: {
+    semester?: number;
+    category?: string;
+    status?: string;
+    q?: string;
+  }) => [...studentQueryKeys.all, "curriculum-subject-list", params ?? {}] as const,
+  curriculumSubjectDetail: (courseCode: string) =>
+    [...studentQueryKeys.all, "curriculum-subject-detail", courseCode] as const,
+  curriculumSyllabusPage: (courseCode: string, unitNo?: number) =>
+    [...studentQueryKeys.all, "curriculum-syllabus-page", courseCode, unitNo ?? "default"] as const,
+  curriculumCategoriesElectives: () =>
+    [...studentQueryKeys.all, "curriculum-categories-electives"] as const,
+  curriculumHistory: () => [...studentQueryKeys.all, "curriculum-history"] as const,
   enrolledCourses: () => [...studentQueryKeys.all, "enrolled-courses"] as const,
   semesterSubjects: () => [...studentQueryKeys.all, "semester-subjects"] as const,
   syllabus: (courseCode: string, subjectId?: string) =>
@@ -32,12 +48,32 @@ export const studentQueryKeys = {
   subjectsForCourse: (courseCode: string) =>
     [...studentQueryKeys.all, "subjects", courseCode] as const,
   registrationEligibility: () => [...studentQueryKeys.all, "registration-eligibility"] as const,
+  registrationOverview: () => [...studentQueryKeys.all, "registration-overview"] as const,
+  registrationCoursesPage: (params?: { semester?: string; category?: string; q?: string }) =>
+    [...studentQueryKeys.all, "registration-courses-page", params ?? {}] as const,
+  registrationCourseDetailPage: (courseCode: string) =>
+    [...studentQueryKeys.all, "registration-course-detail", courseCode] as const,
+  registrationElectivesPage: () => [...studentQueryKeys.all, "registration-electives-page"] as const,
+  registrationReviewPage: () => [...studentQueryKeys.all, "registration-review-page"] as const,
+  registrationStatusPage: () => [...studentQueryKeys.all, "registration-status-page"] as const,
   availableCourses: () => [...studentQueryKeys.all, "available-courses"] as const,
   electiveGroups: () => [...studentQueryKeys.all, "elective-groups"] as const,
   electiveOptions: (groupId: string) => [...studentQueryKeys.all, "elective-options", groupId] as const,
   confirmedRegistrations: () => [...studentQueryKeys.all, "confirmed-registrations"] as const,
   registrationHistory: (limit: number, offset: number) =>
     [...studentQueryKeys.all, "registration-history", limit, offset] as const,
+  timetableOverview: (date?: string) =>
+    [...studentQueryKeys.all, "timetable-overview", date ?? ""] as const,
+  timetableDailyPage: (params?: { date?: string; course?: string; slot?: string }) =>
+    [...studentQueryKeys.all, "timetable-daily-page", params ?? {}] as const,
+  timetableWeeklyPage: (params?: { date?: string; course?: string }) =>
+    [...studentQueryKeys.all, "timetable-weekly-page", params ?? {}] as const,
+  timetableMonthlyPage: (date?: string) =>
+    [...studentQueryKeys.all, "timetable-monthly-page", date ?? ""] as const,
+  timetableLaboratoryPage: (params?: { date?: string; course?: string; slot?: string }) =>
+    [...studentQueryKeys.all, "timetable-laboratory-page", params ?? {}] as const,
+  timetableSessionDetail: (slotId: string, date?: string) =>
+    [...studentQueryKeys.all, "timetable-session-detail", slotId, date ?? ""] as const,
   timetableDaily: (date?: string, course?: string) =>
     [...studentQueryKeys.all, "timetable-daily", date ?? "", course ?? ""] as const,
   timetableWeekly: (date?: string, course?: string) =>

@@ -40,7 +40,13 @@ from app.modules.students.student_schedule_schemas import (
     StudentTimetableWeekRead,
     SubjectAttendanceDetailRead,
     TimetableChangeStudentRead,
+    TimetableDailyPageRead,
+    TimetableLaboratoryPageRead,
+    TimetableMonthlyPageRead,
     TimetableNotificationStudentRead,
+    TimetableOverviewPageRead,
+    TimetableSessionDetailRead,
+    TimetableWeeklyPageRead,
 )
 from app.modules.students.timetable_service import (
     calendar_deadlines,
@@ -49,12 +55,28 @@ from app.modules.students.timetable_service import (
     get_examination_schedule,
     get_semester_timetable,
     get_timetable_changes,
+    get_timetable_daily_page,
+    get_timetable_laboratory_page,
+    get_timetable_monthly_page,
     get_timetable_notifications,
+    get_timetable_overview,
+    get_timetable_session_detail,
+    get_timetable_weekly_page,
     get_weekly_timetable,
     list_cancelled_rescheduled_sessions,
 )
 
 timetable_attendance_router = APIRouter()
+
+
+@timetable_attendance_router.get("/me/timetable/overview", response_model=ApiResponse[TimetableOverviewPageRead])
+async def student_timetable_overview_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    anchor_date: Annotated[date | None, Query()] = None,
+) -> ApiResponse[TimetableOverviewPageRead]:
+    data = await get_timetable_overview(scope, user, anchor_date=anchor_date)
+    return success_response(data, request_id=get_request_id())
 
 
 @timetable_attendance_router.get("/me/timetable/daily", response_model=ApiResponse[StudentTimetableDayRead])
@@ -65,6 +87,69 @@ async def student_daily_timetable_route(
     course_code: Annotated[str | None, Query()] = None,
 ) -> ApiResponse[StudentTimetableDayRead]:
     data = await get_daily_timetable(scope, user, anchor_date=anchor_date, course_code=course_code)
+    return success_response(data, request_id=get_request_id())
+
+
+@timetable_attendance_router.get("/me/timetable/daily-page", response_model=ApiResponse[TimetableDailyPageRead])
+async def student_timetable_daily_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    anchor_date: Annotated[date | None, Query()] = None,
+    course_code: Annotated[str | None, Query()] = None,
+    slot_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[TimetableDailyPageRead]:
+    data = await get_timetable_daily_page(
+        scope, user, anchor_date=anchor_date, course_code=course_code, slot_id=slot_id
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@timetable_attendance_router.get(
+    "/me/timetable/slots/{slot_id}/session-detail",
+    response_model=ApiResponse[TimetableSessionDetailRead],
+)
+async def student_timetable_session_detail_route(
+    slot_id: str,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    anchor_date: Annotated[date | None, Query()] = None,
+) -> ApiResponse[TimetableSessionDetailRead]:
+    data = await get_timetable_session_detail(scope, user, slot_id, anchor_date=anchor_date)
+    return success_response(data, request_id=get_request_id())
+
+
+@timetable_attendance_router.get("/me/timetable/weekly-page", response_model=ApiResponse[TimetableWeeklyPageRead])
+async def student_timetable_weekly_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    anchor_date: Annotated[date | None, Query()] = None,
+    course_code: Annotated[str | None, Query()] = None,
+) -> ApiResponse[TimetableWeeklyPageRead]:
+    data = await get_timetable_weekly_page(scope, user, anchor_date=anchor_date, course_code=course_code)
+    return success_response(data, request_id=get_request_id())
+
+
+@timetable_attendance_router.get("/me/timetable/monthly-page", response_model=ApiResponse[TimetableMonthlyPageRead])
+async def student_timetable_monthly_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    anchor_date: Annotated[date | None, Query()] = None,
+) -> ApiResponse[TimetableMonthlyPageRead]:
+    data = await get_timetable_monthly_page(scope, user, anchor_date=anchor_date)
+    return success_response(data, request_id=get_request_id())
+
+
+@timetable_attendance_router.get("/me/timetable/laboratory-page", response_model=ApiResponse[TimetableLaboratoryPageRead])
+async def student_timetable_laboratory_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    anchor_date: Annotated[date | None, Query()] = None,
+    course_code: Annotated[str | None, Query()] = None,
+    slot_id: Annotated[str | None, Query()] = None,
+) -> ApiResponse[TimetableLaboratoryPageRead]:
+    data = await get_timetable_laboratory_page(
+        scope, user, anchor_date=anchor_date, course_code=course_code, slot_id=slot_id
+    )
     return success_response(data, request_id=get_request_id())
 
 

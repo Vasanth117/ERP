@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, Path, Query
 
 from app.api.deps import get_access_scope, pagination_params
 from app.common.access import AccessScope
@@ -14,6 +14,13 @@ from app.modules.students.curriculum_service import (
     get_course_information,
     get_course_outcomes,
     get_curriculum,
+    get_curriculum_overview,
+    get_curriculum_semester_page,
+    get_curriculum_subject_detail,
+    get_curriculum_subject_list,
+    get_curriculum_categories_electives_page,
+    get_curriculum_history_page,
+    get_curriculum_syllabus_page,
     get_prerequisites,
     get_syllabus,
     list_enrolled_courses,
@@ -25,6 +32,13 @@ from app.modules.students.curriculum_schemas import (
     AvailableCourseRead,
     CourseInfoRead,
     CourseRegistrationRead,
+    CurriculumOverviewRead,
+    CurriculumSemesterPageRead,
+    CurriculumSubjectDetailRead,
+    CurriculumSubjectListRead,
+    CurriculumCategoriesElectivesPageRead,
+    CurriculumHistoryPageRead,
+    CurriculumSyllabusPageRead,
     CurriculumRead,
     ElectiveGroupRead,
     ElectiveOptionRead,
@@ -33,6 +47,12 @@ from app.modules.students.curriculum_schemas import (
     PrerequisiteRead,
     RegistrationEligibilityRead,
     RegistrationHistoryRead,
+    RegistrationCourseDetailPageRead,
+    RegistrationCoursesPageRead,
+    RegistrationElectivesPageRead,
+    RegistrationOverviewPageRead,
+    RegistrationReviewPageRead,
+    RegistrationStatusPageRead,
     RegistrationRequestRead,
     RegistrationSelectionInput,
     RegistrationSubmitRead,
@@ -43,13 +63,20 @@ from app.modules.students.curriculum_schemas import (
 )
 from app.modules.students.registration_service import (
     cancel_registration,
+    get_registration_course_detail_page,
+    get_registration_courses_page,
+    get_registration_electives_page,
     get_registration_eligibility,
+    get_registration_overview_page,
+    get_registration_review_page,
+    get_registration_status_page,
     get_registration_request,
     list_available_courses,
     list_confirmed_registrations,
     list_elective_groups,
     list_elective_options,
     registration_history,
+    save_registration_draft,
     submit_registration,
     update_registration,
     validate_course_selection,
@@ -80,12 +107,99 @@ async def student_course_subjects_route(
     return success_response(data, request_id=get_request_id())
 
 
+@curriculum_router.get("/me/curriculum/overview", response_model=ApiResponse[CurriculumOverviewRead])
+async def student_curriculum_overview_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[CurriculumOverviewRead]:
+    data = await get_curriculum_overview(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get("/me/curriculum/subjects", response_model=ApiResponse[CurriculumSubjectListRead])
+async def student_curriculum_subject_list_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    semester: int | None = None,
+    category: str = "all",
+    status: str = "all",
+    q: str | None = None,
+) -> ApiResponse[CurriculumSubjectListRead]:
+    data = await get_curriculum_subject_list(
+        scope,
+        user,
+        semester=semester,
+        category=category,
+        status=status,
+        search_query=q,
+    )
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/curriculum/subjects/{course_code}",
+    response_model=ApiResponse[CurriculumSubjectDetailRead],
+)
+async def student_curriculum_subject_detail_route(
+    course_code: Annotated[str, Path(description="Course / subject code")],
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[CurriculumSubjectDetailRead]:
+    data = await get_curriculum_subject_detail(scope, user, course_code)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get("/me/curriculum/semesters", response_model=ApiResponse[CurriculumSemesterPageRead])
+async def student_curriculum_semester_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    semester: int | None = None,
+) -> ApiResponse[CurriculumSemesterPageRead]:
+    data = await get_curriculum_semester_page(scope, user, semester=semester)
+    return success_response(data, request_id=get_request_id())
+
+
 @curriculum_router.get("/me/curriculum/programme", response_model=ApiResponse[CurriculumRead])
 async def student_curriculum_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
     user: Annotated[User, Depends(student_user)],
 ) -> ApiResponse[CurriculumRead]:
     data = await get_curriculum(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get("/me/curriculum/history", response_model=ApiResponse[CurriculumHistoryPageRead])
+async def student_curriculum_history_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[CurriculumHistoryPageRead]:
+    data = await get_curriculum_history_page(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/curriculum/categories-electives",
+    response_model=ApiResponse[CurriculumCategoriesElectivesPageRead],
+)
+async def student_curriculum_categories_electives_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[CurriculumCategoriesElectivesPageRead]:
+    data = await get_curriculum_categories_electives_page(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/curriculum/syllabus/{course_code}",
+    response_model=ApiResponse[CurriculumSyllabusPageRead],
+)
+async def student_curriculum_syllabus_page_route(
+    course_code: Annotated[str, Path(description="Course / subject code")],
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    unit: int | None = None,
+) -> ApiResponse[CurriculumSyllabusPageRead]:
+    data = await get_curriculum_syllabus_page(scope, user, course_code, unit_no=unit)
     return success_response(data, request_id=get_request_id())
 
 
@@ -160,6 +274,82 @@ async def student_registration_eligibility_route(
     return success_response(data, request_id=get_request_id())
 
 
+@curriculum_router.get(
+    "/me/registration/overview-page",
+    response_model=ApiResponse[RegistrationOverviewPageRead],
+)
+async def student_registration_overview_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[RegistrationOverviewPageRead]:
+    data = await get_registration_overview_page(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/registration/courses-page",
+    response_model=ApiResponse[RegistrationCoursesPageRead],
+)
+async def student_registration_courses_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+    semester: Annotated[str | None, Query()] = None,
+    category: Annotated[str | None, Query()] = None,
+    q: Annotated[str | None, Query(max_length=120)] = None,
+) -> ApiResponse[RegistrationCoursesPageRead]:
+    data = await get_registration_courses_page(scope, user, semester=semester, category=category, q=q)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/registration/courses/{course_code}/detail-page",
+    response_model=ApiResponse[RegistrationCourseDetailPageRead],
+)
+async def student_registration_course_detail_page_route(
+    course_code: Annotated[str, Path(description="Course code")],
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[RegistrationCourseDetailPageRead]:
+    data = await get_registration_course_detail_page(scope, user, course_code)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/registration/electives-page",
+    response_model=ApiResponse[RegistrationElectivesPageRead],
+)
+async def student_registration_electives_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[RegistrationElectivesPageRead]:
+    data = await get_registration_electives_page(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/registration/review-page",
+    response_model=ApiResponse[RegistrationReviewPageRead],
+)
+async def student_registration_review_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[RegistrationReviewPageRead]:
+    data = await get_registration_review_page(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.get(
+    "/me/registration/status-page",
+    response_model=ApiResponse[RegistrationStatusPageRead],
+)
+async def student_registration_status_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[RegistrationStatusPageRead]:
+    data = await get_registration_status_page(scope, user)
+    return success_response(data, request_id=get_request_id())
+
+
 @curriculum_router.get("/me/registration/available-courses", response_model=ApiResponse[list[AvailableCourseRead]])
 async def student_available_courses_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
@@ -198,6 +388,16 @@ async def student_validate_registration_route(
     user: Annotated[User, Depends(student_user)],
 ) -> ApiResponse[RegistrationValidationRead]:
     data = await validate_course_selection(scope, user, selections)
+    return success_response(data, request_id=get_request_id())
+
+
+@curriculum_router.put("/me/registration/draft", response_model=ApiResponse[RegistrationSubmitRead])
+async def student_save_registration_draft_route(
+    selections: list[RegistrationSelectionInput],
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(student_user)],
+) -> ApiResponse[RegistrationSubmitRead]:
+    data = await save_registration_draft(scope, user, selections)
     return success_response(data, request_id=get_request_id())
 
 

@@ -220,8 +220,13 @@ export const studentNavGroups: StudentNavGroup[] = [
     icon: "calendar",
     items: [
       { id: "timetable", label: "Timetable Hub", href: "/student/timetable", icon: "calendar-days", figmaPage: "ST 05" },
-      { id: "daily-timetable", label: "Daily Timetable", href: "/student/timetable/daily", icon: "sun", figmaPage: "ST 05" },
-      { id: "weekly-timetable", label: "Weekly Timetable", href: "/student/timetable/weekly", icon: "calendar-range", figmaPage: "ST 05" },
+      {
+        id: "timetable-schedule",
+        label: "Timetable",
+        href: "/student/timetable/schedule",
+        icon: "calendar-range",
+        figmaPage: "ST 05",
+      },
       { id: "semester-timetable", label: "Semester Timetable", href: "/student/timetable/semester", icon: "calendar", figmaPage: "ST 05" },
       { id: "academic-calendar", label: "Academic Calendar", href: "/student/timetable/calendar", icon: "calendar-check", figmaPage: "ST 05" },
       { id: "calendar-deadlines", label: "Calendar Deadlines", href: "/student/timetable/deadlines", icon: "alarm-clock", figmaPage: "ST 05" },

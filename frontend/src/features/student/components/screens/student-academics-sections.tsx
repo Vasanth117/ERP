@@ -6,6 +6,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CollegeAdminIcon } from "@/features/college-admin/components/layout/college-admin-icon";
 import {
+  CollegeAdminDashboardKpiCard,
+  CollegeAdminKpiGrid,
+} from "@/features/college-admin/components/ui/college-admin-kpi-card";
+import {
+  STUDENT_BTN_OUTLINE,
+  STUDENT_BTN_PRIMARY,
+} from "@/features/student/components/ui/student-portal-tokens";
+import {
   StAcademicsDetailRow,
   StAcademicsOutcomeBadge,
   StAcademicsPageBlock,
@@ -96,30 +104,6 @@ export function ProgrammeDepartmentDetailsSection({ data }: { data: AcademicDeta
   );
 }
 
-function StAcademicsKpiCard({
-  label,
-  value,
-  hint,
-  hintClassName,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  hintClassName?: string;
-}) {
-  return (
-    <div className="flex min-h-[100px] flex-col gap-2 rounded-lg border border-[#dce3ec] bg-white p-5">
-      <span className="text-[12px] text-[#607086]">{label}</span>
-      <span className="text-[26px] font-semibold leading-none text-[#172b45]">{value}</span>
-      {hint ? (
-        <span className={`text-[11px] ${hintClassName ?? "text-[#245dd8]"}`}>{hint}</span>
-      ) : (
-        <span className="text-[11px] text-transparent select-none">—</span>
-      )}
-    </div>
-  );
-}
-
 /** ST 02.04 — Current Semester Overview */
 export function CurrentSemesterOverviewSection({ data }: { data: AcademicDetails }) {
   const overview = data.current_semester_overview;
@@ -132,39 +116,47 @@ export function CurrentSemesterOverviewSection({ data }: { data: AcademicDetails
       description={displayOrDash(overview?.term_subtitle)}
       figmaNode="164:4676"
       actions={
-        <Link
-          href="/student/timetable"
-          className="inline-flex items-center gap-2 rounded-md bg-[#245dd8] px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#1d4ed8]"
-        >
+        <Link href="/student/timetable" className={STUDENT_BTN_PRIMARY}>
           <CollegeAdminIcon name="calendar" size={15} className="text-white" />
           Timetable
         </Link>
       }
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StAcademicsKpiCard
+      <CollegeAdminKpiGrid>
+        <CollegeAdminDashboardKpiCard
           label="Subjects"
-          value={String(overview?.subject_count ?? subjects.length)}
+          value={overview?.subject_count ?? subjects.length}
           hint={`${totalCredits} credits`}
+          index={0}
+          tone="blue"
+          iconSlug="book-open"
         />
-        <StAcademicsKpiCard
+        <CollegeAdminDashboardKpiCard
           label="Internal tests"
           value={displayOrDash(overview?.internal_tests_label)}
+          index={1}
+          tone="purple"
+          iconSlug="file-text"
         />
-        <StAcademicsKpiCard
+        <CollegeAdminDashboardKpiCard
           label="Attendance"
           value={
             overview?.attendance_percent != null ? `${overview.attendance_percent}%` : "—"
           }
-          hintClassName="text-[#1f7a45]"
+          index={2}
+          tone="green"
+          iconSlug="clipboard-check"
         />
-        <StAcademicsKpiCard
+        <CollegeAdminDashboardKpiCard
           label="Next exam"
           value={displayOrDash(overview?.next_exam_title)}
           hint={overview?.next_exam_date_label ?? undefined}
-          hintClassName="text-[#946009]"
+          hintTone="text-[#d97706]"
+          index={3}
+          tone="amber"
+          iconSlug="calendar"
         />
-      </div>
+      </CollegeAdminKpiGrid>
 
       <RegisteredSubjectsTable subjects={subjects} className="mt-5" />
     </StAcademicsPageBlock>
@@ -395,24 +387,37 @@ export function CourseCreditSummarySection({ data }: { data: AcademicDetails }) 
       description="Credits by category"
       figmaNode="164:5744"
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StAcademicsKpiCard label="Earned" value={formatCreditValue(summary.credits_earned)} />
-        <StAcademicsKpiCard
+      <CollegeAdminKpiGrid>
+        <CollegeAdminDashboardKpiCard
+          label="Earned"
+          value={formatCreditValue(summary.credits_earned)}
+          index={0}
+          tone="blue"
+          iconSlug="award"
+        />
+        <CollegeAdminDashboardKpiCard
           label="In progress"
           value={formatCreditValue(summary.credits_in_progress)}
           hint={summary.in_progress_semester_label ?? undefined}
+          index={1}
+          tone="purple"
+          iconSlug="layers"
         />
-        <StAcademicsKpiCard
+        <CollegeAdminDashboardKpiCard
           label="Remaining"
           value={formatCreditValue(summary.credits_remaining)}
-          hintClassName="text-[#607086]"
+          index={2}
+          tone="green"
+          iconSlug="chart-bar"
         />
-        <StAcademicsKpiCard
+        <CollegeAdminDashboardKpiCard
           label="Required"
           value={formatCreditValue(summary.credits_required)}
-          hintClassName="text-[#607086]"
+          index={3}
+          tone="amber"
+          iconSlug="target"
         />
-      </div>
+      </CollegeAdminKpiGrid>
 
       <StAcademicsSectionCard
         title="By category"
@@ -515,7 +520,7 @@ export function SemesterSubjectListSection({ data }: { data: AcademicDetails }) 
           <button
             type="button"
             onClick={() => downloadSemesterSubjects(selected)}
-            className="inline-flex items-center gap-2 rounded-md bg-[#245dd8] px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#1d4ed8]"
+            className={STUDENT_BTN_PRIMARY}
           >
             <CollegeAdminIcon name="download" size={15} className="text-white" />
             Download
@@ -603,7 +608,7 @@ export function EnrollmentConfirmationSection({ data }: { data: AcademicDetails 
                 type="button"
                 disabled={confirming || !confirmation.declaration_accepted}
                 onClick={() => declaration.mutate(false)}
-                className="inline-flex items-center gap-2 rounded-md border border-[#dce3ec] bg-white px-3.5 py-2 text-[12px] font-semibold text-[#172b45] hover:bg-[#f7f9fc] disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(STUDENT_BTN_OUTLINE, "disabled:cursor-not-allowed disabled:opacity-50")}
               >
                 <CollegeAdminIcon name="x" size={15} className="text-[#607086]" />
                 Cancel
@@ -612,7 +617,7 @@ export function EnrollmentConfirmationSection({ data }: { data: AcademicDetails 
                 type="button"
                 disabled={!confirmation.can_confirm || confirming}
                 onClick={() => confirmEnrollment.mutate()}
-                className="inline-flex items-center gap-2 rounded-md bg-[#245dd8] px-3.5 py-2 text-[12px] font-semibold text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(STUDENT_BTN_PRIMARY, "disabled:cursor-not-allowed disabled:opacity-50")}
               >
                 <CollegeAdminIcon name="check" size={15} className="text-white" />
                 Confirm enrollment

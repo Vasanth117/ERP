@@ -14,11 +14,13 @@ import {
 import type { ErpIconName } from "@/components/icons/erp/names";
 import type { ProfileCorrectionFieldName } from "@/features/student/lib/profile-correction-fields";
 import {
+  PORTAL_PAGE_DESC,
+  STUDENT_TAB_PAGE_TITLE,
+} from "@/features/student/components/ui/student-portal-tokens";
+import {
   PORTAL_CARD,
   PORTAL_CARD_BODY,
   PORTAL_CARD_HEADER,
-  PORTAL_MODULE_TITLE,
-  PORTAL_PAGE_DESC,
 } from "@/lib/portal/shell-styles";
 import { cn } from "@/lib/utils";
 
@@ -45,14 +47,14 @@ export function ProfilePageHeading({
         {backHref ? (
           <Link
             href={backHref}
-            className="mt-1 inline-flex size-8 items-center justify-center rounded-md border border-[#dce3ec] text-[#607086] hover:bg-[#f8fafc]"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-[#e5e7eb] text-[#6b7280] hover:bg-[#f9fafb]"
             aria-label="Back to profile overview"
           >
             <CollegeAdminIcon name="arrow-left" size={16} />
           </Link>
         ) : null}
         <div className="min-w-0">
-          <h1 className={PORTAL_MODULE_TITLE}>{title}</h1>
+          <h2 className={STUDENT_TAB_PAGE_TITLE}>{title}</h2>
           {description ? (
             <p className={cn(PORTAL_PAGE_DESC, "max-w-2xl")}>{description}</p>
           ) : null}
@@ -151,7 +153,7 @@ export function ProfilePanel({
   return (
     <section className={profileCardClassName} data-figma-node={figmaNode}>
       <div className={profileCardHeaderClassName}>
-        <h3 className="text-[14px] font-semibold text-[#172b45]">{title}</h3>
+        <h3 className="text-[14px] font-semibold text-[#111827]">{title}</h3>
         {action}
       </div>
       <div className={profileCardBodyClassName}>{children}</div>

@@ -1,5 +1,5 @@
-import { StudentScreen } from "@/features/student/components/student-screen";
+import { SubjectsScreen } from "@/features/student/components/screens/subjects-screen";
 
 export default function Page() {
-  return <StudentScreen slug="semester-subjects" />;
+  return <SubjectsScreen />;
 }

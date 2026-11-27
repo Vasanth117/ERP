@@ -161,6 +161,11 @@ export const studentPortalModuleTabs: CollegeAdminTab[] = (
 });
 
 export function isStudentTabActive(pathname: string, tab: CollegeAdminTab): boolean {
+  if (tab.activePrefixes?.length) {
+    return tab.activePrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    );
+  }
   if (tab.href === "/student/home") {
     return pathname === tab.href;
   }
@@ -178,6 +183,15 @@ export function isStudentTabActive(pathname: string, tab: CollegeAdminTab): bool
     return pathname === tab.href || pathname.startsWith(`${tab.href}/`);
   }
   if (tab.href === "/student/academics") {
+    return pathname === tab.href;
+  }
+  if (tab.href === "/student/curriculum") {
+    return pathname === tab.href;
+  }
+  if (tab.href === "/student/registration") {
+    return pathname === tab.href;
+  }
+  if (tab.href === "/student/timetable") {
     return pathname === tab.href;
   }
   return pathname === tab.href || pathname.startsWith(`${tab.href}/`);

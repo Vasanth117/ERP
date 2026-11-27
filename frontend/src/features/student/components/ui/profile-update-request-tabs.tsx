@@ -9,35 +9,37 @@ type ProfileUpdateRequestTabsProps = {
   onChange: (value: ProfileUpdateRequestTab) => void;
 };
 
+/** Secondary tabs — underline style only (no boxed segment). */
 export function ProfileUpdateRequestTabs({ value, onChange }: ProfileUpdateRequestTabsProps) {
   return (
-    <div
-      className="mb-5 grid grid-cols-2 gap-1.5 rounded-lg border border-[#e3e9f2] bg-[#f8fafc] p-1"
-      role="tablist"
-      aria-label="Profile update requests"
-    >
-      {(
-        [
-          { id: "request" as const, label: "Update request" },
-          { id: "status" as const, label: "Request status" },
-        ] as const
-      ).map((tab) => (
-        <button
-          key={tab.id}
-          type="button"
-          role="tab"
-          aria-selected={value === tab.id}
-          onClick={() => onChange(tab.id)}
-          className={cn(
-            "rounded-md py-2 text-[14px] font-medium transition-all",
-            value === tab.id
-              ? "border border-[#e3e9f2] bg-white text-[#245dd8] shadow-sm"
-              : "border border-transparent text-[#64748b] hover:text-[#172b45]",
-          )}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <nav className="border-b border-[#e8ecf2]" aria-label="Profile update request views">
+      <div className="-mb-px flex flex-wrap gap-x-5">
+        {(
+          [
+            { id: "request" as const, label: "Update request" },
+            { id: "status" as const, label: "Request status" },
+          ] as const
+        ).map((tab) => {
+          const active = value === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => onChange(tab.id)}
+              className={cn(
+                "relative shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-2.5 pt-0.5 text-[14px] font-medium leading-5 tracking-[-0.01em] transition-colors duration-150",
+                active
+                  ? "border-[#245dd8] text-[#245dd8]"
+                  : "border-transparent text-[#6b7280] hover:border-[#d1d5db] hover:text-[#111827]",
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

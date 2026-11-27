@@ -116,6 +116,42 @@ class RegistrationRequestRepository(TenantScopedRepository[CourseRegistrationReq
             }
         )
 
+    async def mutable_draft(
+        self,
+        tenant_id: PydanticObjectId,
+        user_id: PydanticObjectId,
+        academic_year_label: str,
+        catalog_semester: str,
+        current_semester: str,
+    ) -> CourseRegistrationRequest | None:
+        """Draft-only registration request used for building and submitting a selection."""
+        for semester_label in (catalog_semester, current_semester):
+            draft = await CourseRegistrationRequest.find_one(
+                {
+                    "tenant_id": tenant_id,
+                    "user_id": user_id,
+                    "academic_year_label": academic_year_label,
+                    "semester_label": semester_label,
+                    "status": RegistrationRequestStatus.DRAFT,
+                }
+            )
+            if draft is not None and draft.selections:
+                return draft
+        latest = (
+            await CourseRegistrationRequest.find(
+                {
+                    "tenant_id": tenant_id,
+                    "user_id": user_id,
+                    "academic_year_label": academic_year_label,
+                    "status": RegistrationRequestStatus.DRAFT,
+                }
+            )
+            .sort("-updated_at")
+            .limit(1)
+            .to_list()
+        )
+        return latest[0] if latest else None
+
 
 class RegistrationHistoryRepository(TenantScopedRepository[RegistrationHistoryEntry]):
     def __init__(self) -> None:

@@ -10,11 +10,72 @@ import type {
   TimetableChange,
   TimetableDay,
   TimetableNotification,
+  TimetableDailyPage,
+  TimetableLaboratoryPage,
+  TimetableMonthlyPage,
+  TimetableOverviewPage,
   TimetableSemester,
+  TimetableSessionDetail,
   TimetableWeek,
+  TimetableWeeklyPage,
 } from "@/features/student/types/timetable";
 
 const BASE = "/students";
+
+export function fetchTimetableOverview(anchorDate?: string) {
+  return apiRequest<TimetableOverviewPage>(
+    `${BASE}/me/timetable/overview${optionalQuery({ anchor_date: anchorDate })}`,
+  );
+}
+
+export type TimetableViewPageParams = {
+  anchorDate?: string;
+  courseCode?: string;
+  slotId?: string;
+};
+
+export function fetchTimetableDailyPage(params: TimetableViewPageParams = {}) {
+  return apiRequest<TimetableDailyPage>(
+    `${BASE}/me/timetable/daily-page${optionalQuery({
+      anchor_date: params.anchorDate,
+      course_code: params.courseCode,
+      slot_id: params.slotId,
+    })}`,
+  );
+}
+
+export function fetchTimetableWeeklyPage(params: Omit<TimetableViewPageParams, "slotId"> = {}) {
+  return apiRequest<TimetableWeeklyPage>(
+    `${BASE}/me/timetable/weekly-page${optionalQuery({
+      anchor_date: params.anchorDate,
+      course_code: params.courseCode,
+    })}`,
+  );
+}
+
+export function fetchTimetableMonthlyPage(anchorDate?: string) {
+  return apiRequest<TimetableMonthlyPage>(
+    `${BASE}/me/timetable/monthly-page${optionalQuery({ anchor_date: anchorDate })}`,
+  );
+}
+
+export function fetchTimetableLaboratoryPage(params: TimetableViewPageParams = {}) {
+  return apiRequest<TimetableLaboratoryPage>(
+    `${BASE}/me/timetable/laboratory-page${optionalQuery({
+      anchor_date: params.anchorDate,
+      course_code: params.courseCode,
+      slot_id: params.slotId,
+    })}`,
+  );
+}
+
+export function fetchTimetableSessionDetail(slotId: string, anchorDate?: string) {
+  return apiRequest<TimetableSessionDetail>(
+    `${BASE}/me/timetable/slots/${encodeURIComponent(slotId)}/session-detail${optionalQuery({
+      anchor_date: anchorDate,
+    })}`,
+  );
+}
 
 export function fetchDailyTimetable(anchorDate?: string, courseCode?: string) {
   return apiRequest<TimetableDay>(

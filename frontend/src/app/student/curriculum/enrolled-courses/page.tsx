@@ -1,5 +1,5 @@
-import { StudentScreen } from "@/features/student/components/student-screen";
+import { CategoriesElectivesScreen } from "@/features/student/components/screens/categories-electives-screen";
 
 export default function Page() {
-  return <StudentScreen slug="enrolled-courses" />;
+  return <CategoriesElectivesScreen />;
 }

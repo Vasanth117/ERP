@@ -10,6 +10,13 @@ from app.common.time import utcnow
 from app.core.database import close_mongo, connect_to_mongo
 from app.core.logging import configure_logging
 from app.core.security import hash_password
+from app.modules.academics.curriculum_models import (
+    CourseLearningOutcome,
+    CourseRecord,
+    SyllabusRecord,
+    SyllabusUnit,
+    TeachingMaterialRef,
+)
 from app.modules.academics.models import AcademicYearContext
 from app.modules.college_admin.academic_config_models import (
     AcademicProgramme,
@@ -29,6 +36,16 @@ from app.modules.students.enums import (
     StudentEnrollmentStatus,
     StudentTermEnrollmentConfirmationStatus,
 )
+
+from app.modules.students.curriculum_models import (
+    CourseCatalogReference,
+    CoursePrerequisite,
+    CurriculumReference,
+    ElectiveGroup,
+    ElectiveOption,
+    ProgrammeCurriculumVersionReference,
+    RegistrationPolicyReference,
+)
 from app.modules.students.models import (
     EmergencyContact,
     ProfileDocumentRef,
@@ -38,6 +55,7 @@ from app.modules.students.models import (
     StudentProfile,
     StudentTermEnrollmentConfirmation,
 )
+from app.modules.students.registration_enums import CourseRegistrationType
 from app.modules.students.student_portal_enums import StudentRecordDocumentCategory
 from app.modules.students.student_portal_models import StudentDocumentReference
 from app.modules.tenants.domain_utils import normalize_tenant_code
@@ -226,6 +244,437 @@ async def _ensure_academic_context(tenant_id) -> None:
     print(f"created academic year context {DEMO_ACADEMIC_YEAR} / sem {DEMO_SEMESTER_NUMBER}")
 
 
+DEMO_PROGRAMME_CODE = "B.E. CSE"
+
+_CS3501_SYLLABUS_UNITS: tuple[SyllabusUnit, ...] = (
+    SyllabusUnit(
+        unit_no=1,
+        title="Introduction to compilers",
+        topics=[
+            "Role of compilers",
+            "Compiler structure",
+            "Lexical analysis overview",
+            "Parsing overview",
+            "Semantic analysis",
+            "Code generation overview",
+        ],
+        planned_hours=9,
+    ),
+    SyllabusUnit(
+        unit_no=2,
+        title="Lexical analysis",
+        topics=[
+            "Tokens",
+            "Regular expressions",
+            "Finite automata",
+            "Lex tools",
+            "Lexical errors",
+            "Scanner generators",
+            "Finite automata minimization",
+        ],
+        planned_hours=9,
+    ),
+    SyllabusUnit(
+        unit_no=3,
+        title="Syntax analysis",
+        topics=[
+            "Context-free grammars",
+            "Top-down parsing, LL(1)",
+            "Bottom-up parsing, LR(0), SLR",
+            "Parser generators",
+        ],
+        planned_hours=9,
+    ),
+    SyllabusUnit(
+        unit_no=4,
+        title="Intermediate code generation",
+        topics=[
+            "Syntax-directed translation",
+            "Syntax trees",
+            "Three-address code",
+            "Type checking",
+            "Declarations",
+            "Boolean expressions",
+        ],
+        planned_hours=9,
+    ),
+    SyllabusUnit(
+        unit_no=5,
+        title="Code optimisation and generation",
+        topics=[
+            "Basic blocks",
+            "DAGs",
+            "Local optimisation",
+            "Register allocation",
+            "Code selection",
+            "Instruction scheduling",
+        ],
+        planned_hours=9,
+    ),
+)
+
+
+async def _ensure_st03_student_curriculum_catalogue(tenant_id) -> None:
+    """Programme catalogue + approved syllabi so ST 03 Subjects / Syllabus tabs load for demo student."""
+    demo_rows: tuple[tuple[str, str, str, float, int], ...] = (
+        ("CS3501", "Compiler Design", "Theory", 4.0, 5),
+        ("CS3591", "Computer Networks", "Theory", 4.0, 5),
+        ("CS3551", "Distributed Systems", "Theory", 3.0, 5),
+        ("CS3401", "Database Management Systems", "Theory", 4.0, 5),
+        ("CS3511", "Networks Laboratory", "Lab", 2.0, 5),
+        ("CS3512", "Compiler Laboratory", "Lab", 2.0, 5),
+        ("CS3E01", "Machine Learning", "Elective", 3.0, 5),
+        ("CS3E02", "Cloud Computing", "Elective", 3.0, 5),
+    )
+    for code, name, category, credits, sem_no in demo_rows:
+        course_id = code.lower()
+        course = await CourseRecord.find_one(
+            Eq(CourseRecord.tenant_id, tenant_id),
+            Eq(CourseRecord.course_code, code),
+        )
+        if course is None:
+            course = CourseRecord(
+                tenant_id=tenant_id,
+                course_id=course_id,
+                course_code=code,
+                name=name,
+                credit_units=credits,
+                course_type=category,
+                semester_number=sem_no,
+                lecture_hours=3,
+                tutorial_hours=0,
+                practical_hours=2 if category == "Lab" else 0,
+                configuration_status="published",
+                is_active=True,
+            )
+            await course.insert()
+        else:
+            course.name = name
+            course.semester_number = sem_no
+            course.credit_units = credits
+            course.is_active = True
+            await course.save()
+
+        reg_type = CourseRegistrationType.ELECTIVE if category == "Elective" else CourseRegistrationType.CORE
+        catalog = await CourseCatalogReference.find_one(
+            Eq(CourseCatalogReference.tenant_id, tenant_id),
+            Eq(CourseCatalogReference.programme_code, DEMO_PROGRAMME_CODE),
+            Eq(CourseCatalogReference.course_id, course_id),
+        )
+        if catalog is None:
+            await CourseCatalogReference(
+                tenant_id=tenant_id,
+                programme_code=DEMO_PROGRAMME_CODE,
+                academic_year_label=DEMO_ACADEMIC_YEAR,
+                semester_label=str(sem_no),
+                course_id=course_id,
+                course_code=code,
+                registration_type=reg_type,
+                credit_units=credits,
+                is_open_for_registration=category == "Elective",
+            ).insert()
+
+        syllabus = await SyllabusRecord.find_one(
+            Eq(SyllabusRecord.tenant_id, tenant_id),
+            Eq(SyllabusRecord.course_id, course_id),
+            Eq(SyllabusRecord.academic_year_label, DEMO_ACADEMIC_YEAR),
+            Eq(SyllabusRecord.semester_label, DEMO_SEMESTER),
+        )
+        units = list(_CS3501_SYLLABUS_UNITS) if code == "CS3501" else [
+            SyllabusUnit(unit_no=1, title=f"{name} — Unit 1", topics=[f"{name} fundamentals"], planned_hours=9),
+        ]
+        if syllabus is None:
+            await SyllabusRecord(
+                tenant_id=tenant_id,
+                course_id=course_id,
+                academic_year_label=DEMO_ACADEMIC_YEAR,
+                semester_label=DEMO_SEMESTER,
+                units=units,
+                objectives=[f"Understand core topics in {name}"],
+                approved=True,
+                locked=True,
+                teaching_materials=[
+                    TeachingMaterialRef(title="Unit 3 notes (PDF)", material_type="document"),
+                ]
+                if code == "CS3501"
+                else [],
+            ).insert()
+        elif code == "CS3501" and len(syllabus.units) < 5:
+            syllabus.units = units
+            syllabus.approved = True
+            await syllabus.save()
+
+        outcomes = await CourseLearningOutcome.find_one(
+            Eq(CourseLearningOutcome.tenant_id, tenant_id),
+            Eq(CourseLearningOutcome.course_id, course_id),
+            Eq(CourseLearningOutcome.academic_year_label, DEMO_ACADEMIC_YEAR),
+        )
+        if outcomes is None:
+            await CourseLearningOutcome(
+                tenant_id=tenant_id,
+                course_id=course_id,
+                academic_year_label=DEMO_ACADEMIC_YEAR,
+                semester_label=DEMO_SEMESTER,
+                outcomes=[
+                    "CO1: Explain compiler phases and program representation",
+                    "CO2: Apply parsing techniques to grammars",
+                    "CO3: Generate intermediate and target code",
+                ]
+                if code == "CS3501"
+                else [f"CO1: Apply concepts from {name}"],
+                locked=True,
+            ).insert()
+
+    print("seeded/synced ST 03 programme catalogue and syllabi for demo student")
+
+
+async def _ensure_demo_curriculum_history(tenant_id) -> None:
+    ref = await CurriculumReference.find_one(
+        Eq(CurriculumReference.tenant_id, tenant_id),
+        Eq(CurriculumReference.programme_code, DEMO_PROGRAMME_CODE),
+        Eq(CurriculumReference.academic_year_label, DEMO_ACADEMIC_YEAR),
+        Eq(CurriculumReference.semester_label, DEMO_SEMESTER),
+    )
+    if ref is None:
+        await CurriculumReference(
+            tenant_id=tenant_id,
+            programme_code=DEMO_PROGRAMME_CODE,
+            academic_year_label=DEMO_ACADEMIC_YEAR,
+            semester_label=DEMO_SEMESTER,
+            primary_course_id="cs3501",
+            central_version="v2.1",
+            academic_regulations=["Minimum 75% attendance"],
+        ).insert()
+
+    version_rows = (
+        ("v2.1", "R2022", date(2024, 8, 1), "Elective I moved to Semester 5", True, None),
+        ("v2.0", "R2022", date(2022, 8, 1), "Initial curriculum", True, None),
+        ("v3.0", "R2025", date(2025, 8, 1), "New batches only", False, "2025"),
+    )
+    for version_label, regulation, effective_from, change, applies_existing, from_batch in version_rows:
+        existing = await ProgrammeCurriculumVersionReference.find_one(
+            Eq(ProgrammeCurriculumVersionReference.tenant_id, tenant_id),
+            Eq(ProgrammeCurriculumVersionReference.programme_code, DEMO_PROGRAMME_CODE),
+            Eq(ProgrammeCurriculumVersionReference.version_label, version_label),
+        )
+        if existing is None:
+            await ProgrammeCurriculumVersionReference(
+                tenant_id=tenant_id,
+                programme_code=DEMO_PROGRAMME_CODE,
+                version_label=version_label,
+                regulation_label=regulation,
+                effective_from=effective_from,
+                change_summary=change,
+                applies_to_existing_students=applies_existing,
+                applies_from_batch_label=from_batch,
+            ).insert()
+
+    print("seeded/synced ST 03 curriculum reference and version history")
+
+
+async def _ensure_demo_elective_groups(tenant_id) -> None:
+    group_spec = (
+        ("PE1", "Professional elective I", DEMO_SEMESTER),
+        ("OE1", "Open elective", "Semester 6"),
+    )
+    elective_options = (
+        ("PE1", "cs3e01", "CS3E01", "Machine Learning", 3.0, 12),
+        ("PE1", "cs3e02", "CS3E02", "Cloud Computing", 3.0, 4),
+        ("PE1", "cs3e03", "CS3E03", "Data Analytics", 3.0, 28),
+        ("OE1", "oe3e01", "OE3E01", "Entrepreneurship", 3.0, 22),
+        ("OE1", "oe3e02", "OE3E02", "Design Thinking", 3.0, 8, 8),
+    )
+    group_ids: dict[str, ElectiveGroup] = {}
+    for code, title, sem_label in group_spec:
+        existing = await ElectiveGroup.find_one(
+            Eq(ElectiveGroup.tenant_id, tenant_id),
+            Eq(ElectiveGroup.programme_code, DEMO_PROGRAMME_CODE),
+            Eq(ElectiveGroup.group_code, code),
+            Eq(ElectiveGroup.academic_year_label, DEMO_ACADEMIC_YEAR),
+        )
+        if existing is None:
+            existing = ElectiveGroup(
+                tenant_id=tenant_id,
+                programme_code=DEMO_PROGRAMME_CODE,
+                academic_year_label=DEMO_ACADEMIC_YEAR,
+                semester_label=sem_label,
+                group_code=code,
+                title=title,
+                min_selections=1,
+                max_selections=1,
+                is_active=True,
+            )
+            await existing.insert()
+        group_ids[code] = existing
+
+    for row in elective_options:
+        group_code = row[0]
+        course_id, course_code, course_name, credits = row[1], row[2], row[3], row[4]
+        max_seats = row[5] if len(row) > 5 else None
+        seats_taken = row[6] if len(row) > 6 else 0
+        group = group_ids.get(group_code)
+        if group is None:
+            continue
+        course = await CourseRecord.find_one(
+            Eq(CourseRecord.tenant_id, tenant_id),
+            Eq(CourseRecord.course_code, course_code),
+        )
+        if course is None:
+            await CourseRecord(
+                tenant_id=tenant_id,
+                course_id=course_id,
+                course_code=course_code,
+                name=course_name,
+                credit_units=credits,
+                course_type="Elective",
+                semester_number=5 if group_code == "PE1" else 6,
+                configuration_status="published",
+                is_active=True,
+            ).insert()
+        opt = await ElectiveOption.find_one(
+            Eq(ElectiveOption.tenant_id, tenant_id),
+            Eq(ElectiveOption.elective_group_id, group.id),
+            Eq(ElectiveOption.course_id, course_id),
+        )
+        if opt is None:
+            await ElectiveOption(
+                tenant_id=tenant_id,
+                elective_group_id=group.id,
+                course_id=course_id,
+                course_code=course_code,
+                course_name=course_name,
+                credit_units=credits,
+                max_seats=max_seats,
+                seats_taken=seats_taken,
+                is_active=True,
+            ).insert()
+        else:
+            if max_seats is not None:
+                opt.max_seats = max_seats
+                opt.seats_taken = seats_taken
+                opt.is_active = True
+                await opt.save()
+
+    print("seeded/synced demo elective groups and catalogue options")
+
+
+async def _ensure_st04_registration_window(tenant_id) -> None:
+    """ST 04 — registration policy, Semester 6 catalogue rows, and prerequisites for overview demo."""
+    reg_sem_label = "Semester 6"
+    now = utcnow()
+    open_at = now + timedelta(days=42)
+    close_at = open_at + timedelta(days=13)
+
+    policy = await RegistrationPolicyReference.find_one(
+        Eq(RegistrationPolicyReference.tenant_id, tenant_id),
+        Eq(RegistrationPolicyReference.programme_code, DEMO_PROGRAMME_CODE),
+        Eq(RegistrationPolicyReference.academic_year_label, DEMO_ACADEMIC_YEAR),
+        Eq(RegistrationPolicyReference.semester_label, reg_sem_label),
+    )
+    if policy is None:
+        await RegistrationPolicyReference(
+            tenant_id=tenant_id,
+            programme_code=DEMO_PROGRAMME_CODE,
+            academic_year_label=DEMO_ACADEMIC_YEAR,
+            semester_label=reg_sem_label,
+            min_credits=18,
+            max_credits=24,
+            registration_open_at=open_at,
+            registration_close_at=close_at,
+            modification_deadline=close_at,
+            allow_self_registration=True,
+        ).insert()
+    else:
+        policy.min_credits = 18
+        policy.max_credits = 24
+        policy.registration_open_at = open_at
+        policy.registration_close_at = close_at
+        policy.modification_deadline = close_at
+        policy.updated_at = utcnow()
+        await policy.save()
+
+    offering_rows = (
+        ("cs3e01", "CS3E01", "Machine Learning", CourseRegistrationType.ELECTIVE, 3.0, 12),
+        ("cs3e02", "CS3E02", "Cloud Computing", CourseRegistrationType.ELECTIVE, 3.0, 4),
+        ("cs3e03", "CS3E03", "Data Analytics", CourseRegistrationType.ELECTIVE, 3.0, 28),
+        ("oe3e01", "OE3E01", "Entrepreneurship", CourseRegistrationType.OPEN, 3.0, 22),
+        ("oe3e02", "OE3E02", "Design Thinking", CourseRegistrationType.OPEN, 3.0, 0),
+        ("cs3401", "CS3401", "Database Management Systems", CourseRegistrationType.CORE, 4.0, 30),
+    )
+    for course_id, code, name, reg_type, credits, capacity in offering_rows:
+        course = await CourseRecord.find_one(
+            Eq(CourseRecord.tenant_id, tenant_id),
+            Eq(CourseRecord.course_code, code),
+        )
+        descriptions = {
+            "CS3E01": "Supervised and unsupervised learning, model evaluation and practical use of common libraries.",
+            "CS3E02": "Cloud service models, distributed deployment patterns and managed infrastructure on public clouds.",
+        }
+        if course is None:
+            course = CourseRecord(
+                tenant_id=tenant_id,
+                course_id=course_id,
+                course_code=code,
+                name=name,
+                description=descriptions.get(code),
+                credit_units=credits,
+                course_type="Elective" if reg_type != CourseRegistrationType.CORE else "Theory",
+                semester_number=6,
+                configuration_status="published",
+                is_active=True,
+            )
+            await course.insert()
+        elif descriptions.get(code) and not (course.description or "").strip():
+            course.description = descriptions[code]
+            await course.save()
+
+        catalog = await CourseCatalogReference.find_one(
+            Eq(CourseCatalogReference.tenant_id, tenant_id),
+            Eq(CourseCatalogReference.programme_code, DEMO_PROGRAMME_CODE),
+            Eq(CourseCatalogReference.academic_year_label, DEMO_ACADEMIC_YEAR),
+            Eq(CourseCatalogReference.semester_label, reg_sem_label),
+            Eq(CourseCatalogReference.course_id, course_id),
+        )
+        if catalog is None:
+            await CourseCatalogReference(
+                tenant_id=tenant_id,
+                programme_code=DEMO_PROGRAMME_CODE,
+                academic_year_label=DEMO_ACADEMIC_YEAR,
+                semester_label=reg_sem_label,
+                course_id=course_id,
+                course_code=code,
+                registration_type=reg_type,
+                credit_units=credits,
+                is_open_for_registration=True,
+                max_capacity=capacity,
+            ).insert()
+
+    prereq = await CoursePrerequisite.find_one(
+        Eq(CoursePrerequisite.tenant_id, tenant_id),
+        Eq(CoursePrerequisite.course_id, "cs3e01"),
+    )
+    if prereq is None:
+        await CoursePrerequisite(
+            tenant_id=tenant_id,
+            course_id="cs3e01",
+            course_code="CS3E01",
+            prerequisite_course_ids=["cs3401"],
+        ).insert()
+
+    for group_code, sem_label in (("PE1", reg_sem_label), ("OE1", reg_sem_label)):
+        group = await ElectiveGroup.find_one(
+            Eq(ElectiveGroup.tenant_id, tenant_id),
+            Eq(ElectiveGroup.programme_code, DEMO_PROGRAMME_CODE),
+            Eq(ElectiveGroup.group_code, group_code),
+            Eq(ElectiveGroup.academic_year_label, DEMO_ACADEMIC_YEAR),
+        )
+        if group is not None and group.semester_label != sem_label:
+            group.semester_label = sem_label
+            await group.save()
+
+    print("seeded/synced ST 04 registration window and Semester 6 catalogue")
+
+
 async def _ensure_programme_department_demo_data(tenant_id) -> None:
     """ST 02.03 / 02.08 — institution, programme, department contacts, progression policy."""
     profile = await InstitutionProfile.find_one(Eq(InstitutionProfile.tenant_id, tenant_id))
@@ -318,6 +767,10 @@ async def main() -> None:
 
         await _ensure_academic_context(tenant.id)
         await _ensure_programme_department_demo_data(tenant.id)
+        await _ensure_st03_student_curriculum_catalogue(tenant.id)
+        await _ensure_demo_curriculum_history(tenant.id)
+        await _ensure_demo_elective_groups(tenant.id)
+        await _ensure_st04_registration_window(tenant.id)
 
         student = await _ensure_user(
             tenant_id=tenant.id,
@@ -560,6 +1013,8 @@ async def main() -> None:
                 cgpa=8.52,
                 fee_snapshot={"outstanding_amount": 0, "status": "cleared", "currency": "INR"},
                 eligibility_summary={
+                    "prior_semester_results_published": True,
+                    "prior_semester_number": 5,
                     "minimum_credits_required": 160,
                     "credits_completed": 88,
                     "semesters_completed": 4,

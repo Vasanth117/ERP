@@ -1,5 +1,5 @@
-import { StudentScreen } from "@/features/student/components/student-screen";
+import { TimetableOverviewScreen } from "@/features/student/components/screens/timetable-overview-screen";
 
 export default function Page() {
-  return <StudentScreen slug="timetable" />;
+  return <TimetableOverviewScreen />;
 }

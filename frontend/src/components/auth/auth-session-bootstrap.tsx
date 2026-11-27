@@ -29,7 +29,7 @@ export function AuthSessionBootstrap() {
           notifySessionRestored();
         }
       } catch {
-        /* ignore — user will be sent to login by gates/middleware */
+        /* ignore — user will be sent to login by gates/proxy */
       } finally {
         notifySessionRestored();
       }

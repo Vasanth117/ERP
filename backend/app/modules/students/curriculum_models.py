@@ -4,7 +4,7 @@ These documents point at central academic records (`courses`, `syllabus_records`
 programme-specific registration configuration. Students never write official curriculum data.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from beanie import Document, PydanticObjectId
@@ -110,6 +110,42 @@ class CurriculumReference(Document):
                 ],
                 unique=True,
                 name="unique_curriculum_ref_per_term",
+            ),
+        ]
+
+
+class ProgrammeCurriculumVersionReference(Document):
+    """Published programme curriculum version visible to students (College Admin writes)."""
+
+    tenant_id: PydanticObjectId
+    programme_code: str
+    version_label: str = Field(max_length=32)
+    regulation_label: str = Field(max_length=32)
+    effective_from: date
+    change_summary: str = Field(max_length=500)
+    applies_to_existing_students: bool = True
+    applies_from_batch_label: str | None = Field(
+        default=None,
+        description="When set with applies_to_existing_students=false, only batches from this intake onward",
+    )
+    locked: bool = True
+    published_at: datetime = Field(default_factory=utcnow)
+
+    class Settings:
+        name = "programme_curriculum_version_references"
+        indexes = [
+            IndexModel(
+                [
+                    ("tenant_id", ASCENDING),
+                    ("programme_code", ASCENDING),
+                    ("version_label", ASCENDING),
+                ],
+                unique=True,
+                name="unique_programme_curriculum_version",
+            ),
+            IndexModel(
+                [("tenant_id", ASCENDING), ("programme_code", ASCENDING), ("effective_from", DESCENDING)],
+                name="programme_curriculum_versions_by_prog",
             ),
         ]
 

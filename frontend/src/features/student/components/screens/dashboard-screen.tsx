@@ -46,7 +46,7 @@ function todayIso(): string {
 function frontendQuickActionHref(action: QuickAction): string | null {
   if (!action.enabled) return null;
   const routes: Record<string, string> = {
-    view_timetable: "/student/timetable/daily",
+    view_timetable: "/student/timetable/schedule",
     submit_assignment: "/student/assessments",
     fee_status: "/under-construction?module=student-fees",
     edit_profile: "/student/profile",
@@ -97,7 +97,7 @@ export function StudentDashboardScreen() {
 
   const timetableHref = useMemo(() => {
     const action = dashboard.data?.quick_actions.find((a) => a.code === "view_timetable");
-    return action ? frontendQuickActionHref(action) ?? "/student/timetable/daily" : "/student/timetable/daily";
+    return action ? frontendQuickActionHref(action) ?? "/student/timetable/schedule" : "/student/timetable/schedule";
   }, [dashboard.data?.quick_actions]);
 
   return (
@@ -307,7 +307,7 @@ function DashboardBody({
         <div className="xl:col-span-2">
           <SectionPanel
             title="Today's classes"
-            actionHref="/student/timetable/daily"
+            actionHref="/student/timetable/schedule"
             actionLabel="Full timetable →"
           >
             <TodayClassesTable

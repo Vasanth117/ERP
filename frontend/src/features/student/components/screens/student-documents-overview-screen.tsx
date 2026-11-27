@@ -14,6 +14,7 @@ import {
   useStudentRecordDocuments,
   useStudentRecordDocumentsDownloadAll,
 } from "@/features/student/hooks/use-student-record-documents";
+import { STUDENT_BTN_PRIMARY } from "@/features/student/components/ui/student-portal-tokens";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 5;
@@ -84,14 +85,13 @@ export function StudentDocumentsOverviewScreen() {
       <ProfilePageHeading
         title="Student Documents Overview"
         description="Documents on your record"
-        backHref="/student/profile"
         actions={
           <button
             type="button"
             disabled={downloadAll.isPending || docs.isLoading}
             onClick={() => void handleDownloadAll()}
             className={cn(
-              "inline-flex h-[33px] items-center gap-1.5 rounded-md bg-[#245dd8] px-3.5 text-[12px] font-semibold text-white hover:bg-[#1f4fb8]",
+              STUDENT_BTN_PRIMARY,
               (downloadAll.isPending || docs.isLoading) && "opacity-60",
             )}
           >

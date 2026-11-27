@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CollegeAdminIcon } from "@/features/college-admin/components/layout/college-admin-icon";
 import {
@@ -12,6 +11,10 @@ import {
   ProfilePageHeading,
   ProfilePanel,
 } from "@/features/student/components/ui/student-profile-ui";
+import {
+  STUDENT_BTN_OUTLINE,
+  STUDENT_BTN_PRIMARY,
+} from "@/features/student/components/ui/student-portal-tokens";
 import {
   ProfileUpdateRequestTabs,
   type ProfileUpdateRequestTab,
@@ -35,7 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const inputClassName =
-  "h-[35px] w-full rounded-md border border-[#dce3ec] bg-white px-3 text-[13px] text-[#172b45] shadow-none focus-visible:ring-1 focus-visible:ring-[#245dd8]";
+  "h-9 w-full rounded-md border border-[#e8ecf2] bg-white px-3 text-[13px] text-[#111827] shadow-none focus-visible:ring-1 focus-visible:ring-[#2563eb]";
 
 function tabFromSearch(value: string | null): ProfileUpdateRequestTab {
   return value === "status" ? "status" : "request";
@@ -165,8 +168,6 @@ export function StudentProfileUpdateRequestsScreen() {
 
   return (
     <div className="space-y-5" data-figma-node={heading.figmaNode}>
-      <ProfileUpdateRequestTabs value={tab} onChange={setTabWithUrl} />
-
       <ProfilePageHeading
         title={heading.title}
         description={heading.description}
@@ -180,33 +181,31 @@ export function StudentProfileUpdateRequestsScreen() {
                   resetForm();
                   setFormMessage(null);
                 }}
-                className="inline-flex h-[35px] items-center gap-1.5 rounded-md border border-[#e5e7eb] bg-white px-3.5 text-[12px] font-semibold text-[#374151] hover:bg-[#f8fafc]"
+                className={STUDENT_BTN_OUTLINE}
               >
                 <CollegeAdminIcon name="x" size={14} />
                 Cancel
               </button>
-              <Button
+              <button
                 type="submit"
                 form="profile-correction-form"
-                className="h-[33px] gap-1.5 bg-[#245dd8] px-3.5 text-[12px] hover:bg-[#1f4fb8]"
+                className={STUDENT_BTN_PRIMARY}
                 disabled={submit.isPending || !profile.data}
               >
                 <CollegeAdminIcon name="send" size={14} className="text-white" />
                 {submit.isPending ? "Submitting…" : "Submit request"}
-              </Button>
+              </button>
             </>
           ) : (
-            <button
-              type="button"
-              onClick={() => setTabWithUrl("request")}
-              className="inline-flex h-[33px] items-center gap-1.5 rounded-md bg-[#245dd8] px-3.5 text-[12px] font-semibold text-white hover:bg-[#1f4fb8]"
-            >
+            <button type="button" onClick={() => setTabWithUrl("request")} className={STUDENT_BTN_PRIMARY}>
               <CollegeAdminIcon name="plus" size={14} className="text-white" />
               New request
             </button>
           )
         }
       />
+
+      <ProfileUpdateRequestTabs value={tab} onChange={setTabWithUrl} />
 
       {tab === "request" ? (
         <div className="grid items-start gap-6 lg:grid-cols-5">

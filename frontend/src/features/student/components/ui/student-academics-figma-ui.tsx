@@ -3,9 +3,17 @@
 import type { ReactNode } from "react";
 
 import { CollegeAdminIcon } from "@/features/college-admin/components/layout/college-admin-icon";
+import {
+  PORTAL_CARD,
+  PORTAL_PAGE_DESC,
+  STUDENT_TAB_PAGE_TITLE,
+  PORTAL_SURFACE_BORDER,
+  STUDENT_TEXT_MUTED,
+  STUDENT_TEXT_PRIMARY,
+} from "@/features/student/components/ui/student-portal-tokens";
 import { cn } from "@/lib/utils";
 
-/** Figma ST 02 panel card — border #dce3ec, 8px radius, 14px semibold title. */
+/** Figma ST 02 panel card — matches student portal shell tokens. */
 export function StAcademicsSectionCard({
   title,
   children,
@@ -18,18 +26,15 @@ export function StAcademicsSectionCard({
   className?: string;
 }) {
   return (
-    <section
-      className={cn(
-        "overflow-hidden rounded-lg border border-[#dce3ec] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
-        className,
-      )}
-    >
-      <div className="border-b border-[#dce3ec] px-5 py-3.5">
-        <h3 className="text-[14px] font-semibold text-[#172b45]">{title}</h3>
+    <section className={cn(PORTAL_CARD, className)}>
+      <div className={cn("border-b px-5 py-3.5", PORTAL_SURFACE_BORDER)}>
+        <h3 className={cn("text-[14px] font-semibold", STUDENT_TEXT_PRIMARY)}>{title}</h3>
       </div>
       <div>{children}</div>
       {footer ? (
-        <div className="border-t border-[#dce3ec] px-5 py-3 text-[12px] font-medium text-[#607086]">{footer}</div>
+        <div className={cn("border-t px-5 py-3 text-[12px] font-medium", PORTAL_SURFACE_BORDER, STUDENT_TEXT_MUTED)}>
+          {footer}
+        </div>
       ) : null}
     </section>
   );
@@ -57,8 +62,8 @@ export function StAcademicsDetailRow({
 export function StAcademicsDetailField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <span className="text-[11px] font-normal text-[#607086]">{label}</span>
-      <span className="text-[13px] font-medium text-[#172b45]">{value}</span>
+      <span className={cn("text-[11px] font-normal", STUDENT_TEXT_MUTED)}>{label}</span>
+      <span className={cn("text-[13px] font-medium", STUDENT_TEXT_PRIMARY)}>{value}</span>
     </div>
   );
 }
@@ -68,20 +73,26 @@ export function StAcademicsPageBlock({
   description,
   figmaNode,
   actions,
+  belowDescription,
   children,
+  compact,
 }: {
   title: string;
   description: string;
   figmaNode: string;
   actions?: ReactNode;
+  /** Row under title + subtitle (e.g. back navigation). */
+  belowDescription?: ReactNode;
   children: ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <section className="space-y-5" data-figma-frame={figmaNode}>
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-[26px] font-semibold tracking-tight text-[#172b45]">{title}</h2>
-          <p className="mt-1.5 text-[13px] text-[#607086]">{description}</p>
+    <section className={cn(compact ? "space-y-3" : "space-y-5")} data-figma-frame={figmaNode}>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-2">
+          <h2 className={STUDENT_TAB_PAGE_TITLE}>{title}</h2>
+          <p className={PORTAL_PAGE_DESC}>{description}</p>
+          {belowDescription ? <div className="pt-0.5">{belowDescription}</div> : null}
         </div>
         {actions ? <div className="shrink-0">{actions}</div> : null}
       </header>
@@ -92,7 +103,7 @@ export function StAcademicsPageBlock({
 
 const OUTCOME_STYLES: Record<string, { wrap: string; dot: string; text: string }> = {
   success: { wrap: "bg-[#e7f6ed]", dot: "bg-[#1f7a45]", text: "text-[#1f7a45]" },
-  info: { wrap: "bg-[#ebf2ff]", dot: "bg-[#245dd8]", text: "text-[#245dd8]" },
+  info: { wrap: "bg-[#ebf2ff]", dot: "bg-[#2563eb]", text: "text-[#2563eb]" },
   warning: { wrap: "bg-[#fff7ed]", dot: "bg-[#c2410c]", text: "text-[#c2410c]" },
   muted: { wrap: "bg-[#eef1f5]", dot: "bg-[#6b7280]", text: "text-[#6b7280]" },
 };
@@ -130,11 +141,11 @@ export function StDepartmentContactRow({
   value: string;
 }) {
   return (
-    <div className="flex gap-3 border-t border-[#dce3ec] px-5 py-4 first:border-t-0">
-      <CollegeAdminIcon name={icon === "map-pin" ? "map-pin" : "phone"} size={18} className="mt-0.5 text-[#607086]" />
+    <div className={cn("flex gap-3 border-t px-5 py-4 first:border-t-0", PORTAL_SURFACE_BORDER)}>
+      <CollegeAdminIcon name={icon === "map-pin" ? "map-pin" : "phone"} size={18} className={cn("mt-0.5", STUDENT_TEXT_MUTED)} />
       <div>
-        <p className="text-[13px] font-medium text-[#172b45]">{label}</p>
-        <p className="mt-0.5 text-[12px] text-[#607086]">{value}</p>
+        <p className={cn("text-[13px] font-medium", STUDENT_TEXT_PRIMARY)}>{label}</p>
+        <p className={cn("mt-0.5 text-[12px]", STUDENT_TEXT_MUTED)}>{value}</p>
       </div>
     </div>
   );
@@ -162,7 +173,7 @@ export function StAcademicsToggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative h-[18px] w-8 shrink-0 rounded-full transition-colors duration-200",
-        checked ? "bg-[#245dd8]" : "bg-[#dce3ec]",
+        checked ? "bg-[#2563eb]" : "bg-[#dce3ec]",
         disabled && "cursor-not-allowed opacity-50",
       )}
     >

@@ -22,7 +22,14 @@ from app.modules.students.attendance_portal_service import (
     submit_discrepancy_request,
 )
 from app.modules.students.student_schedule_schemas import DiscrepancyRequestCreate
-from app.modules.students.timetable_service import get_daily_timetable, get_weekly_timetable
+from app.modules.students.timetable_service import (
+    get_daily_timetable,
+    get_timetable_daily_page,
+    get_timetable_overview,
+    get_timetable_session_detail,
+    get_timetable_weekly_page,
+    get_weekly_timetable,
+)
 from app.modules.tenants.models import Department, Tenant
 
 
@@ -132,6 +139,51 @@ async def test_daily_and_weekly_timetable(db_ready) -> None:
     assert any(s.course_code == "CSE101" for s in daily.slots)
     weekly = await get_weekly_timetable(scope, user)
     assert len(weekly.days) == 7
+
+
+@pytest.mark.anyio
+async def test_timetable_overview(db_ready) -> None:
+    tenant, user, scope = await _seed(uuid4().hex[:8])
+    await _seed_timetable_attendance(tenant, user)
+    anchor = date.today()
+    while anchor.weekday() != 0:
+        anchor -= timedelta(days=1)
+    overview = await get_timetable_overview(scope, user, anchor_date=anchor)
+    assert overview.kpis.classes_today >= 1
+    assert overview.kpis.classes_this_week >= 1
+    assert len(overview.today_rows) >= 1
+    assert overview.today_rows[0].subject_label == "Programming"
+
+
+@pytest.mark.anyio
+async def test_timetable_daily_and_weekly_page_dtos(db_ready) -> None:
+    tenant, user, scope = await _seed(uuid4().hex[:8])
+    await _seed_timetable_attendance(tenant, user)
+    anchor = date.today()
+    while anchor.weekday() != 0:
+        anchor -= timedelta(days=1)
+    daily_page = await get_timetable_daily_page(scope, user, anchor_date=anchor)
+    assert daily_page.page_title == "Daily timetable"
+    assert len(daily_page.timeline_rows) >= 1
+    assert daily_page.session_detail is not None
+    weekly_page = await get_timetable_weekly_page(scope, user, anchor_date=anchor)
+    assert weekly_page.page_title == "Weekly timetable"
+    assert len(weekly_page.days) == 7
+
+
+@pytest.mark.anyio
+async def test_timetable_session_detail_from_database(db_ready) -> None:
+    tenant, user, scope = await _seed(uuid4().hex[:8])
+    await _seed_timetable_attendance(tenant, user)
+    anchor = date.today()
+    while anchor.weekday() != 0:
+        anchor -= timedelta(days=1)
+    daily_page = await get_timetable_daily_page(scope, user, anchor_date=anchor)
+    assert daily_page.timeline_rows
+    slot_id = daily_page.timeline_rows[0].slot_id
+    detail = await get_timetable_session_detail(scope, user, slot_id, anchor_date=anchor)
+    assert detail.slot_id == slot_id
+    assert any(f.label == "Course" and f.value == "CSE101" for f in detail.fields)
 
 
 @pytest.mark.anyio

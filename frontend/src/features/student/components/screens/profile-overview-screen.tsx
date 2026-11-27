@@ -18,6 +18,7 @@ import { QueryState } from "@/features/student/components/ui/student-screen-ui";
 import { useEnrollmentStatus } from "@/features/student/hooks/use-student-academics";
 import { useStudentDashboard } from "@/features/student/hooks/use-student-dashboard";
 import { useStudentProfile } from "@/features/student/hooks/use-student-profile";
+import { STUDENT_BTN_PRIMARY } from "@/features/student/components/ui/student-portal-tokens";
 import { formatStudentSemesterNumber } from "@/features/student/lib/format-semester";
 
 const EXPLORE_CARDS: ProfileExploreLink[] = [
@@ -95,10 +96,7 @@ export function StudentProfileOverviewScreen() {
         title="Student Profile Overview"
         description="Official student record for the active term"
         actions={
-          <Link
-            href="/student/profile/edit"
-            className="inline-flex h-[33px] items-center gap-2 rounded-md border border-[#245dd8] bg-[#245dd8] px-3.5 text-[12px] font-semibold text-white hover:bg-[#1f4fb8]"
-          >
+          <Link href="/student/profile/edit" className={STUDENT_BTN_PRIMARY}>
             <CollegeAdminIcon name="pencil" size={15} className="text-white" />
             Edit permitted fields
           </Link>

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState, type ChangeEvent } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ProfileDetailGrid,
@@ -13,6 +12,10 @@ import {
   ProfilePageHeading,
   ProfilePanel,
 } from "@/features/student/components/ui/student-profile-ui";
+import {
+  STUDENT_BTN_OUTLINE,
+  STUDENT_BTN_PRIMARY,
+} from "@/features/student/components/ui/student-portal-tokens";
 import { QueryState } from "@/features/student/components/ui/student-screen-ui";
 import {
   useCommunicationPreferences,
@@ -87,20 +90,17 @@ export function StudentProfileEditScreen() {
         backHref="/student/profile"
         actions={
           <>
-            <Link
-              href="/student/profile"
-              className="inline-flex h-[33px] items-center rounded-md border border-[#e8ecf2] bg-white px-3.5 text-[12px] font-semibold text-[#374151] hover:bg-[#f8fafc]"
-            >
+            <Link href="/student/profile" className={STUDENT_BTN_OUTLINE}>
               Cancel
             </Link>
-            <Button
+            <button
               type="button"
-              className="h-[33px] bg-[#245dd8] px-3.5 text-[12px] font-semibold hover:bg-[#1f4fb8]"
+              className={STUDENT_BTN_PRIMARY}
               disabled={updateProfile.isPending || !profile.data}
               onClick={() => void handleSave()}
             >
               {updateProfile.isPending ? "Saving…" : "Save changes"}
-            </Button>
+            </button>
           </>
         }
       />
@@ -356,14 +356,13 @@ function EmergencyContactEditor({
           </ProfileFormField>
         </div>
       ))}
-      <Button
+      <button
         type="button"
-        variant="outline"
-        className="h-8 border-[#e8ecf2] text-xs"
+        className="inline-flex h-8 items-center rounded-md border border-[#e8ecf2] bg-white px-3 text-xs font-medium text-[#374151] hover:bg-[#f9fafb]"
         onClick={() => onChange([...rows, { name: "", relationship: "", phone: "", email: "" }])}
       >
         Add contact
-      </Button>
+      </button>
     </div>
   );
 }

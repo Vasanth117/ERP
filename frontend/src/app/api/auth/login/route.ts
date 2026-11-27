@@ -38,15 +38,27 @@ export async function POST(request: Request) {
     );
   }
 
-  const upstream = await fetch(`${apiBaseUrl()}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email,
-      password,
-      tenant_code: tenant_code ?? null,
-    }),
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${apiBaseUrl()}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        password,
+        tenant_code: tenant_code ?? null,
+      }),
+    });
+  } catch {
+    return NextResponse.json(
+      {
+        message:
+          "Cannot reach the API on port 8000. Start FastAPI from the backend folder (uvicorn app.main:app --host 0.0.0.0 --port 8000).",
+        code: "API_UNAVAILABLE",
+      },
+      { status: 503 },
+    );
+  }
 
   const envelope = (await upstream.json()) as ApiResponse<TokenPair>;
 

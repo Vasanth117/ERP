@@ -2,17 +2,19 @@
 
 import { usePathname } from "next/navigation";
 
-import { StudentPageTabs } from "@/features/student/components/layout/student-page-tabs";
+import { StudentModuleChrome } from "@/features/student/components/layout/student-module-chrome";
 import { isStudentSt02Path, studentSt02Tabs } from "@/features/student/config/st02-tabs";
 
-/** ST 02 — horizontal module tabs (Overview … Status, Programme & Department). */
+/** ST 02 — module header then horizontal tabs (Overview … Programme & Department). */
 export function StudentSt02ModuleNav() {
   const pathname = usePathname() ?? "";
   if (!isStudentSt02Path(pathname)) return null;
 
   return (
-    <div className="mb-5" data-figma-node="164:3627">
-      <StudentPageTabs tabs={studentSt02Tabs} />
-    </div>
+    <StudentModuleChrome
+      moduleKey="academics"
+      tabs={studentSt02Tabs}
+      figmaNode="164:3627"
+    />
   );
 }
