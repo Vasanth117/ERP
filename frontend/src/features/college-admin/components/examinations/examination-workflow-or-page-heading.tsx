@@ -26,15 +26,9 @@ export function ExaminationWorkflowOrPageHeading(props: Props) {
         subtitle={props.pageSubtitle}
         forceShowTitle
         actions={
-          <ExaminationWorkflowHeaderActions
-            headerActions={props.headerActions}
-            saveDraftLabel={props.saveDraftLabel}
-            continueLabel={props.continueLabel}
-            onSaveDraft={props.onSaveDraft}
-            onContinue={props.onContinue}
-            continueEnabled={props.continueEnabled}
-            disabled={disabled}
-          />
+          props.headerActions ? (
+            <ExaminationWorkflowHeaderActions headerActions={props.headerActions} disabled={disabled} />
+          ) : undefined
         }
       />
     );

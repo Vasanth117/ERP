@@ -168,6 +168,8 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "lms-subject-course-mapping-page", params ?? {}] as const,
   lmsLearningMaterialManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "lms-learning-material-management-page", params ?? {}] as const,
+  lmsUnitChapterManagementPage: (params?: Record<string, string | number | undefined>) =>
+    [...collegeAdminQueryKeys.all, "lms-unit-chapter-management-page", params ?? {}] as const,
   lmsVideoLectureManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "lms-video-lecture-management-page", params ?? {}] as const,
   lmsAssignmentManagementPage: (params?: Record<string, string | number | undefined>) =>

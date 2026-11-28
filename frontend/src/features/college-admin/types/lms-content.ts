@@ -16,6 +16,7 @@ export type LmsLearningMaterialRow = {
 export type LmsLearningMaterialManagementPage = {
   page_title: string;
   page_subtitle: string;
+  export_label?: string;
   primary_action_label: string;
   primary_action_href: string;
   materials_section_title: string;
@@ -47,6 +48,7 @@ export type LmsVideoLectureRow = {
 export type LmsVideoLectureManagementPage = {
   page_title: string;
   page_subtitle: string;
+  export_label?: string;
   primary_action_label: string;
   primary_action_href: string;
   kpis: UserDashboardKpi[];
@@ -62,4 +64,44 @@ export type LmsVideoLectureManagementPage = {
 export type LmsVideoLecturePageQuery = {
   page?: number;
   page_size?: number;
+};
+
+export type LmsChapterRow = {
+  row_key: string;
+  chapter_label: string;
+  materials_count_label: string;
+  detail_href?: string | null;
+};
+
+export type LmsUnitChapterRow = {
+  row_key: string;
+  unit_label: string;
+  chapter_count_label: string;
+  status_label: string;
+  status_tone: string;
+  default_expanded: boolean;
+  chapters: LmsChapterRow[];
+};
+
+export type LmsUnitChapterCourseOption = {
+  course_code: string;
+  course_label: string;
+  selected: boolean;
+};
+
+export type LmsUnitChapterManagementPage = {
+  page_title: string;
+  page_subtitle: string;
+  export_label?: string;
+  primary_action_label: string;
+  primary_action_href: string;
+  course_header_label: string;
+  course_options: LmsUnitChapterCourseOption[];
+  unit_rows: LmsUnitChapterRow[];
+  empty_message: string;
+  generated_at: string;
+};
+
+export type LmsUnitChapterPageQuery = {
+  course_code?: string;
 };

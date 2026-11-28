@@ -6637,6 +6637,7 @@ class LmsLearningMaterialRow(BaseModel):
 class LmsLearningMaterialManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    export_label: str = "Export"
     primary_action_label: str
     primary_action_href: str
     materials_section_title: str
@@ -6645,6 +6646,42 @@ class LmsLearningMaterialManagementPageRead(BaseModel):
     empty_table_message: str
     showing_label: str
     pagination: PoliciesPagination
+    generated_at: datetime
+
+
+class LmsChapterRow(BaseModel):
+    row_key: str
+    chapter_label: str
+    materials_count_label: str
+    detail_href: str | None = None
+
+
+class LmsUnitChapterRow(BaseModel):
+    row_key: str
+    unit_label: str
+    chapter_count_label: str
+    status_label: str
+    status_tone: str
+    default_expanded: bool = False
+    chapters: list[LmsChapterRow] = Field(default_factory=list)
+
+
+class LmsUnitChapterCourseOption(BaseModel):
+    course_code: str
+    course_label: str
+    selected: bool = False
+
+
+class LmsUnitChapterManagementPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    export_label: str = "Export"
+    primary_action_label: str
+    primary_action_href: str
+    course_header_label: str
+    course_options: list[LmsUnitChapterCourseOption]
+    unit_rows: list[LmsUnitChapterRow]
+    empty_message: str
     generated_at: datetime
 
 
@@ -6663,6 +6700,7 @@ class LmsVideoLectureRow(BaseModel):
 class LmsVideoLectureManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    export_label: str = "Export"
     primary_action_label: str
     primary_action_href: str
     kpis: list[UserDashboardKpi]
