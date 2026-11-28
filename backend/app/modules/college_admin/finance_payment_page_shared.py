@@ -197,6 +197,12 @@ async def build_transaction_rows(
     return rows
 
 
+def _gateway_rate_key(gateway_name: str | None) -> str:
+    """Normalize transaction gateway field for success-rate buckets."""
+    raw = (gateway_name or "unknown").strip().lower()
+    return raw.replace(" ", "_") if raw else "unknown"
+
+
 def gateway_success_rates(txs: list[PaymentTransaction], *, day: date) -> dict[str, float]:
     buckets: dict[str, list[bool]] = defaultdict(list)
     for tx in txs:
@@ -205,13 +211,7 @@ def gateway_success_rates(txs: list[PaymentTransaction], *, day: date) -> dict[s
         local = tx.created_at.astimezone(_IST) if tx.created_at.tzinfo else tx.created_at.replace(tzinfo=_IST)
         if local.date() != day:
             continue
-        name = (tx.gateway or "razorpay").lower()
-        if "payu" in name:
-            key = "payu"
-        elif "bill" in name:
-            key = "billdesk"
-        else:
-            key = "razorpay"
+        key = _gateway_rate_key(tx.gateway)
         buckets[key].append(tx.status == PaymentTransactionStatus.SUCCESS)
     out: dict[str, float] = {}
     for key, results in buckets.items():

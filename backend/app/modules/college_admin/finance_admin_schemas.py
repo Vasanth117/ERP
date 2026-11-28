@@ -44,6 +44,24 @@ class FeeAssessmentCreate(BaseModel):
     concession_amount: float = 0
 
 
+class FeeAssessmentBulkRow(BaseModel):
+    register_number: str = Field(min_length=1, max_length=64)
+    structure_id: str | None = None
+    concession_amount: float = Field(default=0, ge=0)
+
+
+class FeeAssessmentBulkAssign(BaseModel):
+    default_structure_id: str | None = None
+    rows: list[FeeAssessmentBulkRow] = Field(min_length=1, max_length=5000)
+
+
+class FeeAssessmentGroupAssign(BaseModel):
+    structure_id: str
+    programme_code: str
+    batch_label: str | None = None
+    section_code: str | None = None
+
+
 class OfflineCollectionCreate(BaseModel):
     student_user_id: str
     demand_id: str

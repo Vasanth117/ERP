@@ -108,19 +108,30 @@ export function FeeDemandInvoiceManagementDashboard() {
   const generateHref = data?.generate_demands_href ?? "/college-admin/finance/fee-demand-invoice-management?generate=1";
   const publishHref = data?.publish_href ?? "/college-admin/finance/fee-demand-invoice-management?publish=1";
   const headers = data?.table_headers ?? [];
+  const showHeaderActions = !data || data.invoice_rows.length > 0;
 
   return (
     <div className="space-y-5" data-figma-frame="160:3264">
-      <CollegeAdminModulePageHeading title={data?.page_title ?? "Fee Demand & Invoice Management"} subtitle={data?.page_subtitle ?? "Generate and publish fee demands"} actions={<><CollegeAdminOutlineLink href={generateHref}>
-            <CollegeAdminPlusActionLabel
-              iconClassName="size-3.5"
-              label={data?.generate_demands_label ?? "Generate demands"}
-            />
-          </CollegeAdminOutlineLink>
-          <CollegeAdminPrimaryLink href={publishHref}>
-            <SendIcon className="size-3.5" aria-hidden />
-            {data?.publish_label ?? "Publish"}
-          </CollegeAdminPrimaryLink></>} />
+      <CollegeAdminModulePageHeading
+        title={data?.page_title ?? "Fee Demand & Invoice Management"}
+        subtitle={data?.page_subtitle ?? "Generate and publish fee demands"}
+        actions={
+          showHeaderActions ? (
+            <>
+              <CollegeAdminOutlineLink href={generateHref}>
+                <CollegeAdminPlusActionLabel
+                  iconClassName="size-3.5"
+                  label={data?.generate_demands_label ?? "Generate demands"}
+                />
+              </CollegeAdminOutlineLink>
+              <CollegeAdminPrimaryLink href={publishHref}>
+                <SendIcon className="size-3.5" aria-hidden />
+                {data?.publish_label ?? "Publish"}
+              </CollegeAdminPrimaryLink>
+            </>
+          ) : undefined
+        }
+      />
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (

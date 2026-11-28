@@ -19,6 +19,13 @@ export function fetchOnlinePaymentMonitoringPage(params?: OnlinePaymentMonitorin
   );
 }
 
+export function verifyPendingOnlinePayments() {
+  return apiRequest<{ attempted: number; verified: number }>(
+    "/college-admin/finance-administration/payments/online/verify-pending",
+    { method: "POST" },
+  );
+}
+
 export function fetchOfflinePaymentCollectionPage(params?: OfflinePaymentCollectionPageQuery) {
   return apiRequest<OfflinePaymentCollectionPage>(
     `/college-admin/finance-administration/payments/offline/page${toSearch(params ?? {})}`,

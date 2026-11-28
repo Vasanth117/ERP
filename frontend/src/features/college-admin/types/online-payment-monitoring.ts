@@ -23,6 +23,7 @@ export type OnlinePaymentMonitoringPage = {
   page_subtitle: string;
   verify_pending_label: string;
   verify_pending_href: string;
+  verify_pending_count: number;
   kpis: FinancePaymentUserDashboardKpi[];
   sub_nav: FinancePaymentsSubNavItem[];
   transactions_section_title: string;
@@ -32,5 +33,6 @@ export type OnlinePaymentMonitoringPage = {
   pagination: FinancePaymentsPagination;
   gateways_section_title: string;
   gateway_items: FinancePaymentGatewayItem[];
+  gateways_empty_message: string | null;
   generated_at: string;
 };

@@ -8899,6 +8899,35 @@ class FeeStructureManagementTableRow(BaseModel):
     detail_href: str
 
 
+class FeeStructureCreationProgrammeOption(BaseModel):
+    programme_code: str
+    programme_label: str
+    department_id: str | None = None
+    department_name: str | None = None
+    programme_level: str | None = None
+    stream_label: str | None = None
+
+
+class FeeStructureCreationPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    department_filter_label: str
+    stream_filter_label: str
+    programme_filter_label: str
+    academic_year_filter_label: str
+    semester_filter_label: str
+    department_options: list[StudentAdminDashboardFilterOption]
+    stream_options: list[StudentAdminDashboardFilterOption]
+    programme_options: list[FeeStructureCreationProgrammeOption]
+    academic_year_options: list[StudentAdminDashboardFilterOption]
+    semester_options: list[StudentAdminDashboardFilterOption]
+    default_line_items: list[dict[str, object]]
+    save_draft_label: str
+    continue_label: str
+    publish_label: str
+    generated_at: datetime
+
+
 class FeeStructureManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
@@ -8927,9 +8956,53 @@ class StudentFeeManagementTableRow(BaseModel):
     detail_href: str
 
 
+class StudentFeeAssignStructureOption(BaseModel):
+    structure_id: str
+    label: str
+    programme_code: str
+    academic_year_label: str
+    semester_label: str
+    total_amount: float
+    total_label: str
+
+
+class StudentFeeAssignStudentOption(BaseModel):
+    student_user_id: str
+    label: str
+    register_number: str
+    programme_code: str | None = None
+    batch_label: str | None = None
+    section_code: str | None = None
+
+
+class StudentFeeAssignPageRead(BaseModel):
+    page_title: str
+    page_subtitle: str
+    single_tab_label: str
+    group_tab_label: str
+    bulk_tab_label: str
+    structure_label: str
+    student_label: str
+    programme_label: str
+    batch_filter_label: str
+    section_filter_label: str
+    concession_label: str
+    assign_submit_label: str
+    bulk_file_label: str
+    bulk_template_hint: str
+    structure_options: list[StudentFeeAssignStructureOption]
+    student_options: list[StudentFeeAssignStudentOption]
+    programme_options: list[StudentAdminDashboardFilterOption]
+    batch_options: list[StudentAdminDashboardFilterOption]
+    section_options: list[StudentAdminDashboardFilterOption]
+    generated_at: datetime
+
+
 class StudentFeeManagementPageRead(BaseModel):
     page_title: str
     page_subtitle: str
+    assign_student_label: str = "Assign student"
+    assign_group_label: str = "Assign group"
     bulk_assign_label: str
     bulk_assign_href: str
     kpis: list[UserDashboardKpi]
@@ -9021,6 +9094,7 @@ class OnlinePaymentMonitoringPageRead(BaseModel):
     page_subtitle: str
     verify_pending_label: str
     verify_pending_href: str
+    verify_pending_count: int = 0
     kpis: list[UserDashboardKpi]
     sub_nav: list[YearsSemestersSubNavItem]
     transactions_section_title: str
@@ -9030,6 +9104,7 @@ class OnlinePaymentMonitoringPageRead(BaseModel):
     pagination: PoliciesPagination
     gateways_section_title: str
     gateway_items: list[FinancePaymentGatewayItem]
+    gateways_empty_message: str | None = None
     generated_at: datetime
 
 

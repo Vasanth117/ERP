@@ -177,7 +177,9 @@ async def get_student_fee_management_page(
     return StudentFeeManagementPageRead(
         page_title="Student Fee Management",
         page_subtitle="Assign fees to students after assessment",
-        bulk_assign_label="Bulk assign",
+        assign_student_label="Assign student",
+        assign_group_label="Assign group",
+        bulk_assign_label="Bulk import",
         bulk_assign_href="/college-admin/finance/student-fee-management?bulk=1",
         kpis=kpis,
         student_fees_section_title="Student fees",

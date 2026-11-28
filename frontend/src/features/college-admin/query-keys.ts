@@ -170,6 +170,7 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "lms-learning-material-management-page", params ?? {}] as const,
   lmsUnitChapterManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "lms-unit-chapter-management-page", params ?? {}] as const,
+  feeStructureCreationPage: () => [...collegeAdminQueryKeys.all, "fee-structure-creation-page"] as const,
   lmsVideoLectureManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "lms-video-lecture-management-page", params ?? {}] as const,
   lmsAssignmentManagementPage: (params?: Record<string, string | number | undefined>) =>
@@ -231,6 +232,7 @@ export const collegeAdminQueryKeys = {
     [...collegeAdminQueryKeys.all, "fee-structure-management-page", params ?? {}] as const,
   studentFeeManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "student-fee-management-page", params ?? {}] as const,
+  studentFeeAssignPage: () => [...collegeAdminQueryKeys.all, "student-fee-assign-page"] as const,
   feeDemandInvoiceManagementPage: (params?: Record<string, string | number | undefined>) =>
     [...collegeAdminQueryKeys.all, "fee-demand-invoice-management-page", params ?? {}] as const,
   onlinePaymentMonitoringPage: (params?: Record<string, string | number | undefined>) =>
