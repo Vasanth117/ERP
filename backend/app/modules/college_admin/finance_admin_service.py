@@ -23,7 +23,9 @@ from app.modules.college_admin.finance_admin_models import (
 )
 from app.modules.college_admin.finance_admin_schemas import (
     ConcessionCreate,
+    FeeAssessmentBulkAssign,
     FeeAssessmentCreate,
+    FeeAssessmentGroupAssign,
     FeeStructureRead,
     FeeStructureUpsert,
     FinancialPeriodUpsert,
@@ -32,6 +34,9 @@ from app.modules.college_admin.finance_admin_schemas import (
     RefundDecision,
 )
 from app.modules.college_admin.policy import require_college_tenant_scope
+from app.modules.college_admin.student_admin_models import StudentRecord
+from app.modules.college_admin.student_statistics_overview_service import _ENROLLED_LIFECYCLE
+from app.modules.students.models import StudentProfile
 from app.modules.finance.finance_enums import FeeDemandStatus, PaymentTransactionStatus, RefundStatus
 from app.modules.finance.finance_models import (
     FeeConcession,
@@ -145,21 +150,95 @@ async def publish_fee_structure(scope: AccessScope, structure_id: str) -> FeeStr
     return FeeStructureRead.from_document(doc)
 
 
-async def create_fee_assessment(scope: AccessScope, payload: FeeAssessmentCreate) -> dict:
-    authorize(scope, Permission.FINANCE_ADMIN_MANAGE)
-    tenant_id = require_college_tenant_scope(scope)
-    student_id = to_object_id(payload.student_user_id, "student_user_id")
+async def _load_structure(tenant_id: PydanticObjectId, structure_id: str):
     structure = await InstitutionFeeStructure.find_one(
         Eq(InstitutionFeeStructure.tenant_id, tenant_id),
-        Eq(InstitutionFeeStructure.structure_id, payload.structure_id),
+        Eq(InstitutionFeeStructure.structure_id, structure_id),
     )
     if structure is None:
         structure = await StudentFeeStructure.find_one(
             Eq(StudentFeeStructure.tenant_id, tenant_id),
-            Eq(StudentFeeStructure.structure_id, payload.structure_id),
+            Eq(StudentFeeStructure.structure_id, structure_id),
         )
+    return structure
+
+
+async def _resolve_student_by_register(tenant_id: PydanticObjectId, register_number: str) -> PydanticObjectId:
+    reg = register_number.strip()
+    if not reg:
+        raise AppError(code="VALIDATION", message="Register number is required", status_code=422)
+    profile = await StudentProfile.find_one(
+        Eq(StudentProfile.tenant_id, tenant_id),
+        Eq(StudentProfile.roll_number, reg),
+    )
+    if profile is not None:
+        return profile.user_id
+    record = await StudentRecord.find_one(
+        Eq(StudentRecord.tenant_id, tenant_id),
+        Eq(StudentRecord.roll_number, reg),
+    )
+    if record is not None:
+        return record.user_id
+    raise AppError(code="NOT_FOUND", message=f"Student not found for register {reg}", status_code=404)
+
+
+async def _assessment_already_exists(
+    tenant_id: PydanticObjectId,
+    student_id: PydanticObjectId,
+    *,
+    structure_id: str,
+    academic_year_label: str,
+    semester_label: str,
+) -> bool:
+    existing = await StudentFeeAssessment.find_one(
+        Eq(StudentFeeAssessment.tenant_id, tenant_id),
+        Eq(StudentFeeAssessment.student_user_id, student_id),
+        Eq(StudentFeeAssessment.structure_id, structure_id),
+        Eq(StudentFeeAssessment.academic_year_label, academic_year_label),
+        Eq(StudentFeeAssessment.semester_label, semester_label),
+    )
+    return existing is not None
+
+
+async def create_fee_assessment(
+    scope: AccessScope,
+    payload: FeeAssessmentCreate,
+    *,
+    bulk_batch_id: str | None = None,
+) -> dict:
+    authorize(scope, Permission.FINANCE_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    student_id = to_object_id(payload.student_user_id, "student_user_id")
+    if await _assessment_already_exists(
+        tenant_id,
+        student_id,
+        structure_id=payload.structure_id,
+        academic_year_label=payload.academic_year_label,
+        semester_label=payload.semester_label,
+    ):
+        raise AppError(
+            code="CONFLICT",
+            message="This student already has this fee structure for the term",
+            status_code=409,
+        )
+    structure = await _load_structure(tenant_id, payload.structure_id)
     if structure is None:
         raise AppError(code="NOT_FOUND", message="Fee structure not found", status_code=404)
+    profile = await StudentProfile.find_one(
+        Eq(StudentProfile.tenant_id, tenant_id),
+        Eq(StudentProfile.user_id, student_id),
+    )
+    record = await StudentRecord.find_one(
+        Eq(StudentRecord.tenant_id, tenant_id),
+        Eq(StudentRecord.user_id, student_id),
+    )
+    programme_code = None
+    if record and record.programme_code:
+        programme_code = record.programme_code.upper()
+    elif profile and profile.programme_code:
+        programme_code = profile.programme_code.upper()
+    elif getattr(structure, "programme_code", None):
+        programme_code = str(structure.programme_code).upper()
     total = getattr(structure, "total_amount", 0)
     net = max(0.0, total - payload.concession_amount)
     assessment_id = f"assess_{uuid4().hex}"
@@ -221,10 +300,133 @@ async def create_fee_assessment(scope: AccessScope, payload: FeeAssessmentCreate
         net_amount=net,
         demand_id=demand_id,
         invoice_id=invoice_id,
+        programme_code=programme_code,
+        bulk_batch_id=bulk_batch_id,
         actor_id=scope.user_id,
     )
     await assessment.insert()
     return {"assessment_id": assessment_id, "demand_id": demand_id, "invoice_id": invoice_id, "net_amount": net}
+
+
+async def assign_fee_assessments_group(scope: AccessScope, payload: FeeAssessmentGroupAssign) -> dict:
+    authorize(scope, Permission.FINANCE_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    structure = await _load_structure(tenant_id, payload.structure_id)
+    if structure is None:
+        raise AppError(code="NOT_FOUND", message="Fee structure not found", status_code=404)
+    prog = payload.programme_code.strip().upper()
+    if str(getattr(structure, "programme_code", "")).upper() != prog:
+        raise AppError(
+            code="VALIDATION",
+            message="Fee structure programme does not match selected programme",
+            status_code=422,
+        )
+    records = await StudentRecord.find(Eq(StudentRecord.tenant_id, tenant_id)).to_list()
+    enrolled = [r for r in records if r.lifecycle_status.value in _ENROLLED_LIFECYCLE]
+    profiles = await StudentProfile.find(Eq(StudentProfile.tenant_id, tenant_id)).to_list()
+    profile_by_user = {p.user_id: p for p in profiles}
+    bulk_batch_id = f"grp_{uuid4().hex[:12]}"
+    matched: list[PydanticObjectId] = []
+    for record in enrolled:
+        code = (record.programme_code or "").upper()
+        if not code:
+            profile = profile_by_user.get(record.user_id)
+            code = (profile.programme_code or "").upper() if profile else ""
+        if code != prog:
+            continue
+        if payload.batch_label:
+            batch = record.batch_label or (profile_by_user.get(record.user_id).batch_label if profile_by_user.get(record.user_id) else None)
+            if (batch or "") != payload.batch_label:
+                continue
+        if payload.section_code:
+            section = record.section_code or (
+                profile_by_user.get(record.user_id).section_code if profile_by_user.get(record.user_id) else None
+            )
+            if (section or "") != payload.section_code:
+                continue
+        matched.append(record.user_id)
+    if not matched:
+        raise AppError(code="NOT_FOUND", message="No enrolled students matched this group", status_code=404)
+    ay = getattr(structure, "academic_year_label", "")
+    sem = getattr(structure, "semester_label", "")
+    succeeded = 0
+    skipped = 0
+    failed: list[dict[str, str]] = []
+    for user_id in matched:
+        try:
+            await create_fee_assessment(
+                scope,
+                FeeAssessmentCreate(
+                    student_user_id=str(user_id),
+                    structure_id=payload.structure_id,
+                    academic_year_label=ay,
+                    semester_label=sem,
+                    concession_amount=0,
+                ),
+                bulk_batch_id=bulk_batch_id,
+            )
+            succeeded += 1
+        except AppError as exc:
+            if exc.status_code == 409:
+                skipped += 1
+            else:
+                failed.append({"student_user_id": str(user_id), "message": exc.message})
+        except Exception as exc:  # noqa: BLE001
+            failed.append({"student_user_id": str(user_id), "message": str(exc)})
+    return {
+        "bulk_batch_id": bulk_batch_id,
+        "matched": len(matched),
+        "succeeded": succeeded,
+        "skipped": skipped,
+        "failed": failed,
+    }
+
+
+async def assign_fee_assessments_bulk(scope: AccessScope, payload: FeeAssessmentBulkAssign) -> dict:
+    authorize(scope, Permission.FINANCE_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    bulk_batch_id = f"bulk_{uuid4().hex[:12]}"
+    succeeded = 0
+    skipped = 0
+    failed: list[dict[str, str]] = []
+    for row in payload.rows:
+        reg = row.register_number.strip()
+        structure_id = (row.structure_id or payload.default_structure_id or "").strip()
+        if not structure_id:
+            failed.append({"register_number": reg, "message": "structure_id is required"})
+            continue
+        structure = await _load_structure(tenant_id, structure_id)
+        if structure is None:
+            failed.append({"register_number": reg, "message": f"Unknown structure {structure_id}"})
+            continue
+        try:
+            student_id = await _resolve_student_by_register(tenant_id, reg)
+            await create_fee_assessment(
+                scope,
+                FeeAssessmentCreate(
+                    student_user_id=str(student_id),
+                    structure_id=structure_id,
+                    academic_year_label=getattr(structure, "academic_year_label", ""),
+                    semester_label=getattr(structure, "semester_label", ""),
+                    concession_amount=row.concession_amount,
+                ),
+                bulk_batch_id=bulk_batch_id,
+            )
+            succeeded += 1
+        except AppError as exc:
+            if exc.status_code == 409:
+                skipped += 1
+            else:
+                failed.append({"register_number": reg, "message": exc.message})
+        except Exception as exc:  # noqa: BLE001
+            failed.append({"register_number": reg, "message": str(exc)})
+    return {
+        "bulk_batch_id": bulk_batch_id,
+        "processed": len(payload.rows),
+        "succeeded": succeeded,
+        "skipped": skipped,
+        "failed": failed,
+    }
 
 
 async def record_offline_collection(scope: AccessScope, payload: OfflineCollectionCreate) -> dict:

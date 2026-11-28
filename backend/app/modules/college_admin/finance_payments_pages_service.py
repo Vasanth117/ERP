@@ -40,18 +40,17 @@ from app.modules.college_admin.schemas import (
     StudentAdminDashboardFilterOption,
     UserDashboardKpi,
 )
+from app.modules.accounts_finance.phase3_enums import PaymentGatewayEnvironment
+from app.modules.accounts_finance.phase3_models import PaymentGatewayConfiguration
+from app.modules.finance.finance_enums import PaymentTransactionStatus
 from app.modules.finance.finance_models import PaymentTransaction
+from app.modules.finance.payment_verification import apply_verified_payment
 
 _ONLINE_PAGE_SIZE = 4
 _OFFLINE_PAGE_SIZE = 10
 _TRANSACTIONS_PAGE_SIZE = 10
 _TABLE_HEADERS_ONLINE = ["Transaction", "Student", "Invoice", "Method", "Amount", "Status"]
 _TABLE_HEADERS_OFFLINE = ["Reference", "Student", "Method", "Amount", "Counter", "Status"]
-_GATEWAY_DEFS = (
-    ("razorpay", "Razorpay", "live"),
-    ("payu", "PayU", "live"),
-    ("billdesk", "BillDesk", "test"),
-)
 
 
 def _format_count(n: int) -> str:
@@ -127,34 +126,62 @@ def _online_failed(tx: PaymentTransaction) -> bool:
     return label == "Failed"
 
 
-def _gateway_items(txs: list[PaymentTransaction], today: date) -> list[FinancePaymentGatewayItem]:
+def _provider_rate_key(provider_code: str | None) -> str:
+    return (provider_code or "unknown").strip().lower().replace(" ", "_")
+
+
+def _gateway_detail_line(
+    gw: PaymentGatewayConfiguration,
+    rates: dict[str, float],
+) -> str:
+    code_key = _provider_rate_key(gw.provider_code)
+    rate = rates.get(code_key)
+    if rate is None:
+        for tx_key, tx_rate in rates.items():
+            if tx_key in code_key or code_key in tx_key:
+                rate = tx_rate
+                break
+    if rate is not None:
+        return f"{rate}% success today"
+    if gw.connection_status and gw.connection_status not in {"unknown", "stub"}:
+        return str(gw.connection_status).replace("_", " ").title()
+    env = gw.environment.value if hasattr(gw.environment, "value") else str(gw.environment)
+    if env == PaymentGatewayEnvironment.SANDBOX.value:
+        return "Sandbox environment"
+    return "No attempts today"
+
+
+def _gateway_status(gw: PaymentGatewayConfiguration) -> tuple[str, str, str]:
+    if not gw.active:
+        return "Inactive", "muted", "info"
+    env = gw.environment.value if hasattr(gw.environment, "value") else str(gw.environment)
+    if env == PaymentGatewayEnvironment.PRODUCTION.value:
+        return "Live", "success", "check"
+    return "Test", "warning", "info"
+
+
+async def _gateway_items(tenant_id, txs: list[PaymentTransaction], today: date) -> tuple[list[FinancePaymentGatewayItem], str | None]:
     rates = gateway_success_rates(txs, day=today)
+    gateways = await PaymentGatewayConfiguration.find(
+        Eq(PaymentGatewayConfiguration.tenant_id, tenant_id),
+    ).sort("-active", "+gateway_name").to_list()
+    if not gateways:
+        return [], "Configure payment gateways in Finance settings to monitor providers here."
+
     items: list[FinancePaymentGatewayItem] = []
-    for key, label, mode in _GATEWAY_DEFS:
-        if mode == "test":
-            items.append(
-                FinancePaymentGatewayItem(
-                    gateway_key=key,
-                    gateway_label=label,
-                    detail_line="Sandbox only",
-                    status_label="Test",
-                    status_tone="warning",
-                    icon_variant="info",
-                )
-            )
-            continue
-        rate = rates.get(key, 99.0 if key == "razorpay" else 97.5)
+    for gw in gateways:
+        status_label, status_tone, icon_variant = _gateway_status(gw)
         items.append(
             FinancePaymentGatewayItem(
-                gateway_key=key,
-                gateway_label=label,
-                detail_line=f"{rate}% today",
-                status_label="Live",
-                status_tone="success",
-                icon_variant="check",
+                gateway_key=gw.config_id,
+                gateway_label=gw.gateway_name or gw.provider_code,
+                detail_line=_gateway_detail_line(gw, rates),
+                status_label=status_label,
+                status_tone=status_tone,
+                icon_variant=icon_variant,
             )
         )
-    return items
+    return items, None
 
 
 async def _load_tenant_transactions(scope: AccessScope) -> list[PaymentTransaction]:
@@ -163,11 +190,37 @@ async def _load_tenant_transactions(scope: AccessScope) -> list[PaymentTransacti
     return await PaymentTransaction.find(Eq(PaymentTransaction.tenant_id, tenant_id)).sort("-created_at").to_list()
 
 
+async def verify_pending_online_payments(scope: AccessScope) -> dict[str, int]:
+    authorize(scope, Permission.FINANCE_ADMIN_MANAGE)
+    tenant_id = require_college_tenant_scope(scope)
+    txs = await PaymentTransaction.find(Eq(PaymentTransaction.tenant_id, tenant_id)).to_list()
+    pending = [
+        t
+        for t in txs
+        if is_online_tx(t)
+        and t.status in (PaymentTransactionStatus.PENDING, PaymentTransactionStatus.VERIFICATION_REQUIRED)
+    ]
+    attempted = 0
+    verified = 0
+    for tx in pending:
+        attempted += 1
+        reference = (tx.gateway_reference or tx.transaction_id or "").strip()
+        if not reference:
+            continue
+        try:
+            await apply_verified_payment(tx.transaction_id, gateway_reference=reference)
+            verified += 1
+        except Exception:  # noqa: BLE001
+            continue
+    return {"attempted": attempted, "verified": verified}
+
+
 async def get_online_payment_monitoring_page(scope: AccessScope, *, page: int = 1) -> OnlinePaymentMonitoringPageRead:
     now = utcnow()
     today = now.date()
     month_start = current_month_start()
     _, month_end = _month_bounds(month_start.strftime("%Y-%m"))
+    tenant_id = require_college_tenant_scope(scope)
     txs = await _load_tenant_transactions(scope)
     online = [t for t in txs if is_online_tx(t)]
     month_online = [t for t in online if _tx_in_month(t, month_start, month_end)]
@@ -196,8 +249,8 @@ async def get_online_payment_monitoring_page(scope: AccessScope, *, page: int = 
             key="pending",
             label="Pending",
             value=_format_count(pending_n),
-            hint_line="Awaiting confirmation",
-            hint_tone="amber",
+            hint_line=f"{pending_n:,} awaiting verification" if pending_n else "None awaiting",
+            hint_tone="amber" if pending_n else "success",
         ),
         UserDashboardKpi(
             key="failed",
@@ -213,11 +266,14 @@ async def get_online_payment_monitoring_page(scope: AccessScope, *, page: int = 
     page_slice = online[start : start + _ONLINE_PAGE_SIZE]
     transaction_rows = await build_transaction_rows(page_slice)
 
+    gateway_items, gateways_empty_message = await _gateway_items(tenant_id, txs, today)
+
     return OnlinePaymentMonitoringPageRead(
         page_title="Online Payment Monitoring",
         page_subtitle="Gateway transactions and settlements",
         verify_pending_label="Verify pending",
         verify_pending_href="/college-admin/finance/online-payment-monitoring?verify=1",
+        verify_pending_count=pending_n,
         kpis=kpis,
         sub_nav=payment_sub_nav("online"),
         transactions_section_title="Payment transactions",
@@ -226,7 +282,8 @@ async def get_online_payment_monitoring_page(scope: AccessScope, *, page: int = 
         showing_label=_showing_slice(start, min(start + len(page_slice), total), total),
         pagination=pagination,
         gateways_section_title="Gateways",
-        gateway_items=_gateway_items(txs, today),
+        gateway_items=gateway_items,
+        gateways_empty_message=gateways_empty_message,
         generated_at=now,
     )
 

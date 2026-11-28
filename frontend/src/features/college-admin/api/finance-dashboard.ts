@@ -1,4 +1,6 @@
 import { apiRequest } from "@/lib/api/client";
+import { apiBaseUrl } from "@/lib/env";
+import { applyAuthHeaders } from "@/lib/api/auth-headers";
 
 import type { FinanceDashboardPage, FinanceDashboardPageQuery } from "@/features/college-admin/types/finance-dashboard";
 
@@ -15,4 +17,25 @@ export function fetchFinanceDashboardPage(params?: FinanceDashboardPageQuery) {
   return apiRequest<FinanceDashboardPage>(
     `/college-admin/finance-administration/dashboard/page${buildQuery(params)}`,
   );
+}
+
+export async function downloadFinanceDashboardExport(params?: FinanceDashboardPageQuery) {
+  const path = `/college-admin/finance-administration/dashboard/export${buildQuery(params)}`;
+  const headers = new Headers();
+  applyAuthHeaders(headers);
+  const response = await fetch(`${apiBaseUrl()}${path}`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+  if (!response.ok) {
+    throw new Error(`Export failed (${response.status})`);
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "finance-dashboard.csv";
+  a.click();
+  URL.revokeObjectURL(url);
 }

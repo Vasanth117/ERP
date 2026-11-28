@@ -1,12 +1,14 @@
 "use client";
 
 import { CollegeAdminModulePageHeading } from "@/features/college-admin/components/layout/college-admin-module-page-heading";
+import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CalendarIcon } from "@/components/icons/erp/generated/calendar";
 import { FilterIcon } from "@/components/icons/erp/generated/filter";
 import { Button } from "@/components/ui/button";
+import { downloadFinanceDashboardExport } from "@/features/college-admin/api/finance-dashboard";
 import {
   CollegeAdminChevronRight,
   CollegeAdminDownload,
@@ -17,6 +19,7 @@ import {
 } from "@/features/college-admin/components/ui/college-admin-kpi-card";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
 import { useFinanceDashboardPage } from "@/features/college-admin/hooks/use-finance-dashboard";
+import { useFinanceCreationFlowOptional } from "@/features/college-admin/context/finance-creation-flow-context";
 import type { FinanceProgrammeCollectionItem } from "@/features/college-admin/types/finance-dashboard";
 import { cn } from "@/lib/utils";
 
@@ -143,7 +146,15 @@ export function FinanceDashboard() {
     [page, academicYear, programme],
   );
 
+  const flow = useFinanceCreationFlowOptional();
   const { data, isLoading, isError, error, refetch, isFetching } = useFinanceDashboardPage(queryParams);
+
+  const workflowStepIndex = useMemo(() => {
+    const steps = data?.workflow_steps;
+    if (!steps?.length) return 0;
+    const active = steps.findIndex((s) => s.status === "active");
+    return active >= 0 ? active : 0;
+  }, [data?.workflow_steps]);
 
   useEffect(() => {
     if (data?.selected_academic_year && !academicYear) {
@@ -156,49 +167,36 @@ export function FinanceDashboard() {
   }, [academicYear, programme]);
 
   const handleExport = useCallback(() => {
-    if (!data) return;
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `finance-dashboard-${new Date(data.generated_at).toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [data]);
+    void downloadFinanceDashboardExport({
+      academic_year_code: academicYear || undefined,
+      programme_code: programme || undefined,
+    }).catch(() => undefined);
+  }, [academicYear, programme]);
+
+  const ayOptions = useMemo(
+    () =>
+      data?.academic_year_options?.map((o) => ({
+        value: o.value,
+        label: formatAyLabel(o.label),
+      })) ?? [],
+    [data?.academic_year_options],
+  );
 
   return (
-    <div className="space-y-5" data-figma-frame="160:2199">
-      <div className="flex flex-col gap-4">
-        <CollegeAdminModulePageHeading title={data?.page_title ?? "Finance Dashboard"} subtitle={data?.page_subtitle ?? "Fee collection and payment monitoring"} actions={<><Button
-              type="button"
-              variant="outline"
-              className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
-              onClick={handleExport}
-              disabled={isLoading || !data}
-            >
-              <CollegeAdminDownload className="size-3.5" />
-              {data?.export_label ?? "Export"}
-            </Button>
-            <Link
-              href={data?.open_portal_href ?? "/college-admin/dashboard/finance-summary"}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-            >
-              {data?.open_portal_label ?? "Open Finance portal"}
-              <CollegeAdminChevronRight className="size-3.5" aria-hidden />
-            </Link></>} />
+    <CollegeAdminModulePageLayout figmaFrame="160:2199" showInnerSubNav={false}>
+      <CollegeAdminModulePageHeading
+        title={data?.page_title ?? "Finance Dashboard"}
+        subtitle={data?.page_subtitle ?? "Fee collection and payment monitoring"}
+      />
 
+      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <FilterSelect
             icon={<CalendarIcon className="size-3.5" aria-hidden />}
             label={data?.academic_year_filter_label ?? "Academic year"}
             value={academicYear}
             onChange={setAcademicYear}
-            options={
-              data?.academic_year_options?.map((o) => ({
-                value: o.value,
-                label: formatAyLabel(o.label),
-              })) ?? []
-            }
+            options={ayOptions}
           />
           <FilterSelect
             icon={<FilterIcon className="size-3.5" aria-hidden />}
@@ -210,6 +208,26 @@ export function FinanceDashboard() {
           {isFetching && !isLoading ? (
             <span className="text-[12px] text-[#9ca3af]">Updating…</span>
           ) : null}
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-9 gap-1.5 border-[#dce3ec] text-xs font-medium text-[#374151]"
+            onClick={handleExport}
+            disabled={isLoading || isFetching}
+          >
+            <CollegeAdminDownload className="size-3.5" aria-hidden />
+            {data?.export_label ?? "Export"}
+          </Button>
+          <button
+            type="button"
+            onClick={() => flow?.openCreation({ stepIndex: workflowStepIndex })}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
+          >
+            {data?.open_portal_label ?? "Open Finance portal"}
+            <CollegeAdminChevronRight className="size-3.5" aria-hidden />
+          </button>
         </div>
       </div>
 
@@ -329,6 +347,6 @@ export function FinanceDashboard() {
           </>
         ) : null}
       </QueryState>
-    </div>
+    </CollegeAdminModulePageLayout>
   );
 }

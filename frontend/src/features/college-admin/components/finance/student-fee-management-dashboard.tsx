@@ -2,13 +2,21 @@
 import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
-import { CollegeAdminPrimaryLink } from "@/features/college-admin/components/ui/college-admin-page-buttons";
+import {
+  CollegeAdminOutlineButton,
+  CollegeAdminPrimaryButton,
+} from "@/features/college-admin/components/ui/college-admin-page-buttons";
 import {
   CollegeAdminKpiGrid,
   CollegeAdminUserDashboardKpiCard,
 } from "@/features/college-admin/components/ui/college-admin-kpi-card";
+import {
+  StudentFeeAssignModal,
+  type StudentFeeAssignTab,
+} from "@/features/college-admin/components/finance/student-fee-assign-modal";
 import {
   CollegeAdminPanelEmptyState,
   CollegeAdminTablePanel,
@@ -96,12 +104,66 @@ function Pagination({
   );
 }
 
+function AssignFeeActions({
+  assignStudentLabel,
+  assignGroupLabel,
+  bulkLabel,
+  onOpen,
+  centered,
+}: {
+  assignStudentLabel: string;
+  assignGroupLabel: string;
+  bulkLabel: string;
+  onOpen: (tab: StudentFeeAssignTab) => void;
+  centered?: boolean;
+}) {
+  return (
+    <div className={cn("flex flex-wrap gap-2", centered ? "justify-center" : "justify-end")}>
+      <CollegeAdminOutlineButton type="button" onClick={() => onOpen("single")}>
+        {assignStudentLabel}
+      </CollegeAdminOutlineButton>
+      <CollegeAdminOutlineButton type="button" onClick={() => onOpen("group")}>
+        {assignGroupLabel}
+      </CollegeAdminOutlineButton>
+      <CollegeAdminPrimaryButton type="button" onClick={() => onOpen("bulk")}>
+        <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={bulkLabel} />
+      </CollegeAdminPrimaryButton>
+    </div>
+  );
+}
+
 export function StudentFeeManagementDashboard() {
   const [page, setPage] = useState(1);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assignTab, setAssignTab] = useState<StudentFeeAssignTab>("single");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const { data, isLoading, isError, error, refetch } = useStudentFeeManagementPage({ page });
 
-  const bulkHref = data?.bulk_assign_href ?? "/college-admin/finance/student-fee-management?bulk=1";
   const headers = data?.table_headers ?? [];
+  const showHeaderActions = !data || data.student_fees.length > 0;
+
+  const openAssign = useCallback((tab: StudentFeeAssignTab) => {
+    setAssignTab(tab);
+    setAssignOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get("bulk") !== "1" || assignOpen) return;
+    openAssign("bulk");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("bulk");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [assignOpen, openAssign, pathname, router, searchParams]);
+
+  const labels = {
+    assignStudent: data?.assign_student_label ?? "Assign student",
+    assignGroup: data?.assign_group_label ?? "Assign group",
+    bulk: data?.bulk_assign_label ?? "Bulk import",
+  };
 
   return (
     <div className="space-y-5" data-figma-frame="160:2938">
@@ -114,9 +176,14 @@ export function StudentFeeManagementDashboard() {
             {data?.page_subtitle ?? "Assign fees to students after assessment"}
           </p>
         </div>
-        <CollegeAdminPrimaryLink href={bulkHref} className="shrink-0">
-          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.bulk_assign_label ?? "Bulk assign"} />
-        </CollegeAdminPrimaryLink>
+        {showHeaderActions ? (
+          <AssignFeeActions
+            assignStudentLabel={labels.assignStudent}
+            assignGroupLabel={labels.assignGroup}
+            bulkLabel={labels.bulk}
+            onOpen={openAssign}
+          />
+        ) : null}
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -188,11 +255,15 @@ export function StudentFeeManagementDashboard() {
                 <CollegeAdminPanelEmptyState
                   iconSlug="users"
                   title="No student fee assessments yet"
-                  description="Assess fees for students from published fee structures, then finalise amounts with concessions or scholarships as needed."
+                  description="Assign a published fee structure to one student, a programme group (e.g. semester cohort), or import rows from CSV/Excel."
                   action={
-                    <CollegeAdminPrimaryLink href={bulkHref}>
-                      <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.bulk_assign_label} />
-                    </CollegeAdminPrimaryLink>
+                    <AssignFeeActions
+                      assignStudentLabel={labels.assignStudent}
+                      assignGroupLabel={labels.assignGroup}
+                      bulkLabel={labels.bulk}
+                      onOpen={openAssign}
+                      centered
+                    />
                   }
                 />
               )}
@@ -200,6 +271,12 @@ export function StudentFeeManagementDashboard() {
           </>
         ) : null}
       </QueryState>
+
+      <StudentFeeAssignModal
+        open={assignOpen}
+        initialTab={assignTab}
+        onClose={() => setAssignOpen(false)}
+      />
     </div>
   );
 }

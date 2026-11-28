@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { CircleCheckIcon } from "@/components/icons/erp/generated/circle-check";
 import { InfoIcon } from "@/components/icons/erp/generated/info";
@@ -9,19 +11,22 @@ import {
   CollegeAdminKpiGrid,
   CollegeAdminUserDashboardKpiCard,
 } from "@/features/college-admin/components/ui/college-admin-kpi-card";
-import { CollegeAdminPrimaryLink } from "@/features/college-admin/components/ui/college-admin-page-buttons";
+import { CollegeAdminPrimaryButton } from "@/features/college-admin/components/ui/college-admin-page-buttons";
 import { CollegeAdminRefreshCw } from "@/features/college-admin/components/layout/college-admin-erp-icons";
 import { FinancePaymentPagination, FinancePaymentStatusPill } from "@/features/college-admin/components/finance/finance-payment-ui";
 import { FinancePaymentsSubNav } from "@/features/college-admin/components/finance/finance-payments-sub-nav";
 import { CollegeAdminPanelEmptyState } from "@/features/college-admin/components/ui/dashboard-panel-ui";
 import { QueryState } from "@/features/college-admin/components/ui/query-state";
+import { verifyPendingOnlinePayments } from "@/features/college-admin/api/finance-payments";
 import { useOnlinePaymentMonitoringPage } from "@/features/college-admin/hooks/use-online-payment-monitoring";
+import { collegeAdminQueryKeys } from "@/features/college-admin/query-keys";
 import { cn } from "@/lib/utils";
 
 function GatewayBadge({ label, tone }: { label: string; tone: string }) {
   const styles: Record<string, string> = {
     success: "bg-[#ecfdf5] text-[#047857]",
     warning: "bg-[#fff7ed] text-[#c2410c]",
+    muted: "bg-[#f3f4f6] text-[#6b7280]",
   };
   const key = tone in styles ? tone : "success";
   return (
@@ -33,7 +38,37 @@ function GatewayBadge({ label, tone }: { label: string; tone: string }) {
 
 export function OnlinePaymentMonitoringDashboard() {
   const [page, setPage] = useState(1);
+  const [verifyMessage, setVerifyMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data, isLoading, isError, error, refetch } = useOnlinePaymentMonitoringPage({ page });
+
+  const verifyMutation = useMutation({
+    mutationFn: verifyPendingOnlinePayments,
+    onSuccess: async (result) => {
+      setVerifyMessage(`Verified ${result.verified} of ${result.attempted} pending transaction(s).`);
+      await queryClient.invalidateQueries({ queryKey: collegeAdminQueryKeys.onlinePaymentMonitoringPage() });
+    },
+    onError: (err) => {
+      setVerifyMessage(err instanceof Error ? err.message : "Could not verify pending payments");
+    },
+  });
+
+  const runVerify = useCallback(() => {
+    setVerifyMessage(null);
+    verifyMutation.mutate();
+  }, [verifyMutation]);
+
+  useEffect(() => {
+    if (searchParams.get("verify") !== "1" || verifyMutation.isPending) return;
+    runVerify();
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("verify");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [pathname, router, runVerify, searchParams, verifyMutation.isPending]);
 
   return (
     <div className="space-y-5" data-figma-frame="finance-payments-online">
@@ -48,14 +83,17 @@ export function OnlinePaymentMonitoringDashboard() {
             {data?.page_subtitle ?? "Gateway transactions and settlements"}
           </p>
         </div>
-        <CollegeAdminPrimaryLink
-          href={data?.verify_pending_href ?? "/college-admin/finance/online-payment-monitoring?verify=1"}
+        <CollegeAdminPrimaryButton
+          type="button"
           className="shrink-0 gap-1.5"
+          disabled={!data || data.verify_pending_count === 0 || verifyMutation.isPending}
+          onClick={runVerify}
         >
-          <CollegeAdminRefreshCw className="size-3.5" aria-hidden />
+          <CollegeAdminRefreshCw className={cn("size-3.5", verifyMutation.isPending && "animate-spin")} aria-hidden />
           {data?.verify_pending_label ?? "Verify pending"}
-        </CollegeAdminPrimaryLink>
+        </CollegeAdminPrimaryButton>
       </div>
+      {verifyMessage ? <p className="text-[13px] text-[#047857]">{verifyMessage}</p> : null}
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
         {data ? (
@@ -111,7 +149,10 @@ export function OnlinePaymentMonitoringDashboard() {
                     </table>
                   </div>
                 ) : (
-                  <CollegeAdminPanelEmptyState title="No online transactions yet" />
+                  <CollegeAdminPanelEmptyState
+                    title="No online transactions yet"
+                    description="Successful gateway payments for this month will appear here."
+                  />
                 )}
                 <div className="flex flex-col gap-3 border-t border-[#f1f5f9] px-5 py-3 text-[12px] text-[#6b7280] sm:flex-row sm:items-center sm:justify-between">
                   <span>{data.showing_label}</span>
@@ -124,6 +165,11 @@ export function OnlinePaymentMonitoringDashboard() {
               <aside className="rounded-xl border border-[#e8ecf2] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 <h3 className="text-[14px] font-semibold text-[#111827]">{data.gateways_section_title}</h3>
                 <ul className="mt-4 space-y-4">
+                  {data.gateway_items.length === 0 ? (
+                    <li className="text-[12px] leading-relaxed text-[#6b7280]">
+                      {data.gateways_empty_message ?? "No payment gateways configured."}
+                    </li>
+                  ) : null}
                   {data.gateway_items.map((item) => (
                     <li key={item.gateway_key} className="flex items-start justify-between gap-2">
                       <div className="flex gap-2">

@@ -4,6 +4,7 @@ import { LmsDashboard } from "@/features/college-admin/components/lms/lms-dashbo
 import { LmsCourseManagementDashboard } from "@/features/college-admin/components/lms/lms-course-management-dashboard";
 import { LmsSubjectCourseMappingDashboard } from "@/features/college-admin/components/lms/lms-subject-course-mapping-dashboard";
 import { LmsLearningMaterialManagementDashboard } from "@/features/college-admin/components/lms/lms-learning-material-management-dashboard";
+import { LmsUnitChapterManagementDashboard } from "@/features/college-admin/components/lms/lms-unit-chapter-management-dashboard";
 import { LmsVideoLectureManagementDashboard } from "@/features/college-admin/components/lms/lms-video-lecture-management-dashboard";
 import { LmsAssignmentManagementDashboard } from "@/features/college-admin/components/lms/lms-assignment-management-dashboard";
 import { LmsQuizManagementDashboard } from "@/features/college-admin/components/lms/lms-quiz-management-dashboard";
@@ -12,11 +13,8 @@ import { LmsStudentLearningProgressDashboard } from "@/features/college-admin/co
 import { LmsFacultyContentManagementDashboard } from "@/features/college-admin/components/lms/lms-faculty-content-management-dashboard";
 import { LmsReportsDashboard } from "@/features/college-admin/components/lms/lms-reports-dashboard";
 import { LmsSettingsDashboard } from "@/features/college-admin/components/lms/lms-settings-dashboard";
-import { FormPlaceholder } from "@/features/college-admin/components/ui/college-admin-screen-ui";
 import { GenericModuleScreen } from "@/features/college-admin/components/modules/generic-module-screen";
 import { resolveModuleEndpoint } from "@/features/college-admin/config/module-endpoint-resolver";
-
-const FORM_SLUGS = new Set(["unit-chapter-management"]);
 
 export function LmsScreen({ slug, title }: { slug: string; title: string }) {
   const { apiPath, viewType } = resolveModuleEndpoint("lms", slug);
@@ -31,6 +29,9 @@ export function LmsScreen({ slug, title }: { slug: string; title: string }) {
   }
   if (slug === "learning-material-management") {
     return <LmsLearningMaterialManagementDashboard />;
+  }
+  if (slug === "unit-chapter-management") {
+    return <LmsUnitChapterManagementDashboard />;
   }
   if (slug === "video-lecture-management") {
     return <LmsVideoLectureManagementDashboard />;
@@ -55,9 +56,6 @@ export function LmsScreen({ slug, title }: { slug: string; title: string }) {
   }
   if (slug === "lms-settings") {
     return <LmsSettingsDashboard />;
-  }
-  if (FORM_SLUGS.has(slug)) {
-    return <FormPlaceholder title={title} description="LMS administration workflow (Figma CA 15)." />;
   }
   return (
     <GenericModuleScreen

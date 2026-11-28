@@ -178,8 +178,9 @@ async def get_lms_learning_material_management_page(
     return LmsLearningMaterialManagementPageRead(
         page_title="Learning Material Management",
         page_subtitle="Documents, slides and links",
+        export_label="Export",
         primary_action_label="Upload material",
-        primary_action_href="/college-admin/lms/faculty-content-management?focus=upload-material",
+        primary_action_href="/college-admin/lms/learning-material-management?action=upload",
         materials_section_title="Learning materials",
         table_headers=["Material", "Course", "Type", "Uploaded by", "Date", "Status"],
         material_rows=paged,
@@ -260,8 +261,9 @@ async def get_lms_video_lecture_management_page(
     return LmsVideoLectureManagementPageRead(
         page_title="Video Lecture Management",
         page_subtitle="Recorded lectures and streaming",
+        export_label="Export",
         primary_action_label="Add video",
-        primary_action_href="/college-admin/lms/faculty-content-management?focus=upload-video",
+        primary_action_href="/college-admin/lms/video-lecture-management?action=upload",
         kpis=[
             UserDashboardKpi(
                 key="videos",

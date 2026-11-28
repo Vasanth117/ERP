@@ -2,7 +2,8 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import PlainTextResponse
 
 from app.api.deps import get_access_scope
 from app.common.access import AccessScope
@@ -20,10 +21,17 @@ from app.modules.college_admin.lms_assessments_page_service import (
     get_lms_assignment_management_page,
     get_lms_quiz_management_page,
 )
+from app.modules.college_admin.lms_content_admin_service import (
+    export_lms_learning_materials_csv,
+    export_lms_units_chapters_csv,
+    export_lms_video_lectures_csv,
+    upload_lms_content_material,
+)
 from app.modules.college_admin.lms_content_page_service import (
     get_lms_learning_material_management_page,
     get_lms_video_lecture_management_page,
 )
+from app.modules.college_admin.lms_unit_chapter_page_service import get_lms_unit_chapter_management_page
 from app.modules.college_admin.lms_courses_mapping_page_service import (
     auto_map_lms_subject_courses,
     get_lms_course_management_page,
@@ -36,6 +44,7 @@ from app.modules.college_admin.schemas import (
     LmsCourseManagementPageRead,
     LmsDashboardPageRead,
     LmsLearningMaterialManagementPageRead,
+    LmsUnitChapterManagementPageRead,
     LmsFacultyContentManagementPageRead,
     LmsQuizManagementPageRead,
     LmsReportScheduleCreate,
@@ -215,6 +224,82 @@ async def lms_assessment_management_page_route(
     return success_response(
         await get_lms_assessment_management_page(scope, page=page, page_size=page_size),
         request_id=get_request_id(),
+    )
+
+
+@router.get("/units-chapters/management/page", response_model=ApiResponse[LmsUnitChapterManagementPageRead])
+async def lms_unit_chapter_management_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    course_code: Annotated[str | None, Query()] = None,
+):
+    return success_response(
+        await get_lms_unit_chapter_management_page(scope, course_code=course_code),
+        request_id=get_request_id(),
+    )
+
+
+@router.get("/units-chapters/management/export")
+async def lms_unit_chapter_management_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    course_code: Annotated[str | None, Query()] = None,
+):
+    csv_text = await export_lms_units_chapters_csv(scope, course_code=course_code)
+    suffix = f"-{course_code.upper()}" if course_code else ""
+    return PlainTextResponse(
+        content=csv_text,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="lms-units-chapters{suffix}.csv"'},
+    )
+
+
+@router.post("/learning-materials/management/upload", response_model=ApiResponse[dict])
+async def lms_learning_material_upload_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    user: Annotated[User, Depends(college_admin_user)],
+    course_code: Annotated[str, Form()],
+    title: Annotated[str, Form()],
+    unit_no: Annotated[int | None, Form()] = None,
+    material_kind: Annotated[str, Form()] = "document",
+    file: UploadFile = File(...),
+):
+    try:
+        payload = await upload_lms_content_material(
+            scope,
+            user,
+            course_code=course_code,
+            title=title,
+            unit_no=unit_no,
+            material_kind=material_kind,
+            upload=file,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return success_response(payload, request_id=get_request_id())
+
+
+@router.get("/learning-materials/management/export")
+async def lms_learning_material_management_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    return PlainTextResponse(
+        content=await export_lms_learning_materials_csv(scope),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="lms-learning-materials.csv"'},
+    )
+
+
+@router.get("/video-lectures/management/export")
+async def lms_video_lecture_management_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    return PlainTextResponse(
+        content=await export_lms_video_lectures_csv(scope),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="lms-video-lectures.csv"'},
     )
 
 

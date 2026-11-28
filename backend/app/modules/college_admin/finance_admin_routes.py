@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import PlainTextResponse
 
 from app.api.deps import get_access_scope, pagination_params
 from app.common.access import AccessScope
@@ -13,7 +14,9 @@ from app.modules.auth.models import User
 from app.modules.college_admin.deps import college_admin_user
 from app.modules.college_admin.finance_admin_schemas import (
     ConcessionCreate,
+    FeeAssessmentBulkAssign,
     FeeAssessmentCreate,
+    FeeAssessmentGroupAssign,
     FeeStructureRead,
     FeeStructureUpsert,
     FinancialPeriodUpsert,
@@ -24,6 +27,8 @@ from app.modules.college_admin.finance_admin_schemas import (
 from app.modules.college_admin.finance_admin_service import (
     approve_concession,
     create_concession,
+    assign_fee_assessments_bulk,
+    assign_fee_assessments_group,
     create_fee_assessment,
     decide_refund,
     finance_report,
@@ -40,12 +45,15 @@ from app.modules.college_admin.fee_structure_management_page_service import get_
 from app.modules.college_admin.fee_demand_invoice_management_page_service import (
     get_fee_demand_invoice_management_page,
 )
+from app.modules.college_admin.student_fee_assign_page_service import get_student_fee_assign_page
 from app.modules.college_admin.student_fee_management_page_service import get_student_fee_management_page
-from app.modules.college_admin.finance_dashboard_page_service import get_finance_dashboard_page
+from app.modules.college_admin.fee_structure_creation_page_service import get_fee_structure_creation_page
+from app.modules.college_admin.finance_dashboard_page_service import export_finance_dashboard_csv, get_finance_dashboard_page
 from app.modules.college_admin.finance_payments_pages_service import (
     get_offline_payment_collection_page,
     get_online_payment_monitoring_page,
     get_payment_transactions_page,
+    verify_pending_online_payments,
 )
 from app.modules.college_admin.finance_aid_pages_service import (
     get_concession_waiver_management_page,
@@ -65,6 +73,7 @@ from app.modules.college_admin.finance_receipts_dues_pages_service import (
     get_receipt_management_page,
 )
 from app.modules.college_admin.schemas import (
+    FeeStructureCreationPageRead,
     FeeStructureManagementPageRead,
     FinanceDashboardPageRead,
     FeeDemandInvoiceManagementPageRead,
@@ -80,6 +89,7 @@ from app.modules.college_admin.schemas import (
     ReceiptManagementPageRead,
     RefundManagementPageRead,
     ScholarshipManagementPageRead,
+    StudentFeeAssignPageRead,
     StudentFeeManagementPageRead,
 )
 
@@ -98,6 +108,14 @@ async def fee_demand_invoice_management_page_route(
     )
 
 
+@router.get("/assessments/assign/page", response_model=ApiResponse[StudentFeeAssignPageRead])
+async def student_fee_assign_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[StudentFeeAssignPageRead]:
+    return success_response(await get_student_fee_assign_page(scope), request_id=get_request_id())
+
+
 @router.get("/assessments/page", response_model=ApiResponse[StudentFeeManagementPageRead])
 async def student_fee_management_page_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
@@ -108,6 +126,14 @@ async def student_fee_management_page_route(
         await get_student_fee_management_page(scope, page=page),
         request_id=get_request_id(),
     )
+
+
+@router.get("/fee-structures/create/page", response_model=ApiResponse[FeeStructureCreationPageRead])
+async def fee_structure_creation_page_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+):
+    return success_response(await get_fee_structure_creation_page(scope), request_id=get_request_id())
 
 
 @router.get("/fee-structures/page", response_model=ApiResponse[FeeStructureManagementPageRead])
@@ -235,6 +261,14 @@ async def online_payment_monitoring_page_route(
     )
 
 
+@router.post("/payments/online/verify-pending", response_model=ApiResponse[dict])
+async def verify_pending_online_payments_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(await verify_pending_online_payments(scope), request_id=get_request_id())
+
+
 @router.get("/payments/offline/page", response_model=ApiResponse[OfflinePaymentCollectionPageRead])
 async def offline_payment_collection_page_route(
     scope: Annotated[AccessScope, Depends(get_access_scope)],
@@ -267,6 +301,24 @@ async def payment_transactions_page_route(
             status=status,
         ),
         request_id=get_request_id(),
+    )
+
+
+@router.get("/dashboard/export")
+async def finance_dashboard_export_route(
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+    academic_year_code: Annotated[str | None, Query()] = None,
+    programme_code: Annotated[str | None, Query()] = None,
+):
+    return PlainTextResponse(
+        content=await export_finance_dashboard_csv(
+            scope,
+            academic_year_code=academic_year_code,
+            programme_code=programme_code,
+        ),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="finance-dashboard.csv"'},
     )
 
 
@@ -314,6 +366,24 @@ async def assessment_route(
     _: Annotated[User, Depends(college_admin_user)],
 ) -> ApiResponse[dict]:
     return success_response(await create_fee_assessment(scope, payload), request_id=get_request_id())
+
+
+@router.post("/assessments/assign/group", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)
+async def assessment_group_assign_route(
+    payload: FeeAssessmentGroupAssign,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(await assign_fee_assessments_group(scope, payload), request_id=get_request_id())
+
+
+@router.post("/assessments/assign/bulk", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)
+async def assessment_bulk_assign_route(
+    payload: FeeAssessmentBulkAssign,
+    scope: Annotated[AccessScope, Depends(get_access_scope)],
+    _: Annotated[User, Depends(college_admin_user)],
+) -> ApiResponse[dict]:
+    return success_response(await assign_fee_assessments_bulk(scope, payload), request_id=get_request_id())
 
 
 @router.post("/collections/offline", response_model=ApiResponse[dict], status_code=status.HTTP_201_CREATED)

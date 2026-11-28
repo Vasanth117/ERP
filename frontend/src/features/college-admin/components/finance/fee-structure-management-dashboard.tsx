@@ -4,6 +4,8 @@ import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components
 import Link from "next/link";
 import { useState } from "react";
 
+import { useFinanceCreationFlowOptional } from "@/features/college-admin/context/finance-creation-flow-context";
+
 import { InfoIcon } from "@/components/icons/erp/generated/info";
 import { CollegeAdminPrimaryLink } from "@/features/college-admin/components/ui/college-admin-page-buttons";
 import {
@@ -93,10 +95,11 @@ function Pagination({
 
 export function FeeStructureManagementDashboard() {
   const [page, setPage] = useState(1);
+  const flow = useFinanceCreationFlowOptional();
   const { data, isLoading, isError, error, refetch } = useFeeStructureManagementPage({ page });
 
-  const createHref = data?.create_fee_structure_href ?? "/college-admin/finance/fee-structure-management?create=1";
   const headers = data?.table_headers ?? [];
+  const showHeaderCreate = !data || data.structures.length > 0;
 
   return (
     <div className="space-y-5" data-figma-frame="160:2630">
@@ -109,9 +112,21 @@ export function FeeStructureManagementDashboard() {
             {data?.page_subtitle ?? "Approved fee structures by programme and semester"}
           </p>
         </div>
-        <CollegeAdminPrimaryLink href={createHref} className="shrink-0">
-          <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data?.create_fee_structure_label ?? "Create fee structure"} />
-        </CollegeAdminPrimaryLink>
+        {showHeaderCreate ? (
+          <CollegeAdminPrimaryLink
+            href="#"
+            className="shrink-0"
+            onClick={(e) => {
+              e.preventDefault();
+              flow?.openCreation({ stepIndex: 0 });
+            }}
+          >
+            <CollegeAdminPlusActionLabel
+              iconClassName="size-3.5"
+              label={data?.create_fee_structure_label ?? "Create fee structure"}
+            />
+          </CollegeAdminPrimaryLink>
+        ) : null}
       </div>
 
       <QueryState isLoading={isLoading} isError={isError} error={error} onRetry={() => void refetch()}>
@@ -176,7 +191,13 @@ export function FeeStructureManagementDashboard() {
                   title="No fee structures yet"
                   description="Create a fee structure for each programme and semester. Published structures drive student fee assessments and demands."
                   action={
-                    <CollegeAdminPrimaryLink href={createHref}>
+                    <CollegeAdminPrimaryLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        flow?.openCreation({ stepIndex: 0 });
+                      }}
+                    >
                       <CollegeAdminPlusActionLabel iconClassName="size-3.5" label={data.create_fee_structure_label} />
                     </CollegeAdminPrimaryLink>
                   }

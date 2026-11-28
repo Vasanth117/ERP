@@ -17,6 +17,8 @@ export type StudentFeeManagementTableRow = {
 export type StudentFeeManagementPage = {
   page_title: string;
   page_subtitle: string;
+  assign_student_label: string;
+  assign_group_label: string;
   bulk_assign_label: string;
   bulk_assign_href: string;
   kpis: { key: string; label: string; value: string; hint_line: string; hint_tone: string }[];

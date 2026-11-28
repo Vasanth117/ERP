@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import math
 from collections import defaultdict
 from zoneinfo import ZoneInfo
@@ -345,19 +347,25 @@ async def get_finance_dashboard_page(
         else "Fee collection, demands and payment monitoring"
     )
 
+    workflow_steps = _workflow_steps(active_key)
+    portal_href = next(
+        (step.href for step in workflow_steps if step.status == "active" and step.href),
+        "/college-admin/finance/fee-structure-management",
+    )
+
     return FinanceDashboardPageRead(
         page_title="Finance Dashboard",
         page_subtitle=page_subtitle,
         export_label="Export",
         open_portal_label="Open Finance portal",
-        open_portal_href="/college-admin/dashboard/finance-summary",
+        open_portal_href=portal_href,
         academic_year_filter_label="Academic year",
         programme_filter_label="Programme",
         academic_year_options=ay_options,
         programme_options=programme_options,
         selected_academic_year=selected_ay,
         selected_programme_code=programme_code or "",
-        workflow_steps=_workflow_steps(active_key),
+        workflow_steps=workflow_steps,
         kpis=kpis,
         transactions_section_title="Payment transactions",
         transactions_count_label=f"{total_tx:,} transactions" if total_tx else "0 transactions",
@@ -377,3 +385,54 @@ async def get_finance_dashboard_page(
         programme_collection_items=programme_collection_items,
         generated_at=now,
     )
+
+
+async def export_finance_dashboard_csv(
+    scope: AccessScope,
+    *,
+    academic_year_code: str | None = None,
+    programme_code: str | None = None,
+) -> str:
+    first_page = await get_finance_dashboard_page(
+        scope,
+        page=1,
+        academic_year_code=academic_year_code,
+        programme_code=programme_code,
+    )
+    transaction_rows: list[FinanceDashboardTransactionRow] = []
+    total_pages = max(1, first_page.pagination.total_pages or 1)
+    for page_no in range(1, total_pages + 1):
+        chunk = await get_finance_dashboard_page(
+            scope,
+            page=page_no,
+            academic_year_code=academic_year_code,
+            programme_code=programme_code,
+        )
+        transaction_rows.extend(chunk.transaction_rows)
+
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["Academic year", first_page.selected_academic_year or "—"])
+    writer.writerow(["Programme", first_page.selected_programme_code or "All programmes"])
+    writer.writerow([])
+    writer.writerow(["KPI", "Value", "Hint"])
+    for kpi in first_page.kpis:
+        writer.writerow([kpi.label, kpi.value, kpi.hint_line])
+    writer.writerow([])
+    writer.writerow(["Programme / department", "Collection %"])
+    for item in first_page.programme_collection_items:
+        writer.writerow([item.label, f"{item.collection_percent}%"])
+    writer.writerow([])
+    writer.writerow(first_page.table_headers)
+    for row in transaction_rows:
+        writer.writerow(
+            [
+                row.transaction_id,
+                row.student_name,
+                row.invoice_label,
+                row.method_label,
+                row.amount_label,
+                row.status_label,
+            ]
+        )
+    return buffer.getvalue()

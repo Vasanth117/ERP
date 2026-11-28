@@ -2,9 +2,12 @@
 
 import { CollegeAdminModulePageLayout } from "@/features/college-admin/components/layout/college-admin-module-page-layout";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { CollegeAdminPlusActionLabel } from "@/features/college-admin/components/ui/college-admin-plus-action";
+import { downloadLmsVideoLecturesExport } from "@/features/college-admin/api/lms-content";
+import { LmsContentPageHeaderActions } from "@/features/college-admin/components/lms/lms-content-page-header-actions";
+import { LmsContentUploadDialog } from "@/features/college-admin/components/lms/lms-content-upload-dialog";
 import {
   CollegeAdminKpiGrid,
   CollegeAdminUserDashboardKpiCard,
@@ -109,6 +112,7 @@ function mergeView(data: LmsVideoLectureManagementPage | undefined) {
   return {
     page_title: data?.page_title ?? "",
     page_subtitle: data?.page_subtitle ?? "",
+    export_label: data?.export_label ?? "Export",
     primary_action_label: data?.primary_action_label ?? "",
     primary_action_href: data?.primary_action_href ?? "#",
     kpis: data?.kpis ?? [],
@@ -122,13 +126,25 @@ function mergeView(data: LmsVideoLectureManagementPage | undefined) {
 }
 
 export function LmsVideoLectureManagementDashboard() {
+  const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
+  const [uploadOpen, setUploadOpen] = useState(false);
   const queryParams = useMemo(() => ({ page, page_size: 3 }), [page]);
   const { data, isLoading, isError, error, refetch, isFetching } = useLmsVideoLectureManagementPage(queryParams);
   const view = mergeView(data);
 
+  useEffect(() => {
+    if (searchParams.get("action") === "upload") {
+      setUploadOpen(true);
+    }
+  }, [searchParams]);
+
+  const handleExport = useCallback(() => {
+    void downloadLmsVideoLecturesExport().catch(() => undefined);
+  }, []);
+
   return (
-    <CollegeAdminModulePageLayout figmaFrame="161:11567">
+    <CollegeAdminModulePageLayout figmaFrame="161:12317">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-[22px] font-bold tracking-[-0.02em] text-[#111827]">
@@ -138,13 +154,22 @@ export function LmsVideoLectureManagementDashboard() {
             <p className="mt-1 text-[14px] text-[#6b7280]">{view.page_subtitle}</p>
           ) : null}
         </div>
-        <Link
-          href={view.primary_action_href}
-          className="inline-flex h-9 shrink-0 items-center rounded-md bg-[#245dd8] px-4 text-xs font-medium text-white hover:bg-[#1f4fb8]"
-        >
-          <CollegeAdminPlusActionLabel label={view.primary_action_label || "Add video"} />
-        </Link>
+        <LmsContentPageHeaderActions
+          exportLabel={view.export_label}
+          exportDisabled={isLoading || isFetching}
+          onExport={handleExport}
+          primaryLabel={view.primary_action_label || "Add video"}
+          primaryMode="plus"
+          onPrimaryClick={() => setUploadOpen(true)}
+        />
       </div>
+
+      <LmsContentUploadDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        materialKind="video"
+        dialogTitle="Add video lecture"
+      />
 
       {isLoading || isFetching ? (
         <p className="text-[12px] text-[#9ca3af]">{isLoading ? "Loading videos…" : "Updating…"}</p>
